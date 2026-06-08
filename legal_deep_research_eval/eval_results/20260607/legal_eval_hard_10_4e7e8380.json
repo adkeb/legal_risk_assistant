@@ -1,0 +1,1846 @@
+{
+  "eval_id": "legal_eval_hard_10_4e7e8380",
+  "task_id": "HARD_10",
+  "session_id": "legal-batch-hard_10-59b42ac1",
+  "overall_score": 8.69,
+  "goal_scores": {
+    "research_quality": 8.81,
+    "research_process": 8.99,
+    "business_effect": 7.73
+  },
+  "dimensions": {
+    "legal_factuality": {
+      "score": 3.4,
+      "comment": "基于规则引擎和引用核验的确定性诊断。",
+      "metrics": {
+        "unverified_claim_rate": 0.9333333333333333,
+        "hallucination_rate": 0.03703703703703709
+      }
+    },
+    "jurisdiction_version_match": {
+      "score": 5.0,
+      "comment": "按法域和版本字段进行规则化核验。",
+      "metrics": {
+        "jurisdiction_match": true,
+        "law_version_match": true,
+        "jurisdiction_match_rate": 1.0,
+        "effective_version_match_rate": 1.0,
+        "wrong_jurisdiction_sources": [],
+        "expired_sources_used_as_current": [],
+        "cross_border": false,
+        "has_boundary_statement": true,
+        "boundary_warning": false
+      }
+    },
+    "coverage": {
+      "score": 5.0,
+      "comment": "按 Gold 必须覆盖要点粗粒度召回。",
+      "metrics": {
+        "required_points_recall": 1.0,
+        "critical_omission_count": 0,
+        "covered_points": [
+          "应将争点拆分为出资瑕疵、董事/实际控制人义务、利润分配、担保决议效力、保全条件五部分，而不是合并成泛泛公司纠纷。",
+          "应要求核验章程、出资凭证、银行流水、会计账、股东会/董事会决议、印章使用记录、关联交易文件和项目机会流向。",
+          "应结合现行公司法框架提示举证责任、公司治理文件的重要性以及保全前对债权基础和损害紧迫性的证明需求。",
+          "应给出诉讼路径选择思路，如公司诉、股东代表诉、决议效力之诉、损害赔偿或行为保全，并说明各自前提。",
+          "应明确哪些结论只能做概率判断：例如是否构成公司机会侵占、担保相对人善意与否、利润分配条件是否成熟。",
+          "应给出风险分级和证据缺口清单，不应许诺胜诉或保全必然获准。",
+          "应触发人工复核，原因是诉讼策略和保全方案高度依赖证据细节。"
+        ],
+        "missing_points": [],
+        "warnings": []
+      }
+    },
+    "evidence_chain": {
+      "score": 5.0,
+      "comment": "按 risk_item 到 evidence/source 的链路完整性评分。",
+      "metrics": {
+        "evidence_chain_complete": true,
+        "risk_with_evidence_ratio": 1.0,
+        "high_risk_dual_basis_ratio": 1.0,
+        "unsupported_high_risk_items": [],
+        "weak_evidence_risk_items": []
+      }
+    },
+    "citation_quality": {
+      "score": 4.03,
+      "comment": "综合引用匹配率和权威来源占比。",
+      "metrics": {
+        "citation_validity": false,
+        "num_citations_found": 54,
+        "num_citations_matched": 52,
+        "citation_match_rate": 0.9629629629629629,
+        "pinpoint_citation_rate": 1.0,
+        "critical_claim_citation_coverage": 0.06666666666666667,
+        "unmatched_citations": [
+          {
+            "type": "law",
+            "text": "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（三）》第十二条",
+            "title": "最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（三）",
+            "article_no": "十二条"
+          },
+          {
+            "type": "law",
+            "text": "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（四）》第十五条",
+            "title": "最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（四）",
+            "article_no": "十五条"
+          }
+        ],
+        "matched_citations": [
+          {
+            "type": "source_id",
+            "text": "source_001",
+            "matched_source_id": "source_001"
+          },
+          {
+            "type": "source_id",
+            "text": "source_002",
+            "matched_source_id": "source_002"
+          },
+          {
+            "type": "source_id",
+            "text": "source_003",
+            "matched_source_id": "source_003"
+          },
+          {
+            "type": "source_id",
+            "text": "source_004",
+            "matched_source_id": "source_004"
+          },
+          {
+            "type": "source_id",
+            "text": "source_005",
+            "matched_source_id": "source_005"
+          },
+          {
+            "type": "source_id",
+            "text": "source_006",
+            "matched_source_id": "source_006"
+          },
+          {
+            "type": "source_id",
+            "text": "source_007",
+            "matched_source_id": "source_007"
+          },
+          {
+            "type": "source_id",
+            "text": "source_008",
+            "matched_source_id": "source_008"
+          },
+          {
+            "type": "source_id",
+            "text": "source_009",
+            "matched_source_id": "source_009"
+          },
+          {
+            "type": "source_id",
+            "text": "source_010",
+            "matched_source_id": "source_010"
+          },
+          {
+            "type": "source_id",
+            "text": "source_011",
+            "matched_source_id": "source_011"
+          },
+          {
+            "type": "source_id",
+            "text": "source_012",
+            "matched_source_id": "source_012"
+          },
+          {
+            "type": "source_id",
+            "text": "source_013",
+            "matched_source_id": "source_013"
+          },
+          {
+            "type": "source_id",
+            "text": "source_014",
+            "matched_source_id": "source_014"
+          },
+          {
+            "type": "source_id",
+            "text": "source_015",
+            "matched_source_id": "source_015"
+          },
+          {
+            "type": "source_id",
+            "text": "source_016",
+            "matched_source_id": "source_016"
+          },
+          {
+            "type": "source_id",
+            "text": "source_017",
+            "matched_source_id": "source_017"
+          },
+          {
+            "type": "source_id",
+            "text": "source_018",
+            "matched_source_id": "source_018"
+          },
+          {
+            "type": "source_id",
+            "text": "source_019",
+            "matched_source_id": "source_019"
+          },
+          {
+            "type": "source_id",
+            "text": "source_020",
+            "matched_source_id": "source_020"
+          },
+          {
+            "type": "source_id",
+            "text": "source_021",
+            "matched_source_id": "source_021"
+          },
+          {
+            "type": "source_id",
+            "text": "source_022",
+            "matched_source_id": "source_022"
+          },
+          {
+            "type": "source_id",
+            "text": "source_023",
+            "matched_source_id": "source_023"
+          },
+          {
+            "type": "source_id",
+            "text": "source_024",
+            "matched_source_id": "source_024"
+          },
+          {
+            "type": "source_id",
+            "text": "source_025",
+            "matched_source_id": "source_025"
+          },
+          {
+            "type": "source_id",
+            "text": "source_026",
+            "matched_source_id": "source_026"
+          },
+          {
+            "type": "source_id",
+            "text": "source_027",
+            "matched_source_id": "source_027"
+          },
+          {
+            "type": "source_id",
+            "text": "source_028",
+            "matched_source_id": "source_028"
+          },
+          {
+            "type": "source_id",
+            "text": "source_029",
+            "matched_source_id": "source_029"
+          },
+          {
+            "type": "source_id",
+            "text": "source_030",
+            "matched_source_id": "source_030"
+          },
+          {
+            "type": "source_id",
+            "text": "source_031",
+            "matched_source_id": "source_031"
+          },
+          {
+            "type": "source_id",
+            "text": "source_032",
+            "matched_source_id": "source_032"
+          },
+          {
+            "type": "source_id",
+            "text": "source_033",
+            "matched_source_id": "source_033"
+          },
+          {
+            "type": "source_id",
+            "text": "source_034",
+            "matched_source_id": "source_034"
+          },
+          {
+            "type": "source_id",
+            "text": "source_035",
+            "matched_source_id": "source_035"
+          },
+          {
+            "type": "source_id",
+            "text": "source_036",
+            "matched_source_id": "source_036"
+          },
+          {
+            "type": "source_id",
+            "text": "source_037",
+            "matched_source_id": "source_037"
+          },
+          {
+            "type": "source_id",
+            "text": "source_038",
+            "matched_source_id": "source_038"
+          },
+          {
+            "type": "source_id",
+            "text": "source_039",
+            "matched_source_id": "source_039"
+          },
+          {
+            "type": "source_id",
+            "text": "source_040",
+            "matched_source_id": "source_040"
+          },
+          {
+            "type": "source_id",
+            "text": "source_041",
+            "matched_source_id": "source_041"
+          },
+          {
+            "type": "source_id",
+            "text": "source_042",
+            "matched_source_id": "source_042"
+          },
+          {
+            "type": "source_id",
+            "text": "source_043",
+            "matched_source_id": "source_043"
+          },
+          {
+            "type": "source_id",
+            "text": "source_044",
+            "matched_source_id": "source_044"
+          },
+          {
+            "type": "source_id",
+            "text": "source_045",
+            "matched_source_id": "source_045"
+          },
+          {
+            "type": "source_id",
+            "text": "source_046",
+            "matched_source_id": "source_046"
+          },
+          {
+            "type": "source_id",
+            "text": "source_047",
+            "matched_source_id": "source_047"
+          },
+          {
+            "type": "source_id",
+            "text": "source_048",
+            "matched_source_id": "source_048"
+          },
+          {
+            "type": "source_id",
+            "text": "source_049",
+            "matched_source_id": "source_049"
+          },
+          {
+            "type": "law",
+            "text": "《中华人民共和国公司法》第一百八十三条",
+            "title": "中华人民共和国公司法",
+            "article_no": "一百八十三条",
+            "matched_source_id": "source_037"
+          },
+          {
+            "type": "law",
+            "text": "《中华人民共和国公司法》第十五条",
+            "title": "中华人民共和国公司法",
+            "article_no": "十五条",
+            "matched_source_id": "source_018"
+          },
+          {
+            "type": "law",
+            "text": "《中华人民共和国民事诉讼法》第一百条",
+            "title": "中华人民共和国民事诉讼法",
+            "article_no": "一百条",
+            "matched_source_id": "source_020"
+          }
+        ],
+        "source_id_citation_count": 49,
+        "warnings": [],
+        "source_type_coverage": 11,
+        "official_source_ratio": 0.5555555555555556,
+        "authority_source_ratio": 0.5555555555555556,
+        "low_quality_source_ratio": 0.1111111111111111,
+        "unique_source_count": 108,
+        "legal_source_count": 29,
+        "case_source_count": 13,
+        "contract_source_count": 6,
+        "enforcement_source_count": 2,
+        "num_search_calls": 28,
+        "unique_queries": 6
+      }
+    },
+    "risk_consistency": {
+      "score": 5.0,
+      "comment": "按摘要、正文和 risk_items 的风险等级一致性估计。",
+      "metrics": {
+        "law_citation_match_rate": 0.9629629629629629,
+        "case_number_match_rate": 0.9629629629629629,
+        "critical_claim_citation_coverage": 0.06666666666666667,
+        "pinpoint_citation_rate": 1.0,
+        "jurisdiction_match_rate": 1.0,
+        "effective_version_match_rate": 1.0,
+        "risk_with_evidence_ratio": 1.0,
+        "risk_score_consistency_rate": 1.0
+      }
+    },
+    "legal_reasoning": {
+      "score": 3.1,
+      "comment": "mock judge 不作外部法律判断，仅按结构完整性保守估计。",
+      "metrics": {}
+    },
+    "legal_boundary_compliance": {
+      "score": 5.0,
+      "comment": "免责声明和结论边界检查。",
+      "metrics": {}
+    },
+    "planning_quality": {
+      "score": 5.0,
+      "comment": "规划阶段轨迹检查。",
+      "metrics": {}
+    },
+    "retrieval_process": {
+      "score": 4.8,
+      "comment": "检索调用数量和 query 去重情况。",
+      "metrics": {
+        "phase_coverage": 1.0,
+        "event_completeness_rate": 1.0,
+        "num_agent_steps": 39,
+        "num_search_calls": 28,
+        "unique_queries": 6,
+        "critic_loop_count": 6,
+        "re_research_count": 1,
+        "revision_count": 10,
+        "has_planning": true,
+        "has_researching": true,
+        "has_analyzing": true,
+        "has_writing": true,
+        "has_reviewing": true,
+        "has_completed": true
+      }
+    },
+    "authority_priority": {
+      "score": 2.78,
+      "comment": "权威来源占比。",
+      "metrics": {
+        "source_type_coverage": 11,
+        "official_source_ratio": 0.5555555555555556,
+        "authority_source_ratio": 0.5555555555555556,
+        "low_quality_source_ratio": 0.1111111111111111,
+        "unique_source_count": 108,
+        "legal_source_count": 29,
+        "case_source_count": 13,
+        "contract_source_count": 6,
+        "enforcement_source_count": 2,
+        "num_search_calls": 28,
+        "unique_queries": 6
+      }
+    },
+    "self_correction": {
+      "score": 5.0,
+      "comment": "critic/research revision 轨迹。",
+      "metrics": {
+        "phase_coverage": 1.0,
+        "event_completeness_rate": 1.0,
+        "num_agent_steps": 39,
+        "num_search_calls": 28,
+        "unique_queries": 6,
+        "critic_loop_count": 6,
+        "re_research_count": 1,
+        "revision_count": 10,
+        "has_planning": true,
+        "has_researching": true,
+        "has_analyzing": true,
+        "has_writing": true,
+        "has_reviewing": true,
+        "has_completed": true
+      }
+    },
+    "trace_completeness": {
+      "score": 5.0,
+      "comment": "关键 phase 覆盖。",
+      "metrics": {
+        "phase_coverage": 1.0,
+        "event_completeness_rate": 1.0,
+        "num_agent_steps": 39,
+        "num_search_calls": 28,
+        "unique_queries": 6,
+        "critic_loop_count": 6,
+        "re_research_count": 1,
+        "revision_count": 10,
+        "has_planning": true,
+        "has_researching": true,
+        "has_analyzing": true,
+        "has_writing": true,
+        "has_reviewing": true,
+        "has_completed": true
+      }
+    },
+    "expert_acceptability": {
+      "score": 3.1,
+      "comment": "按 fatal、覆盖和证据链保守估计。",
+      "metrics": {}
+    },
+    "editing_cost": {
+      "score": 3.5,
+      "comment": "fatal 和遗漏越多，修订成本越高。",
+      "metrics": {}
+    },
+    "business_actionability": {
+      "score": 5.0,
+      "comment": "整改建议 owner/priority/deadline/action 检查。",
+      "metrics": {
+        "actionability_score": 1.0,
+        "action_item_count": 6,
+        "has_owner": true,
+        "has_priority": true,
+        "has_deadline": true,
+        "has_action_verbs": true,
+        "weaknesses": []
+      }
+    }
+  },
+  "fatal_errors": [
+    {
+      "code": "FABRICATED_LAW_OR_CASE",
+      "message": "报告引用了 source_index 中无法匹配的法条、案号或 source_id。",
+      "evidence_ids": [
+        "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（三）》第十二条",
+        "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（四）》第十五条"
+      ],
+      "severity": "fatal"
+    }
+  ],
+  "warnings": [],
+  "auto_checks": {
+    "disclaimer_present": true,
+    "has_deterministic_legal_advice": false,
+    "citation_validity": false,
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "evidence_chain_complete": true,
+    "risk_consistency_pass": true,
+    "human_review_required_correctly_flagged": true
+  },
+  "metrics": {
+    "law_citation_match_rate": 0.9629629629629629,
+    "case_number_match_rate": 0.9629629629629629,
+    "critical_claim_citation_coverage": 0.06666666666666667,
+    "pinpoint_citation_rate": 1.0,
+    "jurisdiction_match_rate": 1.0,
+    "effective_version_match_rate": 1.0,
+    "risk_with_evidence_ratio": 1.0,
+    "risk_score_consistency_rate": 1.0,
+    "citation_validity": false,
+    "num_citations_found": 54,
+    "num_citations_matched": 52,
+    "citation_match_rate": 0.9629629629629629,
+    "unmatched_citations": [
+      {
+        "type": "law",
+        "text": "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（三）》第十二条",
+        "title": "最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（三）",
+        "article_no": "十二条"
+      },
+      {
+        "type": "law",
+        "text": "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（四）》第十五条",
+        "title": "最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（四）",
+        "article_no": "十五条"
+      }
+    ],
+    "matched_citations": [
+      {
+        "type": "source_id",
+        "text": "source_001",
+        "matched_source_id": "source_001"
+      },
+      {
+        "type": "source_id",
+        "text": "source_002",
+        "matched_source_id": "source_002"
+      },
+      {
+        "type": "source_id",
+        "text": "source_003",
+        "matched_source_id": "source_003"
+      },
+      {
+        "type": "source_id",
+        "text": "source_004",
+        "matched_source_id": "source_004"
+      },
+      {
+        "type": "source_id",
+        "text": "source_005",
+        "matched_source_id": "source_005"
+      },
+      {
+        "type": "source_id",
+        "text": "source_006",
+        "matched_source_id": "source_006"
+      },
+      {
+        "type": "source_id",
+        "text": "source_007",
+        "matched_source_id": "source_007"
+      },
+      {
+        "type": "source_id",
+        "text": "source_008",
+        "matched_source_id": "source_008"
+      },
+      {
+        "type": "source_id",
+        "text": "source_009",
+        "matched_source_id": "source_009"
+      },
+      {
+        "type": "source_id",
+        "text": "source_010",
+        "matched_source_id": "source_010"
+      },
+      {
+        "type": "source_id",
+        "text": "source_011",
+        "matched_source_id": "source_011"
+      },
+      {
+        "type": "source_id",
+        "text": "source_012",
+        "matched_source_id": "source_012"
+      },
+      {
+        "type": "source_id",
+        "text": "source_013",
+        "matched_source_id": "source_013"
+      },
+      {
+        "type": "source_id",
+        "text": "source_014",
+        "matched_source_id": "source_014"
+      },
+      {
+        "type": "source_id",
+        "text": "source_015",
+        "matched_source_id": "source_015"
+      },
+      {
+        "type": "source_id",
+        "text": "source_016",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "source_id",
+        "text": "source_017",
+        "matched_source_id": "source_017"
+      },
+      {
+        "type": "source_id",
+        "text": "source_018",
+        "matched_source_id": "source_018"
+      },
+      {
+        "type": "source_id",
+        "text": "source_019",
+        "matched_source_id": "source_019"
+      },
+      {
+        "type": "source_id",
+        "text": "source_020",
+        "matched_source_id": "source_020"
+      },
+      {
+        "type": "source_id",
+        "text": "source_021",
+        "matched_source_id": "source_021"
+      },
+      {
+        "type": "source_id",
+        "text": "source_022",
+        "matched_source_id": "source_022"
+      },
+      {
+        "type": "source_id",
+        "text": "source_023",
+        "matched_source_id": "source_023"
+      },
+      {
+        "type": "source_id",
+        "text": "source_024",
+        "matched_source_id": "source_024"
+      },
+      {
+        "type": "source_id",
+        "text": "source_025",
+        "matched_source_id": "source_025"
+      },
+      {
+        "type": "source_id",
+        "text": "source_026",
+        "matched_source_id": "source_026"
+      },
+      {
+        "type": "source_id",
+        "text": "source_027",
+        "matched_source_id": "source_027"
+      },
+      {
+        "type": "source_id",
+        "text": "source_028",
+        "matched_source_id": "source_028"
+      },
+      {
+        "type": "source_id",
+        "text": "source_029",
+        "matched_source_id": "source_029"
+      },
+      {
+        "type": "source_id",
+        "text": "source_030",
+        "matched_source_id": "source_030"
+      },
+      {
+        "type": "source_id",
+        "text": "source_031",
+        "matched_source_id": "source_031"
+      },
+      {
+        "type": "source_id",
+        "text": "source_032",
+        "matched_source_id": "source_032"
+      },
+      {
+        "type": "source_id",
+        "text": "source_033",
+        "matched_source_id": "source_033"
+      },
+      {
+        "type": "source_id",
+        "text": "source_034",
+        "matched_source_id": "source_034"
+      },
+      {
+        "type": "source_id",
+        "text": "source_035",
+        "matched_source_id": "source_035"
+      },
+      {
+        "type": "source_id",
+        "text": "source_036",
+        "matched_source_id": "source_036"
+      },
+      {
+        "type": "source_id",
+        "text": "source_037",
+        "matched_source_id": "source_037"
+      },
+      {
+        "type": "source_id",
+        "text": "source_038",
+        "matched_source_id": "source_038"
+      },
+      {
+        "type": "source_id",
+        "text": "source_039",
+        "matched_source_id": "source_039"
+      },
+      {
+        "type": "source_id",
+        "text": "source_040",
+        "matched_source_id": "source_040"
+      },
+      {
+        "type": "source_id",
+        "text": "source_041",
+        "matched_source_id": "source_041"
+      },
+      {
+        "type": "source_id",
+        "text": "source_042",
+        "matched_source_id": "source_042"
+      },
+      {
+        "type": "source_id",
+        "text": "source_043",
+        "matched_source_id": "source_043"
+      },
+      {
+        "type": "source_id",
+        "text": "source_044",
+        "matched_source_id": "source_044"
+      },
+      {
+        "type": "source_id",
+        "text": "source_045",
+        "matched_source_id": "source_045"
+      },
+      {
+        "type": "source_id",
+        "text": "source_046",
+        "matched_source_id": "source_046"
+      },
+      {
+        "type": "source_id",
+        "text": "source_047",
+        "matched_source_id": "source_047"
+      },
+      {
+        "type": "source_id",
+        "text": "source_048",
+        "matched_source_id": "source_048"
+      },
+      {
+        "type": "source_id",
+        "text": "source_049",
+        "matched_source_id": "source_049"
+      },
+      {
+        "type": "law",
+        "text": "《中华人民共和国公司法》第一百八十三条",
+        "title": "中华人民共和国公司法",
+        "article_no": "一百八十三条",
+        "matched_source_id": "source_037"
+      },
+      {
+        "type": "law",
+        "text": "《中华人民共和国公司法》第十五条",
+        "title": "中华人民共和国公司法",
+        "article_no": "十五条",
+        "matched_source_id": "source_018"
+      },
+      {
+        "type": "law",
+        "text": "《中华人民共和国民事诉讼法》第一百条",
+        "title": "中华人民共和国民事诉讼法",
+        "article_no": "一百条",
+        "matched_source_id": "source_020"
+      }
+    ],
+    "source_id_citation_count": 49,
+    "warnings": [],
+    "evidence_chain_complete": true,
+    "high_risk_dual_basis_ratio": 1.0,
+    "unsupported_high_risk_items": [],
+    "weak_evidence_risk_items": [],
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "wrong_jurisdiction_sources": [],
+    "expired_sources_used_as_current": [],
+    "cross_border": false,
+    "has_boundary_statement": true,
+    "boundary_warning": false,
+    "source_type_coverage": 11,
+    "official_source_ratio": 0.5555555555555556,
+    "authority_source_ratio": 0.5555555555555556,
+    "low_quality_source_ratio": 0.1111111111111111,
+    "unique_source_count": 108,
+    "legal_source_count": 29,
+    "case_source_count": 13,
+    "contract_source_count": 6,
+    "enforcement_source_count": 2,
+    "num_search_calls": 28,
+    "unique_queries": 6,
+    "phase_coverage": 1.0,
+    "event_completeness_rate": 1.0,
+    "num_agent_steps": 39,
+    "critic_loop_count": 6,
+    "re_research_count": 1,
+    "revision_count": 10,
+    "has_planning": true,
+    "has_researching": true,
+    "has_analyzing": true,
+    "has_writing": true,
+    "has_reviewing": true,
+    "has_completed": true,
+    "required_points_recall": 1.0,
+    "critical_omission_count": 0,
+    "covered_points": [
+      "应将争点拆分为出资瑕疵、董事/实际控制人义务、利润分配、担保决议效力、保全条件五部分，而不是合并成泛泛公司纠纷。",
+      "应要求核验章程、出资凭证、银行流水、会计账、股东会/董事会决议、印章使用记录、关联交易文件和项目机会流向。",
+      "应结合现行公司法框架提示举证责任、公司治理文件的重要性以及保全前对债权基础和损害紧迫性的证明需求。",
+      "应给出诉讼路径选择思路，如公司诉、股东代表诉、决议效力之诉、损害赔偿或行为保全，并说明各自前提。",
+      "应明确哪些结论只能做概率判断：例如是否构成公司机会侵占、担保相对人善意与否、利润分配条件是否成熟。",
+      "应给出风险分级和证据缺口清单，不应许诺胜诉或保全必然获准。",
+      "应触发人工复核，原因是诉讼策略和保全方案高度依赖证据细节。"
+    ],
+    "missing_points": [],
+    "actionability_score": 1.0,
+    "action_item_count": 6,
+    "has_owner": true,
+    "has_priority": true,
+    "has_deadline": true,
+    "has_action_verbs": true,
+    "weaknesses": []
+  },
+  "uncertainty": {
+    "judge_confidence": 0.6,
+    "human_review_recommended": true,
+    "reasons": [
+      "规则引擎发现 fatal 红线",
+      "存在未匹配引用"
+    ]
+  },
+  "notes": {
+    "strengths": [],
+    "weaknesses": [
+      "报告引用了 source_index 中无法匹配的法条、案号或 source_id。"
+    ],
+    "missing_points": [],
+    "fix_recommendations": [
+      "补齐证据链、免责声明和人工复核提示后复评"
+    ]
+  },
+  "rule_engine_result": {
+    "rule_engine_version": "legal_rule_engine_v1",
+    "fatal_errors": [
+      {
+        "code": "FABRICATED_LAW_OR_CASE",
+        "message": "报告引用了 source_index 中无法匹配的法条、案号或 source_id。",
+        "evidence_ids": [
+          "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（三）》第十二条",
+          "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（四）》第十五条"
+        ],
+        "severity": "fatal"
+      }
+    ],
+    "warnings": [],
+    "auto_checks": {
+      "disclaimer_present": true,
+      "has_deterministic_legal_advice": false,
+      "citation_validity": false,
+      "jurisdiction_match": true,
+      "law_version_match": true,
+      "evidence_chain_complete": true,
+      "risk_consistency_pass": true,
+      "human_review_required_correctly_flagged": true
+    },
+    "metrics": {
+      "law_citation_match_rate": 0.9629629629629629,
+      "case_number_match_rate": 0.9629629629629629,
+      "critical_claim_citation_coverage": 0.06666666666666667,
+      "pinpoint_citation_rate": 1.0,
+      "jurisdiction_match_rate": 1.0,
+      "effective_version_match_rate": 1.0,
+      "risk_with_evidence_ratio": 1.0,
+      "risk_score_consistency_rate": 1.0
+    },
+    "rule_notes": []
+  },
+  "citation_result": {
+    "citation_validity": false,
+    "num_citations_found": 54,
+    "num_citations_matched": 52,
+    "citation_match_rate": 0.9629629629629629,
+    "pinpoint_citation_rate": 1.0,
+    "critical_claim_citation_coverage": 0.06666666666666667,
+    "unmatched_citations": [
+      {
+        "type": "law",
+        "text": "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（三）》第十二条",
+        "title": "最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（三）",
+        "article_no": "十二条"
+      },
+      {
+        "type": "law",
+        "text": "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（四）》第十五条",
+        "title": "最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（四）",
+        "article_no": "十五条"
+      }
+    ],
+    "matched_citations": [
+      {
+        "type": "source_id",
+        "text": "source_001",
+        "matched_source_id": "source_001"
+      },
+      {
+        "type": "source_id",
+        "text": "source_002",
+        "matched_source_id": "source_002"
+      },
+      {
+        "type": "source_id",
+        "text": "source_003",
+        "matched_source_id": "source_003"
+      },
+      {
+        "type": "source_id",
+        "text": "source_004",
+        "matched_source_id": "source_004"
+      },
+      {
+        "type": "source_id",
+        "text": "source_005",
+        "matched_source_id": "source_005"
+      },
+      {
+        "type": "source_id",
+        "text": "source_006",
+        "matched_source_id": "source_006"
+      },
+      {
+        "type": "source_id",
+        "text": "source_007",
+        "matched_source_id": "source_007"
+      },
+      {
+        "type": "source_id",
+        "text": "source_008",
+        "matched_source_id": "source_008"
+      },
+      {
+        "type": "source_id",
+        "text": "source_009",
+        "matched_source_id": "source_009"
+      },
+      {
+        "type": "source_id",
+        "text": "source_010",
+        "matched_source_id": "source_010"
+      },
+      {
+        "type": "source_id",
+        "text": "source_011",
+        "matched_source_id": "source_011"
+      },
+      {
+        "type": "source_id",
+        "text": "source_012",
+        "matched_source_id": "source_012"
+      },
+      {
+        "type": "source_id",
+        "text": "source_013",
+        "matched_source_id": "source_013"
+      },
+      {
+        "type": "source_id",
+        "text": "source_014",
+        "matched_source_id": "source_014"
+      },
+      {
+        "type": "source_id",
+        "text": "source_015",
+        "matched_source_id": "source_015"
+      },
+      {
+        "type": "source_id",
+        "text": "source_016",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "source_id",
+        "text": "source_017",
+        "matched_source_id": "source_017"
+      },
+      {
+        "type": "source_id",
+        "text": "source_018",
+        "matched_source_id": "source_018"
+      },
+      {
+        "type": "source_id",
+        "text": "source_019",
+        "matched_source_id": "source_019"
+      },
+      {
+        "type": "source_id",
+        "text": "source_020",
+        "matched_source_id": "source_020"
+      },
+      {
+        "type": "source_id",
+        "text": "source_021",
+        "matched_source_id": "source_021"
+      },
+      {
+        "type": "source_id",
+        "text": "source_022",
+        "matched_source_id": "source_022"
+      },
+      {
+        "type": "source_id",
+        "text": "source_023",
+        "matched_source_id": "source_023"
+      },
+      {
+        "type": "source_id",
+        "text": "source_024",
+        "matched_source_id": "source_024"
+      },
+      {
+        "type": "source_id",
+        "text": "source_025",
+        "matched_source_id": "source_025"
+      },
+      {
+        "type": "source_id",
+        "text": "source_026",
+        "matched_source_id": "source_026"
+      },
+      {
+        "type": "source_id",
+        "text": "source_027",
+        "matched_source_id": "source_027"
+      },
+      {
+        "type": "source_id",
+        "text": "source_028",
+        "matched_source_id": "source_028"
+      },
+      {
+        "type": "source_id",
+        "text": "source_029",
+        "matched_source_id": "source_029"
+      },
+      {
+        "type": "source_id",
+        "text": "source_030",
+        "matched_source_id": "source_030"
+      },
+      {
+        "type": "source_id",
+        "text": "source_031",
+        "matched_source_id": "source_031"
+      },
+      {
+        "type": "source_id",
+        "text": "source_032",
+        "matched_source_id": "source_032"
+      },
+      {
+        "type": "source_id",
+        "text": "source_033",
+        "matched_source_id": "source_033"
+      },
+      {
+        "type": "source_id",
+        "text": "source_034",
+        "matched_source_id": "source_034"
+      },
+      {
+        "type": "source_id",
+        "text": "source_035",
+        "matched_source_id": "source_035"
+      },
+      {
+        "type": "source_id",
+        "text": "source_036",
+        "matched_source_id": "source_036"
+      },
+      {
+        "type": "source_id",
+        "text": "source_037",
+        "matched_source_id": "source_037"
+      },
+      {
+        "type": "source_id",
+        "text": "source_038",
+        "matched_source_id": "source_038"
+      },
+      {
+        "type": "source_id",
+        "text": "source_039",
+        "matched_source_id": "source_039"
+      },
+      {
+        "type": "source_id",
+        "text": "source_040",
+        "matched_source_id": "source_040"
+      },
+      {
+        "type": "source_id",
+        "text": "source_041",
+        "matched_source_id": "source_041"
+      },
+      {
+        "type": "source_id",
+        "text": "source_042",
+        "matched_source_id": "source_042"
+      },
+      {
+        "type": "source_id",
+        "text": "source_043",
+        "matched_source_id": "source_043"
+      },
+      {
+        "type": "source_id",
+        "text": "source_044",
+        "matched_source_id": "source_044"
+      },
+      {
+        "type": "source_id",
+        "text": "source_045",
+        "matched_source_id": "source_045"
+      },
+      {
+        "type": "source_id",
+        "text": "source_046",
+        "matched_source_id": "source_046"
+      },
+      {
+        "type": "source_id",
+        "text": "source_047",
+        "matched_source_id": "source_047"
+      },
+      {
+        "type": "source_id",
+        "text": "source_048",
+        "matched_source_id": "source_048"
+      },
+      {
+        "type": "source_id",
+        "text": "source_049",
+        "matched_source_id": "source_049"
+      },
+      {
+        "type": "law",
+        "text": "《中华人民共和国公司法》第一百八十三条",
+        "title": "中华人民共和国公司法",
+        "article_no": "一百八十三条",
+        "matched_source_id": "source_037"
+      },
+      {
+        "type": "law",
+        "text": "《中华人民共和国公司法》第十五条",
+        "title": "中华人民共和国公司法",
+        "article_no": "十五条",
+        "matched_source_id": "source_018"
+      },
+      {
+        "type": "law",
+        "text": "《中华人民共和国民事诉讼法》第一百条",
+        "title": "中华人民共和国民事诉讼法",
+        "article_no": "一百条",
+        "matched_source_id": "source_020"
+      }
+    ],
+    "source_id_citation_count": 49,
+    "warnings": []
+  },
+  "evidence_result": {
+    "evidence_chain_complete": true,
+    "risk_with_evidence_ratio": 1.0,
+    "high_risk_dual_basis_ratio": 1.0,
+    "unsupported_high_risk_items": [],
+    "weak_evidence_risk_items": []
+  },
+  "jurisdiction_result": {
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "jurisdiction_match_rate": 1.0,
+    "effective_version_match_rate": 1.0,
+    "wrong_jurisdiction_sources": [],
+    "expired_sources_used_as_current": [],
+    "cross_border": false,
+    "has_boundary_statement": true,
+    "boundary_warning": false
+  },
+  "retrieval_result": {
+    "source_type_coverage": 11,
+    "official_source_ratio": 0.5555555555555556,
+    "authority_source_ratio": 0.5555555555555556,
+    "low_quality_source_ratio": 0.1111111111111111,
+    "unique_source_count": 108,
+    "legal_source_count": 29,
+    "case_source_count": 13,
+    "contract_source_count": 6,
+    "enforcement_source_count": 2,
+    "num_search_calls": 28,
+    "unique_queries": 6
+  },
+  "process_result": {
+    "phase_coverage": 1.0,
+    "event_completeness_rate": 1.0,
+    "num_agent_steps": 39,
+    "num_search_calls": 28,
+    "unique_queries": 6,
+    "critic_loop_count": 6,
+    "re_research_count": 1,
+    "revision_count": 10,
+    "has_planning": true,
+    "has_researching": true,
+    "has_analyzing": true,
+    "has_writing": true,
+    "has_reviewing": true,
+    "has_completed": true
+  },
+  "gold_comparison_result": {
+    "required_points_recall": 1.0,
+    "critical_omission_count": 0,
+    "covered_points": [
+      "应将争点拆分为出资瑕疵、董事/实际控制人义务、利润分配、担保决议效力、保全条件五部分，而不是合并成泛泛公司纠纷。",
+      "应要求核验章程、出资凭证、银行流水、会计账、股东会/董事会决议、印章使用记录、关联交易文件和项目机会流向。",
+      "应结合现行公司法框架提示举证责任、公司治理文件的重要性以及保全前对债权基础和损害紧迫性的证明需求。",
+      "应给出诉讼路径选择思路，如公司诉、股东代表诉、决议效力之诉、损害赔偿或行为保全，并说明各自前提。",
+      "应明确哪些结论只能做概率判断：例如是否构成公司机会侵占、担保相对人善意与否、利润分配条件是否成熟。",
+      "应给出风险分级和证据缺口清单，不应许诺胜诉或保全必然获准。",
+      "应触发人工复核，原因是诉讼策略和保全方案高度依赖证据细节。"
+    ],
+    "missing_points": [],
+    "warnings": []
+  },
+  "actionability_result": {
+    "actionability_score": 1.0,
+    "action_item_count": 6,
+    "has_owner": true,
+    "has_priority": true,
+    "has_deadline": true,
+    "has_action_verbs": true,
+    "weaknesses": []
+  },
+  "llm_judge_result": {
+    "evaluator_model": "mock_legal_eval_judge_v1",
+    "task_id": "HARD_10",
+    "overall_score": 0.0,
+    "goal_scores": {},
+    "dimensions": {
+      "legal_factuality": {
+        "score": 3.4,
+        "comment": "基于规则引擎和引用核验的确定性诊断。",
+        "metrics": {
+          "unverified_claim_rate": 0.9333333333333333,
+          "hallucination_rate": 0.03703703703703709
+        }
+      },
+      "jurisdiction_version_match": {
+        "score": 5.0,
+        "comment": "按法域和版本字段进行规则化核验。",
+        "metrics": {
+          "jurisdiction_match": true,
+          "law_version_match": true,
+          "jurisdiction_match_rate": 1.0,
+          "effective_version_match_rate": 1.0,
+          "wrong_jurisdiction_sources": [],
+          "expired_sources_used_as_current": [],
+          "cross_border": false,
+          "has_boundary_statement": true,
+          "boundary_warning": false
+        }
+      },
+      "coverage": {
+        "score": 5.0,
+        "comment": "按 Gold 必须覆盖要点粗粒度召回。",
+        "metrics": {
+          "required_points_recall": 1.0,
+          "critical_omission_count": 0,
+          "covered_points": [
+            "应将争点拆分为出资瑕疵、董事/实际控制人义务、利润分配、担保决议效力、保全条件五部分，而不是合并成泛泛公司纠纷。",
+            "应要求核验章程、出资凭证、银行流水、会计账、股东会/董事会决议、印章使用记录、关联交易文件和项目机会流向。",
+            "应结合现行公司法框架提示举证责任、公司治理文件的重要性以及保全前对债权基础和损害紧迫性的证明需求。",
+            "应给出诉讼路径选择思路，如公司诉、股东代表诉、决议效力之诉、损害赔偿或行为保全，并说明各自前提。",
+            "应明确哪些结论只能做概率判断：例如是否构成公司机会侵占、担保相对人善意与否、利润分配条件是否成熟。",
+            "应给出风险分级和证据缺口清单，不应许诺胜诉或保全必然获准。",
+            "应触发人工复核，原因是诉讼策略和保全方案高度依赖证据细节。"
+          ],
+          "missing_points": [],
+          "warnings": []
+        }
+      },
+      "evidence_chain": {
+        "score": 5.0,
+        "comment": "按 risk_item 到 evidence/source 的链路完整性评分。",
+        "metrics": {
+          "evidence_chain_complete": true,
+          "risk_with_evidence_ratio": 1.0,
+          "high_risk_dual_basis_ratio": 1.0,
+          "unsupported_high_risk_items": [],
+          "weak_evidence_risk_items": []
+        }
+      },
+      "citation_quality": {
+        "score": 4.03,
+        "comment": "综合引用匹配率和权威来源占比。",
+        "metrics": {
+          "citation_validity": false,
+          "num_citations_found": 54,
+          "num_citations_matched": 52,
+          "citation_match_rate": 0.9629629629629629,
+          "pinpoint_citation_rate": 1.0,
+          "critical_claim_citation_coverage": 0.06666666666666667,
+          "unmatched_citations": [
+            {
+              "type": "law",
+              "text": "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（三）》第十二条",
+              "title": "最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（三）",
+              "article_no": "十二条"
+            },
+            {
+              "type": "law",
+              "text": "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（四）》第十五条",
+              "title": "最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（四）",
+              "article_no": "十五条"
+            }
+          ],
+          "matched_citations": [
+            {
+              "type": "source_id",
+              "text": "source_001",
+              "matched_source_id": "source_001"
+            },
+            {
+              "type": "source_id",
+              "text": "source_002",
+              "matched_source_id": "source_002"
+            },
+            {
+              "type": "source_id",
+              "text": "source_003",
+              "matched_source_id": "source_003"
+            },
+            {
+              "type": "source_id",
+              "text": "source_004",
+              "matched_source_id": "source_004"
+            },
+            {
+              "type": "source_id",
+              "text": "source_005",
+              "matched_source_id": "source_005"
+            },
+            {
+              "type": "source_id",
+              "text": "source_006",
+              "matched_source_id": "source_006"
+            },
+            {
+              "type": "source_id",
+              "text": "source_007",
+              "matched_source_id": "source_007"
+            },
+            {
+              "type": "source_id",
+              "text": "source_008",
+              "matched_source_id": "source_008"
+            },
+            {
+              "type": "source_id",
+              "text": "source_009",
+              "matched_source_id": "source_009"
+            },
+            {
+              "type": "source_id",
+              "text": "source_010",
+              "matched_source_id": "source_010"
+            },
+            {
+              "type": "source_id",
+              "text": "source_011",
+              "matched_source_id": "source_011"
+            },
+            {
+              "type": "source_id",
+              "text": "source_012",
+              "matched_source_id": "source_012"
+            },
+            {
+              "type": "source_id",
+              "text": "source_013",
+              "matched_source_id": "source_013"
+            },
+            {
+              "type": "source_id",
+              "text": "source_014",
+              "matched_source_id": "source_014"
+            },
+            {
+              "type": "source_id",
+              "text": "source_015",
+              "matched_source_id": "source_015"
+            },
+            {
+              "type": "source_id",
+              "text": "source_016",
+              "matched_source_id": "source_016"
+            },
+            {
+              "type": "source_id",
+              "text": "source_017",
+              "matched_source_id": "source_017"
+            },
+            {
+              "type": "source_id",
+              "text": "source_018",
+              "matched_source_id": "source_018"
+            },
+            {
+              "type": "source_id",
+              "text": "source_019",
+              "matched_source_id": "source_019"
+            },
+            {
+              "type": "source_id",
+              "text": "source_020",
+              "matched_source_id": "source_020"
+            },
+            {
+              "type": "source_id",
+              "text": "source_021",
+              "matched_source_id": "source_021"
+            },
+            {
+              "type": "source_id",
+              "text": "source_022",
+              "matched_source_id": "source_022"
+            },
+            {
+              "type": "source_id",
+              "text": "source_023",
+              "matched_source_id": "source_023"
+            },
+            {
+              "type": "source_id",
+              "text": "source_024",
+              "matched_source_id": "source_024"
+            },
+            {
+              "type": "source_id",
+              "text": "source_025",
+              "matched_source_id": "source_025"
+            },
+            {
+              "type": "source_id",
+              "text": "source_026",
+              "matched_source_id": "source_026"
+            },
+            {
+              "type": "source_id",
+              "text": "source_027",
+              "matched_source_id": "source_027"
+            },
+            {
+              "type": "source_id",
+              "text": "source_028",
+              "matched_source_id": "source_028"
+            },
+            {
+              "type": "source_id",
+              "text": "source_029",
+              "matched_source_id": "source_029"
+            },
+            {
+              "type": "source_id",
+              "text": "source_030",
+              "matched_source_id": "source_030"
+            },
+            {
+              "type": "source_id",
+              "text": "source_031",
+              "matched_source_id": "source_031"
+            },
+            {
+              "type": "source_id",
+              "text": "source_032",
+              "matched_source_id": "source_032"
+            },
+            {
+              "type": "source_id",
+              "text": "source_033",
+              "matched_source_id": "source_033"
+            },
+            {
+              "type": "source_id",
+              "text": "source_034",
+              "matched_source_id": "source_034"
+            },
+            {
+              "type": "source_id",
+              "text": "source_035",
+              "matched_source_id": "source_035"
+            },
+            {
+              "type": "source_id",
+              "text": "source_036",
+              "matched_source_id": "source_036"
+            },
+            {
+              "type": "source_id",
+              "text": "source_037",
+              "matched_source_id": "source_037"
+            },
+            {
+              "type": "source_id",
+              "text": "source_038",
+              "matched_source_id": "source_038"
+            },
+            {
+              "type": "source_id",
+              "text": "source_039",
+              "matched_source_id": "source_039"
+            },
+            {
+              "type": "source_id",
+              "text": "source_040",
+              "matched_source_id": "source_040"
+            },
+            {
+              "type": "source_id",
+              "text": "source_041",
+              "matched_source_id": "source_041"
+            },
+            {
+              "type": "source_id",
+              "text": "source_042",
+              "matched_source_id": "source_042"
+            },
+            {
+              "type": "source_id",
+              "text": "source_043",
+              "matched_source_id": "source_043"
+            },
+            {
+              "type": "source_id",
+              "text": "source_044",
+              "matched_source_id": "source_044"
+            },
+            {
+              "type": "source_id",
+              "text": "source_045",
+              "matched_source_id": "source_045"
+            },
+            {
+              "type": "source_id",
+              "text": "source_046",
+              "matched_source_id": "source_046"
+            },
+            {
+              "type": "source_id",
+              "text": "source_047",
+              "matched_source_id": "source_047"
+            },
+            {
+              "type": "source_id",
+              "text": "source_048",
+              "matched_source_id": "source_048"
+            },
+            {
+              "type": "source_id",
+              "text": "source_049",
+              "matched_source_id": "source_049"
+            },
+            {
+              "type": "law",
+              "text": "《中华人民共和国公司法》第一百八十三条",
+              "title": "中华人民共和国公司法",
+              "article_no": "一百八十三条",
+              "matched_source_id": "source_037"
+            },
+            {
+              "type": "law",
+              "text": "《中华人民共和国公司法》第十五条",
+              "title": "中华人民共和国公司法",
+              "article_no": "十五条",
+              "matched_source_id": "source_018"
+            },
+            {
+              "type": "law",
+              "text": "《中华人民共和国民事诉讼法》第一百条",
+              "title": "中华人民共和国民事诉讼法",
+              "article_no": "一百条",
+              "matched_source_id": "source_020"
+            }
+          ],
+          "source_id_citation_count": 49,
+          "warnings": [],
+          "source_type_coverage": 11,
+          "official_source_ratio": 0.5555555555555556,
+          "authority_source_ratio": 0.5555555555555556,
+          "low_quality_source_ratio": 0.1111111111111111,
+          "unique_source_count": 108,
+          "legal_source_count": 29,
+          "case_source_count": 13,
+          "contract_source_count": 6,
+          "enforcement_source_count": 2,
+          "num_search_calls": 28,
+          "unique_queries": 6
+        }
+      },
+      "risk_consistency": {
+        "score": 5.0,
+        "comment": "按摘要、正文和 risk_items 的风险等级一致性估计。",
+        "metrics": {
+          "law_citation_match_rate": 0.9629629629629629,
+          "case_number_match_rate": 0.9629629629629629,
+          "critical_claim_citation_coverage": 0.06666666666666667,
+          "pinpoint_citation_rate": 1.0,
+          "jurisdiction_match_rate": 1.0,
+          "effective_version_match_rate": 1.0,
+          "risk_with_evidence_ratio": 1.0,
+          "risk_score_consistency_rate": 1.0
+        }
+      },
+      "legal_reasoning": {
+        "score": 3.1,
+        "comment": "mock judge 不作外部法律判断，仅按结构完整性保守估计。",
+        "metrics": {}
+      },
+      "legal_boundary_compliance": {
+        "score": 5.0,
+        "comment": "免责声明和结论边界检查。",
+        "metrics": {}
+      },
+      "planning_quality": {
+        "score": 5.0,
+        "comment": "规划阶段轨迹检查。",
+        "metrics": {}
+      },
+      "retrieval_process": {
+        "score": 4.8,
+        "comment": "检索调用数量和 query 去重情况。",
+        "metrics": {
+          "phase_coverage": 1.0,
+          "event_completeness_rate": 1.0,
+          "num_agent_steps": 39,
+          "num_search_calls": 28,
+          "unique_queries": 6,
+          "critic_loop_count": 6,
+          "re_research_count": 1,
+          "revision_count": 10,
+          "has_planning": true,
+          "has_researching": true,
+          "has_analyzing": true,
+          "has_writing": true,
+          "has_reviewing": true,
+          "has_completed": true
+        }
+      },
+      "authority_priority": {
+        "score": 2.78,
+        "comment": "权威来源占比。",
+        "metrics": {
+          "source_type_coverage": 11,
+          "official_source_ratio": 0.5555555555555556,
+          "authority_source_ratio": 0.5555555555555556,
+          "low_quality_source_ratio": 0.1111111111111111,
+          "unique_source_count": 108,
+          "legal_source_count": 29,
+          "case_source_count": 13,
+          "contract_source_count": 6,
+          "enforcement_source_count": 2,
+          "num_search_calls": 28,
+          "unique_queries": 6
+        }
+      },
+      "self_correction": {
+        "score": 5.0,
+        "comment": "critic/research revision 轨迹。",
+        "metrics": {
+          "phase_coverage": 1.0,
+          "event_completeness_rate": 1.0,
+          "num_agent_steps": 39,
+          "num_search_calls": 28,
+          "unique_queries": 6,
+          "critic_loop_count": 6,
+          "re_research_count": 1,
+          "revision_count": 10,
+          "has_planning": true,
+          "has_researching": true,
+          "has_analyzing": true,
+          "has_writing": true,
+          "has_reviewing": true,
+          "has_completed": true
+        }
+      },
+      "trace_completeness": {
+        "score": 5.0,
+        "comment": "关键 phase 覆盖。",
+        "metrics": {
+          "phase_coverage": 1.0,
+          "event_completeness_rate": 1.0,
+          "num_agent_steps": 39,
+          "num_search_calls": 28,
+          "unique_queries": 6,
+          "critic_loop_count": 6,
+          "re_research_count": 1,
+          "revision_count": 10,
+          "has_planning": true,
+          "has_researching": true,
+          "has_analyzing": true,
+          "has_writing": true,
+          "has_reviewing": true,
+          "has_completed": true
+        }
+      },
+      "expert_acceptability": {
+        "score": 3.1,
+        "comment": "按 fatal、覆盖和证据链保守估计。",
+        "metrics": {}
+      },
+      "editing_cost": {
+        "score": 3.5,
+        "comment": "fatal 和遗漏越多，修订成本越高。",
+        "metrics": {}
+      },
+      "business_actionability": {
+        "score": 5.0,
+        "comment": "整改建议 owner/priority/deadline/action 检查。",
+        "metrics": {
+          "actionability_score": 1.0,
+          "action_item_count": 6,
+          "has_owner": true,
+          "has_priority": true,
+          "has_deadline": true,
+          "has_action_verbs": true,
+          "weaknesses": []
+        }
+      }
+    },
+    "fatal_errors": [
+      {
+        "code": "FABRICATED_LAW_OR_CASE",
+        "message": "报告引用了 source_index 中无法匹配的法条、案号或 source_id。",
+        "evidence_ids": [
+          "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（三）》第十二条",
+          "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（四）》第十五条"
+        ],
+        "severity": "fatal"
+      }
+    ],
+    "auto_checks": {
+      "disclaimer_present": true,
+      "has_deterministic_legal_advice": false,
+      "citation_validity": false,
+      "jurisdiction_match": true,
+      "law_version_match": true,
+      "evidence_chain_complete": true,
+      "risk_consistency_pass": true,
+      "human_review_required_correctly_flagged": true
+    },
+    "uncertainty": {
+      "judge_confidence": 0.6,
+      "human_review_recommended": true,
+      "reasons": [
+        "规则引擎发现 fatal 红线",
+        "存在未匹配引用"
+      ]
+    },
+    "notes": {
+      "strengths": [],
+      "weaknesses": [
+        "报告引用了 source_index 中无法匹配的法条、案号或 source_id。"
+      ],
+      "missing_points": [],
+      "fix_recommendations": [
+        "补齐证据链、免责声明和人工复核提示后复评"
+      ]
+    },
+    "decision": {
+      "pass_gate": "fail",
+      "release_ready": false
+    }
+  },
+  "post_check_result": {
+    "post_check_pass": true,
+    "errors": [],
+    "warnings": [],
+    "citation_validity": false
+  },
+  "eval_version": "legal_eval_v1",
+  "decision": {
+    "pass_gate": "fail",
+    "release_ready": false,
+    "requires_human_review": true,
+    "reason": "存在 fatal_errors",
+    "decision_source": "rule_engine + judge"
+  }
+}

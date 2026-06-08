@@ -1,0 +1,54 @@
+{
+  "batch_id": "legal_eval_batch_20260607_072049",
+  "batch_dir": "industry_information_assistant/backend/batch_outputs/legal_30_questions/20260607_005455",
+  "total_count": 3,
+  "pass_gate_counts": {
+    "revise": 3
+  },
+  "fatal_error_count": 0,
+  "average_overall_score": 7.82,
+  "results": [
+    {
+      "eval_id": "legal_eval_easy_01_82288a4b",
+      "task_id": "EASY_01",
+      "overall_score": 7.82,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "研究质量分不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_01_82288a4b.json"
+    },
+    {
+      "eval_id": "legal_eval_easy_02_2141ba79",
+      "task_id": "EASY_02",
+      "overall_score": 7.79,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "证据链完整性不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_02_2141ba79.json"
+    },
+    {
+      "eval_id": "legal_eval_easy_03_f110cc3f",
+      "task_id": "EASY_03",
+      "overall_score": 7.86,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "证据链完整性不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_03_f110cc3f.json"
+    }
+  ]
+}

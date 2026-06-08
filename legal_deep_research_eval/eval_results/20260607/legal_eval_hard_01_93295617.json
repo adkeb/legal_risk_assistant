@@ -1,0 +1,2234 @@
+{
+  "eval_id": "legal_eval_hard_01_93295617",
+  "task_id": "HARD_01",
+  "session_id": "legal-batch-hard_01-8de7b455",
+  "overall_score": 7.66,
+  "goal_scores": {
+    "research_quality": 7.11,
+    "research_process": 9.08,
+    "business_effect": 7.51
+  },
+  "dimensions": {
+    "legal_factuality": {
+      "score": 4.2,
+      "comment": "基于规则引擎和引用核验的确定性诊断。",
+      "metrics": {
+        "unverified_claim_rate": 0.9565217391304348,
+        "hallucination_rate": 0.0
+      }
+    },
+    "jurisdiction_version_match": {
+      "score": 5.0,
+      "comment": "按法域和版本字段进行规则化核验。",
+      "metrics": {
+        "jurisdiction_match": true,
+        "law_version_match": true,
+        "jurisdiction_match_rate": 1.0,
+        "effective_version_match_rate": 1.0,
+        "wrong_jurisdiction_sources": [],
+        "expired_sources_used_as_current": [],
+        "cross_border": true,
+        "has_boundary_statement": true,
+        "boundary_warning": false
+      }
+    },
+    "coverage": {
+      "score": 5.0,
+      "comment": "按 Gold 必须覆盖要点粗粒度召回。",
+      "metrics": {
+        "required_points_recall": 1.0,
+        "critical_omission_count": 0,
+        "covered_points": [
+          "先识别主法域为中国大陆，并提示香港和 EU 要作为并行影响法域处理；不能直接把 GDPR 结论替代中国大陆数据出境结论。",
+          "应检索并引用个人信息保护法、网络安全法、数据安全法及现行数据出境配套规则，判断是否涉及个人信息、敏感个人信息、重要数据、关键信息基础设施或规模门槛。",
+          "应区分三类流转：香港灾备、德国日志分析、客户远程访问；分别判断是否构成向境外提供个人信息或受托处理。",
+          "应核对合同中是否已有数据处理协议、跨境传输条款、分包商管理、删除/返还、审计权、泄露通知、标准合同或认证协同条款；如缺失应明确指出。",
+          "应提示关键事实缺口，例如数据量、数据字段、是否含敏感个人信息、客户身份、是否属于 CIIO、是否已有个人信息影响评估。",
+          "结论应保持边界：可给出合规路径和风险分级，但不应在未知门槛和行业属性下给出“肯定可以出境”的确定性结论。",
+          "应触发人工复核，原因是涉及跨境、多法域、敏感人力资源数据和合同重构。"
+        ],
+        "missing_points": [],
+        "warnings": []
+      }
+    },
+    "evidence_chain": {
+      "score": 0.0,
+      "comment": "按 risk_item 到 evidence/source 的链路完整性评分。",
+      "metrics": {
+        "evidence_chain_complete": true,
+        "risk_with_evidence_ratio": 0.0,
+        "high_risk_dual_basis_ratio": 1.0,
+        "unsupported_high_risk_items": [],
+        "weak_evidence_risk_items": []
+      }
+    },
+    "citation_quality": {
+      "score": 4.4,
+      "comment": "综合引用匹配率和权威来源占比。",
+      "metrics": {
+        "citation_validity": true,
+        "num_citations_found": 74,
+        "num_citations_matched": 74,
+        "citation_match_rate": 1.0,
+        "pinpoint_citation_rate": 1.0,
+        "critical_claim_citation_coverage": 0.043478260869565216,
+        "unmatched_citations": [],
+        "matched_citations": [
+          {
+            "type": "source_id",
+            "text": "source_001",
+            "matched_source_id": "source_001"
+          },
+          {
+            "type": "source_id",
+            "text": "source_002",
+            "matched_source_id": "source_002"
+          },
+          {
+            "type": "source_id",
+            "text": "source_003",
+            "matched_source_id": "source_003"
+          },
+          {
+            "type": "source_id",
+            "text": "source_004",
+            "matched_source_id": "source_004"
+          },
+          {
+            "type": "source_id",
+            "text": "source_005",
+            "matched_source_id": "source_005"
+          },
+          {
+            "type": "source_id",
+            "text": "source_006",
+            "matched_source_id": "source_006"
+          },
+          {
+            "type": "source_id",
+            "text": "source_007",
+            "matched_source_id": "source_007"
+          },
+          {
+            "type": "source_id",
+            "text": "source_008",
+            "matched_source_id": "source_008"
+          },
+          {
+            "type": "source_id",
+            "text": "source_009",
+            "matched_source_id": "source_009"
+          },
+          {
+            "type": "source_id",
+            "text": "source_010",
+            "matched_source_id": "source_010"
+          },
+          {
+            "type": "source_id",
+            "text": "source_011",
+            "matched_source_id": "source_011"
+          },
+          {
+            "type": "source_id",
+            "text": "source_012",
+            "matched_source_id": "source_012"
+          },
+          {
+            "type": "source_id",
+            "text": "source_013",
+            "matched_source_id": "source_013"
+          },
+          {
+            "type": "source_id",
+            "text": "source_014",
+            "matched_source_id": "source_014"
+          },
+          {
+            "type": "source_id",
+            "text": "source_015",
+            "matched_source_id": "source_015"
+          },
+          {
+            "type": "source_id",
+            "text": "source_016",
+            "matched_source_id": "source_016"
+          },
+          {
+            "type": "source_id",
+            "text": "source_017",
+            "matched_source_id": "source_017"
+          },
+          {
+            "type": "source_id",
+            "text": "source_018",
+            "matched_source_id": "source_018"
+          },
+          {
+            "type": "source_id",
+            "text": "source_019",
+            "matched_source_id": "source_019"
+          },
+          {
+            "type": "source_id",
+            "text": "source_020",
+            "matched_source_id": "source_020"
+          },
+          {
+            "type": "source_id",
+            "text": "source_021",
+            "matched_source_id": "source_021"
+          },
+          {
+            "type": "source_id",
+            "text": "source_022",
+            "matched_source_id": "source_022"
+          },
+          {
+            "type": "source_id",
+            "text": "source_023",
+            "matched_source_id": "source_023"
+          },
+          {
+            "type": "source_id",
+            "text": "source_024",
+            "matched_source_id": "source_024"
+          },
+          {
+            "type": "source_id",
+            "text": "source_025",
+            "matched_source_id": "source_025"
+          },
+          {
+            "type": "source_id",
+            "text": "source_026",
+            "matched_source_id": "source_026"
+          },
+          {
+            "type": "source_id",
+            "text": "source_027",
+            "matched_source_id": "source_027"
+          },
+          {
+            "type": "source_id",
+            "text": "source_028",
+            "matched_source_id": "source_028"
+          },
+          {
+            "type": "source_id",
+            "text": "source_029",
+            "matched_source_id": "source_029"
+          },
+          {
+            "type": "source_id",
+            "text": "source_030",
+            "matched_source_id": "source_030"
+          },
+          {
+            "type": "source_id",
+            "text": "source_031",
+            "matched_source_id": "source_031"
+          },
+          {
+            "type": "source_id",
+            "text": "source_032",
+            "matched_source_id": "source_032"
+          },
+          {
+            "type": "source_id",
+            "text": "source_033",
+            "matched_source_id": "source_033"
+          },
+          {
+            "type": "source_id",
+            "text": "source_034",
+            "matched_source_id": "source_034"
+          },
+          {
+            "type": "source_id",
+            "text": "source_035",
+            "matched_source_id": "source_035"
+          },
+          {
+            "type": "source_id",
+            "text": "source_036",
+            "matched_source_id": "source_036"
+          },
+          {
+            "type": "source_id",
+            "text": "source_037",
+            "matched_source_id": "source_037"
+          },
+          {
+            "type": "source_id",
+            "text": "source_038",
+            "matched_source_id": "source_038"
+          },
+          {
+            "type": "source_id",
+            "text": "source_039",
+            "matched_source_id": "source_039"
+          },
+          {
+            "type": "source_id",
+            "text": "source_040",
+            "matched_source_id": "source_040"
+          },
+          {
+            "type": "source_id",
+            "text": "source_041",
+            "matched_source_id": "source_041"
+          },
+          {
+            "type": "source_id",
+            "text": "source_042",
+            "matched_source_id": "source_042"
+          },
+          {
+            "type": "source_id",
+            "text": "source_043",
+            "matched_source_id": "source_043"
+          },
+          {
+            "type": "source_id",
+            "text": "source_044",
+            "matched_source_id": "source_044"
+          },
+          {
+            "type": "source_id",
+            "text": "source_045",
+            "matched_source_id": "source_045"
+          },
+          {
+            "type": "source_id",
+            "text": "source_046",
+            "matched_source_id": "source_046"
+          },
+          {
+            "type": "source_id",
+            "text": "source_047",
+            "matched_source_id": "source_047"
+          },
+          {
+            "type": "source_id",
+            "text": "source_048",
+            "matched_source_id": "source_048"
+          },
+          {
+            "type": "source_id",
+            "text": "source_049",
+            "matched_source_id": "source_049"
+          },
+          {
+            "type": "source_id",
+            "text": "source_050",
+            "matched_source_id": "source_050"
+          },
+          {
+            "type": "source_id",
+            "text": "source_051",
+            "matched_source_id": "source_051"
+          },
+          {
+            "type": "source_id",
+            "text": "source_052",
+            "matched_source_id": "source_052"
+          },
+          {
+            "type": "source_id",
+            "text": "source_053",
+            "matched_source_id": "source_053"
+          },
+          {
+            "type": "source_id",
+            "text": "source_054",
+            "matched_source_id": "source_054"
+          },
+          {
+            "type": "source_id",
+            "text": "source_055",
+            "matched_source_id": "source_055"
+          },
+          {
+            "type": "source_id",
+            "text": "source_056",
+            "matched_source_id": "source_056"
+          },
+          {
+            "type": "source_id",
+            "text": "source_057",
+            "matched_source_id": "source_057"
+          },
+          {
+            "type": "source_id",
+            "text": "source_058",
+            "matched_source_id": "source_058"
+          },
+          {
+            "type": "source_id",
+            "text": "source_059",
+            "matched_source_id": "source_059"
+          },
+          {
+            "type": "source_id",
+            "text": "source_060",
+            "matched_source_id": "source_060"
+          },
+          {
+            "type": "source_id",
+            "text": "source_061",
+            "matched_source_id": "source_061"
+          },
+          {
+            "type": "source_id",
+            "text": "source_062",
+            "matched_source_id": "source_062"
+          },
+          {
+            "type": "source_id",
+            "text": "source_063",
+            "matched_source_id": "source_063"
+          },
+          {
+            "type": "source_id",
+            "text": "source_064",
+            "matched_source_id": "source_064"
+          },
+          {
+            "type": "source_id",
+            "text": "source_065",
+            "matched_source_id": "source_065"
+          },
+          {
+            "type": "source_id",
+            "text": "source_066",
+            "matched_source_id": "source_066"
+          },
+          {
+            "type": "source_id",
+            "text": "source_067",
+            "matched_source_id": "source_067"
+          },
+          {
+            "type": "law",
+            "text": "《网络安全法》第三十七条",
+            "title": "网络安全法",
+            "article_no": "三十七条",
+            "matched_source_id": "source_016"
+          },
+          {
+            "type": "law",
+            "text": "《中华人民共和国网络安全法》第三十七条",
+            "title": "中华人民共和国网络安全法",
+            "article_no": "三十七条",
+            "matched_source_id": "source_016"
+          },
+          {
+            "type": "law",
+            "text": "《中华人民共和国数据安全法》第三十一条",
+            "title": "中华人民共和国数据安全法",
+            "article_no": "三十一条",
+            "matched_source_id": "source_032"
+          },
+          {
+            "type": "law",
+            "text": "《关键信息基础设施安全保护条例》第二条",
+            "title": "关键信息基础设施安全保护条例",
+            "article_no": "二条",
+            "matched_source_id": "source_060"
+          },
+          {
+            "type": "law",
+            "text": "《个人信息保护法》第三十八条",
+            "title": "个人信息保护法",
+            "article_no": "三十八条",
+            "matched_source_id": "source_001"
+          },
+          {
+            "type": "law",
+            "text": "《网络安全法》第三十七条",
+            "title": "网络安全法",
+            "article_no": "三十七条",
+            "matched_source_id": "source_016"
+          },
+          {
+            "type": "law",
+            "text": "《中华人民共和国个人信息保护法》第三十八条",
+            "title": "中华人民共和国个人信息保护法",
+            "article_no": "三十八条",
+            "matched_source_id": "source_004"
+          }
+        ],
+        "source_id_citation_count": 67,
+        "warnings": [],
+        "source_type_coverage": 11,
+        "official_source_ratio": 0.6298701298701299,
+        "authority_source_ratio": 0.6298701298701299,
+        "low_quality_source_ratio": 0.012987012987012988,
+        "unique_source_count": 154,
+        "legal_source_count": 66,
+        "case_source_count": 31,
+        "contract_source_count": 41,
+        "enforcement_source_count": 31,
+        "num_search_calls": 27,
+        "unique_queries": 5
+      }
+    },
+    "risk_consistency": {
+      "score": 3.0,
+      "comment": "按摘要、正文和 risk_items 的风险等级一致性估计。",
+      "metrics": {
+        "law_citation_match_rate": 1.0,
+        "case_number_match_rate": 1.0,
+        "critical_claim_citation_coverage": 0.043478260869565216,
+        "pinpoint_citation_rate": 1.0,
+        "jurisdiction_match_rate": 1.0,
+        "effective_version_match_rate": 1.0,
+        "risk_with_evidence_ratio": 0.0,
+        "risk_score_consistency_rate": 0.6
+      }
+    },
+    "legal_reasoning": {
+      "score": 3.5,
+      "comment": "mock judge 不作外部法律判断，仅按结构完整性保守估计。",
+      "metrics": {}
+    },
+    "legal_boundary_compliance": {
+      "score": 5.0,
+      "comment": "免责声明和结论边界检查。",
+      "metrics": {}
+    },
+    "planning_quality": {
+      "score": 5.0,
+      "comment": "规划阶段轨迹检查。",
+      "metrics": {}
+    },
+    "retrieval_process": {
+      "score": 4.7,
+      "comment": "检索调用数量和 query 去重情况。",
+      "metrics": {
+        "phase_coverage": 1.0,
+        "event_completeness_rate": 1.0,
+        "num_agent_steps": 38,
+        "num_search_calls": 27,
+        "unique_queries": 5,
+        "critic_loop_count": 13,
+        "re_research_count": 1,
+        "revision_count": 3,
+        "has_planning": true,
+        "has_researching": true,
+        "has_analyzing": true,
+        "has_writing": true,
+        "has_reviewing": true,
+        "has_completed": true
+      }
+    },
+    "authority_priority": {
+      "score": 3.15,
+      "comment": "权威来源占比。",
+      "metrics": {
+        "source_type_coverage": 11,
+        "official_source_ratio": 0.6298701298701299,
+        "authority_source_ratio": 0.6298701298701299,
+        "low_quality_source_ratio": 0.012987012987012988,
+        "unique_source_count": 154,
+        "legal_source_count": 66,
+        "case_source_count": 31,
+        "contract_source_count": 41,
+        "enforcement_source_count": 31,
+        "num_search_calls": 27,
+        "unique_queries": 5
+      }
+    },
+    "self_correction": {
+      "score": 5.0,
+      "comment": "critic/research revision 轨迹。",
+      "metrics": {
+        "phase_coverage": 1.0,
+        "event_completeness_rate": 1.0,
+        "num_agent_steps": 38,
+        "num_search_calls": 27,
+        "unique_queries": 5,
+        "critic_loop_count": 13,
+        "re_research_count": 1,
+        "revision_count": 3,
+        "has_planning": true,
+        "has_researching": true,
+        "has_analyzing": true,
+        "has_writing": true,
+        "has_reviewing": true,
+        "has_completed": true
+      }
+    },
+    "trace_completeness": {
+      "score": 5.0,
+      "comment": "关键 phase 覆盖。",
+      "metrics": {
+        "phase_coverage": 1.0,
+        "event_completeness_rate": 1.0,
+        "num_agent_steps": 38,
+        "num_search_calls": 27,
+        "unique_queries": 5,
+        "critic_loop_count": 13,
+        "re_research_count": 1,
+        "revision_count": 3,
+        "has_planning": true,
+        "has_researching": true,
+        "has_analyzing": true,
+        "has_writing": true,
+        "has_reviewing": true,
+        "has_completed": true
+      }
+    },
+    "expert_acceptability": {
+      "score": 3.6,
+      "comment": "按 fatal、覆盖和证据链保守估计。",
+      "metrics": {}
+    },
+    "editing_cost": {
+      "score": 4.0,
+      "comment": "fatal 和遗漏越多，修订成本越高。",
+      "metrics": {}
+    },
+    "business_actionability": {
+      "score": 3.75,
+      "comment": "整改建议 owner/priority/deadline/action 检查。",
+      "metrics": {
+        "actionability_score": 0.75,
+        "action_item_count": 8,
+        "has_owner": true,
+        "has_priority": false,
+        "has_deadline": true,
+        "has_action_verbs": true,
+        "weaknesses": [
+          "missing_priority"
+        ]
+      }
+    }
+  },
+  "fatal_errors": [],
+  "warnings": [],
+  "auto_checks": {
+    "disclaimer_present": true,
+    "has_deterministic_legal_advice": false,
+    "citation_validity": true,
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "evidence_chain_complete": true,
+    "risk_consistency_pass": false,
+    "human_review_required_correctly_flagged": true
+  },
+  "metrics": {
+    "law_citation_match_rate": 1.0,
+    "case_number_match_rate": 1.0,
+    "critical_claim_citation_coverage": 0.043478260869565216,
+    "pinpoint_citation_rate": 1.0,
+    "jurisdiction_match_rate": 1.0,
+    "effective_version_match_rate": 1.0,
+    "risk_with_evidence_ratio": 0.0,
+    "risk_score_consistency_rate": 0.6,
+    "citation_validity": true,
+    "num_citations_found": 74,
+    "num_citations_matched": 74,
+    "citation_match_rate": 1.0,
+    "unmatched_citations": [],
+    "matched_citations": [
+      {
+        "type": "source_id",
+        "text": "source_001",
+        "matched_source_id": "source_001"
+      },
+      {
+        "type": "source_id",
+        "text": "source_002",
+        "matched_source_id": "source_002"
+      },
+      {
+        "type": "source_id",
+        "text": "source_003",
+        "matched_source_id": "source_003"
+      },
+      {
+        "type": "source_id",
+        "text": "source_004",
+        "matched_source_id": "source_004"
+      },
+      {
+        "type": "source_id",
+        "text": "source_005",
+        "matched_source_id": "source_005"
+      },
+      {
+        "type": "source_id",
+        "text": "source_006",
+        "matched_source_id": "source_006"
+      },
+      {
+        "type": "source_id",
+        "text": "source_007",
+        "matched_source_id": "source_007"
+      },
+      {
+        "type": "source_id",
+        "text": "source_008",
+        "matched_source_id": "source_008"
+      },
+      {
+        "type": "source_id",
+        "text": "source_009",
+        "matched_source_id": "source_009"
+      },
+      {
+        "type": "source_id",
+        "text": "source_010",
+        "matched_source_id": "source_010"
+      },
+      {
+        "type": "source_id",
+        "text": "source_011",
+        "matched_source_id": "source_011"
+      },
+      {
+        "type": "source_id",
+        "text": "source_012",
+        "matched_source_id": "source_012"
+      },
+      {
+        "type": "source_id",
+        "text": "source_013",
+        "matched_source_id": "source_013"
+      },
+      {
+        "type": "source_id",
+        "text": "source_014",
+        "matched_source_id": "source_014"
+      },
+      {
+        "type": "source_id",
+        "text": "source_015",
+        "matched_source_id": "source_015"
+      },
+      {
+        "type": "source_id",
+        "text": "source_016",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "source_id",
+        "text": "source_017",
+        "matched_source_id": "source_017"
+      },
+      {
+        "type": "source_id",
+        "text": "source_018",
+        "matched_source_id": "source_018"
+      },
+      {
+        "type": "source_id",
+        "text": "source_019",
+        "matched_source_id": "source_019"
+      },
+      {
+        "type": "source_id",
+        "text": "source_020",
+        "matched_source_id": "source_020"
+      },
+      {
+        "type": "source_id",
+        "text": "source_021",
+        "matched_source_id": "source_021"
+      },
+      {
+        "type": "source_id",
+        "text": "source_022",
+        "matched_source_id": "source_022"
+      },
+      {
+        "type": "source_id",
+        "text": "source_023",
+        "matched_source_id": "source_023"
+      },
+      {
+        "type": "source_id",
+        "text": "source_024",
+        "matched_source_id": "source_024"
+      },
+      {
+        "type": "source_id",
+        "text": "source_025",
+        "matched_source_id": "source_025"
+      },
+      {
+        "type": "source_id",
+        "text": "source_026",
+        "matched_source_id": "source_026"
+      },
+      {
+        "type": "source_id",
+        "text": "source_027",
+        "matched_source_id": "source_027"
+      },
+      {
+        "type": "source_id",
+        "text": "source_028",
+        "matched_source_id": "source_028"
+      },
+      {
+        "type": "source_id",
+        "text": "source_029",
+        "matched_source_id": "source_029"
+      },
+      {
+        "type": "source_id",
+        "text": "source_030",
+        "matched_source_id": "source_030"
+      },
+      {
+        "type": "source_id",
+        "text": "source_031",
+        "matched_source_id": "source_031"
+      },
+      {
+        "type": "source_id",
+        "text": "source_032",
+        "matched_source_id": "source_032"
+      },
+      {
+        "type": "source_id",
+        "text": "source_033",
+        "matched_source_id": "source_033"
+      },
+      {
+        "type": "source_id",
+        "text": "source_034",
+        "matched_source_id": "source_034"
+      },
+      {
+        "type": "source_id",
+        "text": "source_035",
+        "matched_source_id": "source_035"
+      },
+      {
+        "type": "source_id",
+        "text": "source_036",
+        "matched_source_id": "source_036"
+      },
+      {
+        "type": "source_id",
+        "text": "source_037",
+        "matched_source_id": "source_037"
+      },
+      {
+        "type": "source_id",
+        "text": "source_038",
+        "matched_source_id": "source_038"
+      },
+      {
+        "type": "source_id",
+        "text": "source_039",
+        "matched_source_id": "source_039"
+      },
+      {
+        "type": "source_id",
+        "text": "source_040",
+        "matched_source_id": "source_040"
+      },
+      {
+        "type": "source_id",
+        "text": "source_041",
+        "matched_source_id": "source_041"
+      },
+      {
+        "type": "source_id",
+        "text": "source_042",
+        "matched_source_id": "source_042"
+      },
+      {
+        "type": "source_id",
+        "text": "source_043",
+        "matched_source_id": "source_043"
+      },
+      {
+        "type": "source_id",
+        "text": "source_044",
+        "matched_source_id": "source_044"
+      },
+      {
+        "type": "source_id",
+        "text": "source_045",
+        "matched_source_id": "source_045"
+      },
+      {
+        "type": "source_id",
+        "text": "source_046",
+        "matched_source_id": "source_046"
+      },
+      {
+        "type": "source_id",
+        "text": "source_047",
+        "matched_source_id": "source_047"
+      },
+      {
+        "type": "source_id",
+        "text": "source_048",
+        "matched_source_id": "source_048"
+      },
+      {
+        "type": "source_id",
+        "text": "source_049",
+        "matched_source_id": "source_049"
+      },
+      {
+        "type": "source_id",
+        "text": "source_050",
+        "matched_source_id": "source_050"
+      },
+      {
+        "type": "source_id",
+        "text": "source_051",
+        "matched_source_id": "source_051"
+      },
+      {
+        "type": "source_id",
+        "text": "source_052",
+        "matched_source_id": "source_052"
+      },
+      {
+        "type": "source_id",
+        "text": "source_053",
+        "matched_source_id": "source_053"
+      },
+      {
+        "type": "source_id",
+        "text": "source_054",
+        "matched_source_id": "source_054"
+      },
+      {
+        "type": "source_id",
+        "text": "source_055",
+        "matched_source_id": "source_055"
+      },
+      {
+        "type": "source_id",
+        "text": "source_056",
+        "matched_source_id": "source_056"
+      },
+      {
+        "type": "source_id",
+        "text": "source_057",
+        "matched_source_id": "source_057"
+      },
+      {
+        "type": "source_id",
+        "text": "source_058",
+        "matched_source_id": "source_058"
+      },
+      {
+        "type": "source_id",
+        "text": "source_059",
+        "matched_source_id": "source_059"
+      },
+      {
+        "type": "source_id",
+        "text": "source_060",
+        "matched_source_id": "source_060"
+      },
+      {
+        "type": "source_id",
+        "text": "source_061",
+        "matched_source_id": "source_061"
+      },
+      {
+        "type": "source_id",
+        "text": "source_062",
+        "matched_source_id": "source_062"
+      },
+      {
+        "type": "source_id",
+        "text": "source_063",
+        "matched_source_id": "source_063"
+      },
+      {
+        "type": "source_id",
+        "text": "source_064",
+        "matched_source_id": "source_064"
+      },
+      {
+        "type": "source_id",
+        "text": "source_065",
+        "matched_source_id": "source_065"
+      },
+      {
+        "type": "source_id",
+        "text": "source_066",
+        "matched_source_id": "source_066"
+      },
+      {
+        "type": "source_id",
+        "text": "source_067",
+        "matched_source_id": "source_067"
+      },
+      {
+        "type": "law",
+        "text": "《网络安全法》第三十七条",
+        "title": "网络安全法",
+        "article_no": "三十七条",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "law",
+        "text": "《中华人民共和国网络安全法》第三十七条",
+        "title": "中华人民共和国网络安全法",
+        "article_no": "三十七条",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "law",
+        "text": "《中华人民共和国数据安全法》第三十一条",
+        "title": "中华人民共和国数据安全法",
+        "article_no": "三十一条",
+        "matched_source_id": "source_032"
+      },
+      {
+        "type": "law",
+        "text": "《关键信息基础设施安全保护条例》第二条",
+        "title": "关键信息基础设施安全保护条例",
+        "article_no": "二条",
+        "matched_source_id": "source_060"
+      },
+      {
+        "type": "law",
+        "text": "《个人信息保护法》第三十八条",
+        "title": "个人信息保护法",
+        "article_no": "三十八条",
+        "matched_source_id": "source_001"
+      },
+      {
+        "type": "law",
+        "text": "《网络安全法》第三十七条",
+        "title": "网络安全法",
+        "article_no": "三十七条",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "law",
+        "text": "《中华人民共和国个人信息保护法》第三十八条",
+        "title": "中华人民共和国个人信息保护法",
+        "article_no": "三十八条",
+        "matched_source_id": "source_004"
+      }
+    ],
+    "source_id_citation_count": 67,
+    "warnings": [],
+    "evidence_chain_complete": true,
+    "high_risk_dual_basis_ratio": 1.0,
+    "unsupported_high_risk_items": [],
+    "weak_evidence_risk_items": [],
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "wrong_jurisdiction_sources": [],
+    "expired_sources_used_as_current": [],
+    "cross_border": true,
+    "has_boundary_statement": true,
+    "boundary_warning": false,
+    "source_type_coverage": 11,
+    "official_source_ratio": 0.6298701298701299,
+    "authority_source_ratio": 0.6298701298701299,
+    "low_quality_source_ratio": 0.012987012987012988,
+    "unique_source_count": 154,
+    "legal_source_count": 66,
+    "case_source_count": 31,
+    "contract_source_count": 41,
+    "enforcement_source_count": 31,
+    "num_search_calls": 27,
+    "unique_queries": 5,
+    "phase_coverage": 1.0,
+    "event_completeness_rate": 1.0,
+    "num_agent_steps": 38,
+    "critic_loop_count": 13,
+    "re_research_count": 1,
+    "revision_count": 3,
+    "has_planning": true,
+    "has_researching": true,
+    "has_analyzing": true,
+    "has_writing": true,
+    "has_reviewing": true,
+    "has_completed": true,
+    "required_points_recall": 1.0,
+    "critical_omission_count": 0,
+    "covered_points": [
+      "先识别主法域为中国大陆，并提示香港和 EU 要作为并行影响法域处理；不能直接把 GDPR 结论替代中国大陆数据出境结论。",
+      "应检索并引用个人信息保护法、网络安全法、数据安全法及现行数据出境配套规则，判断是否涉及个人信息、敏感个人信息、重要数据、关键信息基础设施或规模门槛。",
+      "应区分三类流转：香港灾备、德国日志分析、客户远程访问；分别判断是否构成向境外提供个人信息或受托处理。",
+      "应核对合同中是否已有数据处理协议、跨境传输条款、分包商管理、删除/返还、审计权、泄露通知、标准合同或认证协同条款；如缺失应明确指出。",
+      "应提示关键事实缺口，例如数据量、数据字段、是否含敏感个人信息、客户身份、是否属于 CIIO、是否已有个人信息影响评估。",
+      "结论应保持边界：可给出合规路径和风险分级，但不应在未知门槛和行业属性下给出“肯定可以出境”的确定性结论。",
+      "应触发人工复核，原因是涉及跨境、多法域、敏感人力资源数据和合同重构。"
+    ],
+    "missing_points": [],
+    "actionability_score": 0.75,
+    "action_item_count": 8,
+    "has_owner": true,
+    "has_priority": false,
+    "has_deadline": true,
+    "has_action_verbs": true,
+    "weaknesses": [
+      "missing_priority"
+    ]
+  },
+  "uncertainty": {
+    "judge_confidence": 0.78,
+    "human_review_recommended": true,
+    "reasons": [
+      "法律风控报告建议人工复核后使用"
+    ]
+  },
+  "notes": {
+    "strengths": [],
+    "weaknesses": [],
+    "missing_points": [],
+    "fix_recommendations": []
+  },
+  "rule_engine_result": {
+    "rule_engine_version": "legal_rule_engine_v1",
+    "fatal_errors": [],
+    "warnings": [],
+    "auto_checks": {
+      "disclaimer_present": true,
+      "has_deterministic_legal_advice": false,
+      "citation_validity": true,
+      "jurisdiction_match": true,
+      "law_version_match": true,
+      "evidence_chain_complete": true,
+      "risk_consistency_pass": false,
+      "human_review_required_correctly_flagged": true
+    },
+    "metrics": {
+      "law_citation_match_rate": 1.0,
+      "case_number_match_rate": 1.0,
+      "critical_claim_citation_coverage": 0.043478260869565216,
+      "pinpoint_citation_rate": 1.0,
+      "jurisdiction_match_rate": 1.0,
+      "effective_version_match_rate": 1.0,
+      "risk_with_evidence_ratio": 0.0,
+      "risk_score_consistency_rate": 0.6
+    },
+    "rule_notes": []
+  },
+  "citation_result": {
+    "citation_validity": true,
+    "num_citations_found": 74,
+    "num_citations_matched": 74,
+    "citation_match_rate": 1.0,
+    "pinpoint_citation_rate": 1.0,
+    "critical_claim_citation_coverage": 0.043478260869565216,
+    "unmatched_citations": [],
+    "matched_citations": [
+      {
+        "type": "source_id",
+        "text": "source_001",
+        "matched_source_id": "source_001"
+      },
+      {
+        "type": "source_id",
+        "text": "source_002",
+        "matched_source_id": "source_002"
+      },
+      {
+        "type": "source_id",
+        "text": "source_003",
+        "matched_source_id": "source_003"
+      },
+      {
+        "type": "source_id",
+        "text": "source_004",
+        "matched_source_id": "source_004"
+      },
+      {
+        "type": "source_id",
+        "text": "source_005",
+        "matched_source_id": "source_005"
+      },
+      {
+        "type": "source_id",
+        "text": "source_006",
+        "matched_source_id": "source_006"
+      },
+      {
+        "type": "source_id",
+        "text": "source_007",
+        "matched_source_id": "source_007"
+      },
+      {
+        "type": "source_id",
+        "text": "source_008",
+        "matched_source_id": "source_008"
+      },
+      {
+        "type": "source_id",
+        "text": "source_009",
+        "matched_source_id": "source_009"
+      },
+      {
+        "type": "source_id",
+        "text": "source_010",
+        "matched_source_id": "source_010"
+      },
+      {
+        "type": "source_id",
+        "text": "source_011",
+        "matched_source_id": "source_011"
+      },
+      {
+        "type": "source_id",
+        "text": "source_012",
+        "matched_source_id": "source_012"
+      },
+      {
+        "type": "source_id",
+        "text": "source_013",
+        "matched_source_id": "source_013"
+      },
+      {
+        "type": "source_id",
+        "text": "source_014",
+        "matched_source_id": "source_014"
+      },
+      {
+        "type": "source_id",
+        "text": "source_015",
+        "matched_source_id": "source_015"
+      },
+      {
+        "type": "source_id",
+        "text": "source_016",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "source_id",
+        "text": "source_017",
+        "matched_source_id": "source_017"
+      },
+      {
+        "type": "source_id",
+        "text": "source_018",
+        "matched_source_id": "source_018"
+      },
+      {
+        "type": "source_id",
+        "text": "source_019",
+        "matched_source_id": "source_019"
+      },
+      {
+        "type": "source_id",
+        "text": "source_020",
+        "matched_source_id": "source_020"
+      },
+      {
+        "type": "source_id",
+        "text": "source_021",
+        "matched_source_id": "source_021"
+      },
+      {
+        "type": "source_id",
+        "text": "source_022",
+        "matched_source_id": "source_022"
+      },
+      {
+        "type": "source_id",
+        "text": "source_023",
+        "matched_source_id": "source_023"
+      },
+      {
+        "type": "source_id",
+        "text": "source_024",
+        "matched_source_id": "source_024"
+      },
+      {
+        "type": "source_id",
+        "text": "source_025",
+        "matched_source_id": "source_025"
+      },
+      {
+        "type": "source_id",
+        "text": "source_026",
+        "matched_source_id": "source_026"
+      },
+      {
+        "type": "source_id",
+        "text": "source_027",
+        "matched_source_id": "source_027"
+      },
+      {
+        "type": "source_id",
+        "text": "source_028",
+        "matched_source_id": "source_028"
+      },
+      {
+        "type": "source_id",
+        "text": "source_029",
+        "matched_source_id": "source_029"
+      },
+      {
+        "type": "source_id",
+        "text": "source_030",
+        "matched_source_id": "source_030"
+      },
+      {
+        "type": "source_id",
+        "text": "source_031",
+        "matched_source_id": "source_031"
+      },
+      {
+        "type": "source_id",
+        "text": "source_032",
+        "matched_source_id": "source_032"
+      },
+      {
+        "type": "source_id",
+        "text": "source_033",
+        "matched_source_id": "source_033"
+      },
+      {
+        "type": "source_id",
+        "text": "source_034",
+        "matched_source_id": "source_034"
+      },
+      {
+        "type": "source_id",
+        "text": "source_035",
+        "matched_source_id": "source_035"
+      },
+      {
+        "type": "source_id",
+        "text": "source_036",
+        "matched_source_id": "source_036"
+      },
+      {
+        "type": "source_id",
+        "text": "source_037",
+        "matched_source_id": "source_037"
+      },
+      {
+        "type": "source_id",
+        "text": "source_038",
+        "matched_source_id": "source_038"
+      },
+      {
+        "type": "source_id",
+        "text": "source_039",
+        "matched_source_id": "source_039"
+      },
+      {
+        "type": "source_id",
+        "text": "source_040",
+        "matched_source_id": "source_040"
+      },
+      {
+        "type": "source_id",
+        "text": "source_041",
+        "matched_source_id": "source_041"
+      },
+      {
+        "type": "source_id",
+        "text": "source_042",
+        "matched_source_id": "source_042"
+      },
+      {
+        "type": "source_id",
+        "text": "source_043",
+        "matched_source_id": "source_043"
+      },
+      {
+        "type": "source_id",
+        "text": "source_044",
+        "matched_source_id": "source_044"
+      },
+      {
+        "type": "source_id",
+        "text": "source_045",
+        "matched_source_id": "source_045"
+      },
+      {
+        "type": "source_id",
+        "text": "source_046",
+        "matched_source_id": "source_046"
+      },
+      {
+        "type": "source_id",
+        "text": "source_047",
+        "matched_source_id": "source_047"
+      },
+      {
+        "type": "source_id",
+        "text": "source_048",
+        "matched_source_id": "source_048"
+      },
+      {
+        "type": "source_id",
+        "text": "source_049",
+        "matched_source_id": "source_049"
+      },
+      {
+        "type": "source_id",
+        "text": "source_050",
+        "matched_source_id": "source_050"
+      },
+      {
+        "type": "source_id",
+        "text": "source_051",
+        "matched_source_id": "source_051"
+      },
+      {
+        "type": "source_id",
+        "text": "source_052",
+        "matched_source_id": "source_052"
+      },
+      {
+        "type": "source_id",
+        "text": "source_053",
+        "matched_source_id": "source_053"
+      },
+      {
+        "type": "source_id",
+        "text": "source_054",
+        "matched_source_id": "source_054"
+      },
+      {
+        "type": "source_id",
+        "text": "source_055",
+        "matched_source_id": "source_055"
+      },
+      {
+        "type": "source_id",
+        "text": "source_056",
+        "matched_source_id": "source_056"
+      },
+      {
+        "type": "source_id",
+        "text": "source_057",
+        "matched_source_id": "source_057"
+      },
+      {
+        "type": "source_id",
+        "text": "source_058",
+        "matched_source_id": "source_058"
+      },
+      {
+        "type": "source_id",
+        "text": "source_059",
+        "matched_source_id": "source_059"
+      },
+      {
+        "type": "source_id",
+        "text": "source_060",
+        "matched_source_id": "source_060"
+      },
+      {
+        "type": "source_id",
+        "text": "source_061",
+        "matched_source_id": "source_061"
+      },
+      {
+        "type": "source_id",
+        "text": "source_062",
+        "matched_source_id": "source_062"
+      },
+      {
+        "type": "source_id",
+        "text": "source_063",
+        "matched_source_id": "source_063"
+      },
+      {
+        "type": "source_id",
+        "text": "source_064",
+        "matched_source_id": "source_064"
+      },
+      {
+        "type": "source_id",
+        "text": "source_065",
+        "matched_source_id": "source_065"
+      },
+      {
+        "type": "source_id",
+        "text": "source_066",
+        "matched_source_id": "source_066"
+      },
+      {
+        "type": "source_id",
+        "text": "source_067",
+        "matched_source_id": "source_067"
+      },
+      {
+        "type": "law",
+        "text": "《网络安全法》第三十七条",
+        "title": "网络安全法",
+        "article_no": "三十七条",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "law",
+        "text": "《中华人民共和国网络安全法》第三十七条",
+        "title": "中华人民共和国网络安全法",
+        "article_no": "三十七条",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "law",
+        "text": "《中华人民共和国数据安全法》第三十一条",
+        "title": "中华人民共和国数据安全法",
+        "article_no": "三十一条",
+        "matched_source_id": "source_032"
+      },
+      {
+        "type": "law",
+        "text": "《关键信息基础设施安全保护条例》第二条",
+        "title": "关键信息基础设施安全保护条例",
+        "article_no": "二条",
+        "matched_source_id": "source_060"
+      },
+      {
+        "type": "law",
+        "text": "《个人信息保护法》第三十八条",
+        "title": "个人信息保护法",
+        "article_no": "三十八条",
+        "matched_source_id": "source_001"
+      },
+      {
+        "type": "law",
+        "text": "《网络安全法》第三十七条",
+        "title": "网络安全法",
+        "article_no": "三十七条",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "law",
+        "text": "《中华人民共和国个人信息保护法》第三十八条",
+        "title": "中华人民共和国个人信息保护法",
+        "article_no": "三十八条",
+        "matched_source_id": "source_004"
+      }
+    ],
+    "source_id_citation_count": 67,
+    "warnings": []
+  },
+  "evidence_result": {
+    "evidence_chain_complete": true,
+    "risk_with_evidence_ratio": 0.0,
+    "high_risk_dual_basis_ratio": 1.0,
+    "unsupported_high_risk_items": [],
+    "weak_evidence_risk_items": []
+  },
+  "jurisdiction_result": {
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "jurisdiction_match_rate": 1.0,
+    "effective_version_match_rate": 1.0,
+    "wrong_jurisdiction_sources": [],
+    "expired_sources_used_as_current": [],
+    "cross_border": true,
+    "has_boundary_statement": true,
+    "boundary_warning": false
+  },
+  "retrieval_result": {
+    "source_type_coverage": 11,
+    "official_source_ratio": 0.6298701298701299,
+    "authority_source_ratio": 0.6298701298701299,
+    "low_quality_source_ratio": 0.012987012987012988,
+    "unique_source_count": 154,
+    "legal_source_count": 66,
+    "case_source_count": 31,
+    "contract_source_count": 41,
+    "enforcement_source_count": 31,
+    "num_search_calls": 27,
+    "unique_queries": 5
+  },
+  "process_result": {
+    "phase_coverage": 1.0,
+    "event_completeness_rate": 1.0,
+    "num_agent_steps": 38,
+    "num_search_calls": 27,
+    "unique_queries": 5,
+    "critic_loop_count": 13,
+    "re_research_count": 1,
+    "revision_count": 3,
+    "has_planning": true,
+    "has_researching": true,
+    "has_analyzing": true,
+    "has_writing": true,
+    "has_reviewing": true,
+    "has_completed": true
+  },
+  "gold_comparison_result": {
+    "required_points_recall": 1.0,
+    "critical_omission_count": 0,
+    "covered_points": [
+      "先识别主法域为中国大陆，并提示香港和 EU 要作为并行影响法域处理；不能直接把 GDPR 结论替代中国大陆数据出境结论。",
+      "应检索并引用个人信息保护法、网络安全法、数据安全法及现行数据出境配套规则，判断是否涉及个人信息、敏感个人信息、重要数据、关键信息基础设施或规模门槛。",
+      "应区分三类流转：香港灾备、德国日志分析、客户远程访问；分别判断是否构成向境外提供个人信息或受托处理。",
+      "应核对合同中是否已有数据处理协议、跨境传输条款、分包商管理、删除/返还、审计权、泄露通知、标准合同或认证协同条款；如缺失应明确指出。",
+      "应提示关键事实缺口，例如数据量、数据字段、是否含敏感个人信息、客户身份、是否属于 CIIO、是否已有个人信息影响评估。",
+      "结论应保持边界：可给出合规路径和风险分级，但不应在未知门槛和行业属性下给出“肯定可以出境”的确定性结论。",
+      "应触发人工复核，原因是涉及跨境、多法域、敏感人力资源数据和合同重构。"
+    ],
+    "missing_points": [],
+    "warnings": []
+  },
+  "actionability_result": {
+    "actionability_score": 0.75,
+    "action_item_count": 8,
+    "has_owner": true,
+    "has_priority": false,
+    "has_deadline": true,
+    "has_action_verbs": true,
+    "weaknesses": [
+      "missing_priority"
+    ]
+  },
+  "llm_judge_result": {
+    "evaluator_model": "mock_legal_eval_judge_v1",
+    "task_id": "HARD_01",
+    "overall_score": 0.0,
+    "goal_scores": {},
+    "dimensions": {
+      "legal_factuality": {
+        "score": 4.2,
+        "comment": "基于规则引擎和引用核验的确定性诊断。",
+        "metrics": {
+          "unverified_claim_rate": 0.9565217391304348,
+          "hallucination_rate": 0.0
+        }
+      },
+      "jurisdiction_version_match": {
+        "score": 5.0,
+        "comment": "按法域和版本字段进行规则化核验。",
+        "metrics": {
+          "jurisdiction_match": true,
+          "law_version_match": true,
+          "jurisdiction_match_rate": 1.0,
+          "effective_version_match_rate": 1.0,
+          "wrong_jurisdiction_sources": [],
+          "expired_sources_used_as_current": [],
+          "cross_border": true,
+          "has_boundary_statement": true,
+          "boundary_warning": false
+        }
+      },
+      "coverage": {
+        "score": 5.0,
+        "comment": "按 Gold 必须覆盖要点粗粒度召回。",
+        "metrics": {
+          "required_points_recall": 1.0,
+          "critical_omission_count": 0,
+          "covered_points": [
+            "先识别主法域为中国大陆，并提示香港和 EU 要作为并行影响法域处理；不能直接把 GDPR 结论替代中国大陆数据出境结论。",
+            "应检索并引用个人信息保护法、网络安全法、数据安全法及现行数据出境配套规则，判断是否涉及个人信息、敏感个人信息、重要数据、关键信息基础设施或规模门槛。",
+            "应区分三类流转：香港灾备、德国日志分析、客户远程访问；分别判断是否构成向境外提供个人信息或受托处理。",
+            "应核对合同中是否已有数据处理协议、跨境传输条款、分包商管理、删除/返还、审计权、泄露通知、标准合同或认证协同条款；如缺失应明确指出。",
+            "应提示关键事实缺口，例如数据量、数据字段、是否含敏感个人信息、客户身份、是否属于 CIIO、是否已有个人信息影响评估。",
+            "结论应保持边界：可给出合规路径和风险分级，但不应在未知门槛和行业属性下给出“肯定可以出境”的确定性结论。",
+            "应触发人工复核，原因是涉及跨境、多法域、敏感人力资源数据和合同重构。"
+          ],
+          "missing_points": [],
+          "warnings": []
+        }
+      },
+      "evidence_chain": {
+        "score": 0.0,
+        "comment": "按 risk_item 到 evidence/source 的链路完整性评分。",
+        "metrics": {
+          "evidence_chain_complete": true,
+          "risk_with_evidence_ratio": 0.0,
+          "high_risk_dual_basis_ratio": 1.0,
+          "unsupported_high_risk_items": [],
+          "weak_evidence_risk_items": []
+        }
+      },
+      "citation_quality": {
+        "score": 4.4,
+        "comment": "综合引用匹配率和权威来源占比。",
+        "metrics": {
+          "citation_validity": true,
+          "num_citations_found": 74,
+          "num_citations_matched": 74,
+          "citation_match_rate": 1.0,
+          "pinpoint_citation_rate": 1.0,
+          "critical_claim_citation_coverage": 0.043478260869565216,
+          "unmatched_citations": [],
+          "matched_citations": [
+            {
+              "type": "source_id",
+              "text": "source_001",
+              "matched_source_id": "source_001"
+            },
+            {
+              "type": "source_id",
+              "text": "source_002",
+              "matched_source_id": "source_002"
+            },
+            {
+              "type": "source_id",
+              "text": "source_003",
+              "matched_source_id": "source_003"
+            },
+            {
+              "type": "source_id",
+              "text": "source_004",
+              "matched_source_id": "source_004"
+            },
+            {
+              "type": "source_id",
+              "text": "source_005",
+              "matched_source_id": "source_005"
+            },
+            {
+              "type": "source_id",
+              "text": "source_006",
+              "matched_source_id": "source_006"
+            },
+            {
+              "type": "source_id",
+              "text": "source_007",
+              "matched_source_id": "source_007"
+            },
+            {
+              "type": "source_id",
+              "text": "source_008",
+              "matched_source_id": "source_008"
+            },
+            {
+              "type": "source_id",
+              "text": "source_009",
+              "matched_source_id": "source_009"
+            },
+            {
+              "type": "source_id",
+              "text": "source_010",
+              "matched_source_id": "source_010"
+            },
+            {
+              "type": "source_id",
+              "text": "source_011",
+              "matched_source_id": "source_011"
+            },
+            {
+              "type": "source_id",
+              "text": "source_012",
+              "matched_source_id": "source_012"
+            },
+            {
+              "type": "source_id",
+              "text": "source_013",
+              "matched_source_id": "source_013"
+            },
+            {
+              "type": "source_id",
+              "text": "source_014",
+              "matched_source_id": "source_014"
+            },
+            {
+              "type": "source_id",
+              "text": "source_015",
+              "matched_source_id": "source_015"
+            },
+            {
+              "type": "source_id",
+              "text": "source_016",
+              "matched_source_id": "source_016"
+            },
+            {
+              "type": "source_id",
+              "text": "source_017",
+              "matched_source_id": "source_017"
+            },
+            {
+              "type": "source_id",
+              "text": "source_018",
+              "matched_source_id": "source_018"
+            },
+            {
+              "type": "source_id",
+              "text": "source_019",
+              "matched_source_id": "source_019"
+            },
+            {
+              "type": "source_id",
+              "text": "source_020",
+              "matched_source_id": "source_020"
+            },
+            {
+              "type": "source_id",
+              "text": "source_021",
+              "matched_source_id": "source_021"
+            },
+            {
+              "type": "source_id",
+              "text": "source_022",
+              "matched_source_id": "source_022"
+            },
+            {
+              "type": "source_id",
+              "text": "source_023",
+              "matched_source_id": "source_023"
+            },
+            {
+              "type": "source_id",
+              "text": "source_024",
+              "matched_source_id": "source_024"
+            },
+            {
+              "type": "source_id",
+              "text": "source_025",
+              "matched_source_id": "source_025"
+            },
+            {
+              "type": "source_id",
+              "text": "source_026",
+              "matched_source_id": "source_026"
+            },
+            {
+              "type": "source_id",
+              "text": "source_027",
+              "matched_source_id": "source_027"
+            },
+            {
+              "type": "source_id",
+              "text": "source_028",
+              "matched_source_id": "source_028"
+            },
+            {
+              "type": "source_id",
+              "text": "source_029",
+              "matched_source_id": "source_029"
+            },
+            {
+              "type": "source_id",
+              "text": "source_030",
+              "matched_source_id": "source_030"
+            },
+            {
+              "type": "source_id",
+              "text": "source_031",
+              "matched_source_id": "source_031"
+            },
+            {
+              "type": "source_id",
+              "text": "source_032",
+              "matched_source_id": "source_032"
+            },
+            {
+              "type": "source_id",
+              "text": "source_033",
+              "matched_source_id": "source_033"
+            },
+            {
+              "type": "source_id",
+              "text": "source_034",
+              "matched_source_id": "source_034"
+            },
+            {
+              "type": "source_id",
+              "text": "source_035",
+              "matched_source_id": "source_035"
+            },
+            {
+              "type": "source_id",
+              "text": "source_036",
+              "matched_source_id": "source_036"
+            },
+            {
+              "type": "source_id",
+              "text": "source_037",
+              "matched_source_id": "source_037"
+            },
+            {
+              "type": "source_id",
+              "text": "source_038",
+              "matched_source_id": "source_038"
+            },
+            {
+              "type": "source_id",
+              "text": "source_039",
+              "matched_source_id": "source_039"
+            },
+            {
+              "type": "source_id",
+              "text": "source_040",
+              "matched_source_id": "source_040"
+            },
+            {
+              "type": "source_id",
+              "text": "source_041",
+              "matched_source_id": "source_041"
+            },
+            {
+              "type": "source_id",
+              "text": "source_042",
+              "matched_source_id": "source_042"
+            },
+            {
+              "type": "source_id",
+              "text": "source_043",
+              "matched_source_id": "source_043"
+            },
+            {
+              "type": "source_id",
+              "text": "source_044",
+              "matched_source_id": "source_044"
+            },
+            {
+              "type": "source_id",
+              "text": "source_045",
+              "matched_source_id": "source_045"
+            },
+            {
+              "type": "source_id",
+              "text": "source_046",
+              "matched_source_id": "source_046"
+            },
+            {
+              "type": "source_id",
+              "text": "source_047",
+              "matched_source_id": "source_047"
+            },
+            {
+              "type": "source_id",
+              "text": "source_048",
+              "matched_source_id": "source_048"
+            },
+            {
+              "type": "source_id",
+              "text": "source_049",
+              "matched_source_id": "source_049"
+            },
+            {
+              "type": "source_id",
+              "text": "source_050",
+              "matched_source_id": "source_050"
+            },
+            {
+              "type": "source_id",
+              "text": "source_051",
+              "matched_source_id": "source_051"
+            },
+            {
+              "type": "source_id",
+              "text": "source_052",
+              "matched_source_id": "source_052"
+            },
+            {
+              "type": "source_id",
+              "text": "source_053",
+              "matched_source_id": "source_053"
+            },
+            {
+              "type": "source_id",
+              "text": "source_054",
+              "matched_source_id": "source_054"
+            },
+            {
+              "type": "source_id",
+              "text": "source_055",
+              "matched_source_id": "source_055"
+            },
+            {
+              "type": "source_id",
+              "text": "source_056",
+              "matched_source_id": "source_056"
+            },
+            {
+              "type": "source_id",
+              "text": "source_057",
+              "matched_source_id": "source_057"
+            },
+            {
+              "type": "source_id",
+              "text": "source_058",
+              "matched_source_id": "source_058"
+            },
+            {
+              "type": "source_id",
+              "text": "source_059",
+              "matched_source_id": "source_059"
+            },
+            {
+              "type": "source_id",
+              "text": "source_060",
+              "matched_source_id": "source_060"
+            },
+            {
+              "type": "source_id",
+              "text": "source_061",
+              "matched_source_id": "source_061"
+            },
+            {
+              "type": "source_id",
+              "text": "source_062",
+              "matched_source_id": "source_062"
+            },
+            {
+              "type": "source_id",
+              "text": "source_063",
+              "matched_source_id": "source_063"
+            },
+            {
+              "type": "source_id",
+              "text": "source_064",
+              "matched_source_id": "source_064"
+            },
+            {
+              "type": "source_id",
+              "text": "source_065",
+              "matched_source_id": "source_065"
+            },
+            {
+              "type": "source_id",
+              "text": "source_066",
+              "matched_source_id": "source_066"
+            },
+            {
+              "type": "source_id",
+              "text": "source_067",
+              "matched_source_id": "source_067"
+            },
+            {
+              "type": "law",
+              "text": "《网络安全法》第三十七条",
+              "title": "网络安全法",
+              "article_no": "三十七条",
+              "matched_source_id": "source_016"
+            },
+            {
+              "type": "law",
+              "text": "《中华人民共和国网络安全法》第三十七条",
+              "title": "中华人民共和国网络安全法",
+              "article_no": "三十七条",
+              "matched_source_id": "source_016"
+            },
+            {
+              "type": "law",
+              "text": "《中华人民共和国数据安全法》第三十一条",
+              "title": "中华人民共和国数据安全法",
+              "article_no": "三十一条",
+              "matched_source_id": "source_032"
+            },
+            {
+              "type": "law",
+              "text": "《关键信息基础设施安全保护条例》第二条",
+              "title": "关键信息基础设施安全保护条例",
+              "article_no": "二条",
+              "matched_source_id": "source_060"
+            },
+            {
+              "type": "law",
+              "text": "《个人信息保护法》第三十八条",
+              "title": "个人信息保护法",
+              "article_no": "三十八条",
+              "matched_source_id": "source_001"
+            },
+            {
+              "type": "law",
+              "text": "《网络安全法》第三十七条",
+              "title": "网络安全法",
+              "article_no": "三十七条",
+              "matched_source_id": "source_016"
+            },
+            {
+              "type": "law",
+              "text": "《中华人民共和国个人信息保护法》第三十八条",
+              "title": "中华人民共和国个人信息保护法",
+              "article_no": "三十八条",
+              "matched_source_id": "source_004"
+            }
+          ],
+          "source_id_citation_count": 67,
+          "warnings": [],
+          "source_type_coverage": 11,
+          "official_source_ratio": 0.6298701298701299,
+          "authority_source_ratio": 0.6298701298701299,
+          "low_quality_source_ratio": 0.012987012987012988,
+          "unique_source_count": 154,
+          "legal_source_count": 66,
+          "case_source_count": 31,
+          "contract_source_count": 41,
+          "enforcement_source_count": 31,
+          "num_search_calls": 27,
+          "unique_queries": 5
+        }
+      },
+      "risk_consistency": {
+        "score": 3.0,
+        "comment": "按摘要、正文和 risk_items 的风险等级一致性估计。",
+        "metrics": {
+          "law_citation_match_rate": 1.0,
+          "case_number_match_rate": 1.0,
+          "critical_claim_citation_coverage": 0.043478260869565216,
+          "pinpoint_citation_rate": 1.0,
+          "jurisdiction_match_rate": 1.0,
+          "effective_version_match_rate": 1.0,
+          "risk_with_evidence_ratio": 0.0,
+          "risk_score_consistency_rate": 0.6
+        }
+      },
+      "legal_reasoning": {
+        "score": 3.5,
+        "comment": "mock judge 不作外部法律判断，仅按结构完整性保守估计。",
+        "metrics": {}
+      },
+      "legal_boundary_compliance": {
+        "score": 5.0,
+        "comment": "免责声明和结论边界检查。",
+        "metrics": {}
+      },
+      "planning_quality": {
+        "score": 5.0,
+        "comment": "规划阶段轨迹检查。",
+        "metrics": {}
+      },
+      "retrieval_process": {
+        "score": 4.7,
+        "comment": "检索调用数量和 query 去重情况。",
+        "metrics": {
+          "phase_coverage": 1.0,
+          "event_completeness_rate": 1.0,
+          "num_agent_steps": 38,
+          "num_search_calls": 27,
+          "unique_queries": 5,
+          "critic_loop_count": 13,
+          "re_research_count": 1,
+          "revision_count": 3,
+          "has_planning": true,
+          "has_researching": true,
+          "has_analyzing": true,
+          "has_writing": true,
+          "has_reviewing": true,
+          "has_completed": true
+        }
+      },
+      "authority_priority": {
+        "score": 3.15,
+        "comment": "权威来源占比。",
+        "metrics": {
+          "source_type_coverage": 11,
+          "official_source_ratio": 0.6298701298701299,
+          "authority_source_ratio": 0.6298701298701299,
+          "low_quality_source_ratio": 0.012987012987012988,
+          "unique_source_count": 154,
+          "legal_source_count": 66,
+          "case_source_count": 31,
+          "contract_source_count": 41,
+          "enforcement_source_count": 31,
+          "num_search_calls": 27,
+          "unique_queries": 5
+        }
+      },
+      "self_correction": {
+        "score": 5.0,
+        "comment": "critic/research revision 轨迹。",
+        "metrics": {
+          "phase_coverage": 1.0,
+          "event_completeness_rate": 1.0,
+          "num_agent_steps": 38,
+          "num_search_calls": 27,
+          "unique_queries": 5,
+          "critic_loop_count": 13,
+          "re_research_count": 1,
+          "revision_count": 3,
+          "has_planning": true,
+          "has_researching": true,
+          "has_analyzing": true,
+          "has_writing": true,
+          "has_reviewing": true,
+          "has_completed": true
+        }
+      },
+      "trace_completeness": {
+        "score": 5.0,
+        "comment": "关键 phase 覆盖。",
+        "metrics": {
+          "phase_coverage": 1.0,
+          "event_completeness_rate": 1.0,
+          "num_agent_steps": 38,
+          "num_search_calls": 27,
+          "unique_queries": 5,
+          "critic_loop_count": 13,
+          "re_research_count": 1,
+          "revision_count": 3,
+          "has_planning": true,
+          "has_researching": true,
+          "has_analyzing": true,
+          "has_writing": true,
+          "has_reviewing": true,
+          "has_completed": true
+        }
+      },
+      "expert_acceptability": {
+        "score": 3.6,
+        "comment": "按 fatal、覆盖和证据链保守估计。",
+        "metrics": {}
+      },
+      "editing_cost": {
+        "score": 4.0,
+        "comment": "fatal 和遗漏越多，修订成本越高。",
+        "metrics": {}
+      },
+      "business_actionability": {
+        "score": 3.75,
+        "comment": "整改建议 owner/priority/deadline/action 检查。",
+        "metrics": {
+          "actionability_score": 0.75,
+          "action_item_count": 8,
+          "has_owner": true,
+          "has_priority": false,
+          "has_deadline": true,
+          "has_action_verbs": true,
+          "weaknesses": [
+            "missing_priority"
+          ]
+        }
+      }
+    },
+    "fatal_errors": [],
+    "auto_checks": {
+      "disclaimer_present": true,
+      "has_deterministic_legal_advice": false,
+      "citation_validity": true,
+      "jurisdiction_match": true,
+      "law_version_match": true,
+      "evidence_chain_complete": true,
+      "risk_consistency_pass": false,
+      "human_review_required_correctly_flagged": true
+    },
+    "uncertainty": {
+      "judge_confidence": 0.78,
+      "human_review_recommended": true,
+      "reasons": [
+        "法律风控报告建议人工复核后使用"
+      ]
+    },
+    "notes": {
+      "strengths": [],
+      "weaknesses": [],
+      "missing_points": [],
+      "fix_recommendations": []
+    },
+    "decision": {
+      "pass_gate": "conditional_pass",
+      "release_ready": false
+    }
+  },
+  "post_check_result": {
+    "post_check_pass": true,
+    "errors": [],
+    "warnings": [],
+    "citation_validity": true
+  },
+  "eval_version": "legal_eval_v1",
+  "decision": {
+    "pass_gate": "revise",
+    "release_ready": false,
+    "requires_human_review": true,
+    "reason": "研究质量分不足",
+    "decision_source": "aggregator"
+  }
+}

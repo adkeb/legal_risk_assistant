@@ -1,0 +1,540 @@
+{
+  "batch_id": "legal_eval_batch_20260607_072350",
+  "batch_dir": "industry_information_assistant/backend/batch_outputs/legal_30_questions/20260607_005455",
+  "total_count": 30,
+  "pass_gate_counts": {
+    "revise": 18,
+    "fail": 12
+  },
+  "fatal_error_count": 10,
+  "average_overall_score": 7.93,
+  "results": [
+    {
+      "eval_id": "legal_eval_easy_01_018f7de4",
+      "task_id": "EASY_01",
+      "overall_score": 7.82,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "研究质量分不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_01_018f7de4.json"
+    },
+    {
+      "eval_id": "legal_eval_easy_02_089c99da",
+      "task_id": "EASY_02",
+      "overall_score": 7.79,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "证据链完整性不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_02_089c99da.json"
+    },
+    {
+      "eval_id": "legal_eval_easy_03_4e05286f",
+      "task_id": "EASY_03",
+      "overall_score": 7.86,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "证据链完整性不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_03_4e05286f.json"
+    },
+    {
+      "eval_id": "legal_eval_easy_04_0708c288",
+      "task_id": "EASY_04",
+      "overall_score": 7.95,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "证据链完整性不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_04_0708c288.json"
+    },
+    {
+      "eval_id": "legal_eval_easy_05_255b7c53",
+      "task_id": "EASY_05",
+      "overall_score": 7.67,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "研究质量分不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_05_255b7c53.json"
+    },
+    {
+      "eval_id": "legal_eval_easy_06_6552bd10",
+      "task_id": "EASY_06",
+      "overall_score": 7.45,
+      "decision": {
+        "pass_gate": "fail",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "存在 fatal_errors",
+        "decision_source": "rule_engine + judge"
+      },
+      "fatal_errors": [
+        {
+          "code": "UNSUPPORTED_HIGH_RISK_CONCLUSION",
+          "message": "高风险结论缺少事实依据或规范依据。",
+          "evidence_ids": [
+            "risk_003"
+          ],
+          "severity": "fatal"
+        }
+      ],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_06_6552bd10.json"
+    },
+    {
+      "eval_id": "legal_eval_easy_07_83d45c31",
+      "task_id": "EASY_07",
+      "overall_score": 7.76,
+      "decision": {
+        "pass_gate": "fail",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "存在 fatal_errors",
+        "decision_source": "rule_engine + judge"
+      },
+      "fatal_errors": [
+        {
+          "code": "FABRICATED_LAW_OR_CASE",
+          "message": "报告引用了 source_index 中无法匹配的法条、案号或 source_id。",
+          "evidence_ids": [
+            "（2019）最高法知民终12号"
+          ],
+          "severity": "fatal"
+        },
+        {
+          "code": "UNSUPPORTED_HIGH_RISK_CONCLUSION",
+          "message": "高风险结论缺少事实依据或规范依据。",
+          "evidence_ids": [
+            "risk_002"
+          ],
+          "severity": "fatal"
+        }
+      ],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_07_83d45c31.json"
+    },
+    {
+      "eval_id": "legal_eval_easy_08_494b2bb0",
+      "task_id": "EASY_08",
+      "overall_score": 7.5,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "研究质量分不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_08_494b2bb0.json"
+    },
+    {
+      "eval_id": "legal_eval_easy_09_e18d968f",
+      "task_id": "EASY_09",
+      "overall_score": 8.14,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "证据链完整性不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_09_e18d968f.json"
+    },
+    {
+      "eval_id": "legal_eval_easy_10_82751ba8",
+      "task_id": "EASY_10",
+      "overall_score": 7.58,
+      "decision": {
+        "pass_gate": "fail",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "存在 fatal_errors",
+        "decision_source": "rule_engine + judge"
+      },
+      "fatal_errors": [
+        {
+          "code": "EXPIRED_LAW_AS_CURRENT",
+          "message": "报告将失效法规作为现行依据使用。",
+          "evidence_ids": [
+            "source_031",
+            "source_035",
+            "source_132",
+            "source_136"
+          ],
+          "severity": "fatal"
+        }
+      ],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_easy_10_82751ba8.json"
+    },
+    {
+      "eval_id": "legal_eval_hard_01_93295617",
+      "task_id": "HARD_01",
+      "overall_score": 7.66,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "研究质量分不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_hard_01_93295617.json"
+    },
+    {
+      "eval_id": "legal_eval_hard_02_490c2984",
+      "task_id": "HARD_02",
+      "overall_score": 7.8,
+      "decision": {
+        "pass_gate": "fail",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "存在 fatal_errors",
+        "decision_source": "rule_engine + judge"
+      },
+      "fatal_errors": [
+        {
+          "code": "UNSUPPORTED_HIGH_RISK_CONCLUSION",
+          "message": "高风险结论缺少事实依据或规范依据。",
+          "evidence_ids": [
+            "risk_007"
+          ],
+          "severity": "fatal"
+        }
+      ],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_hard_02_490c2984.json"
+    },
+    {
+      "eval_id": "legal_eval_hard_03_d39dfc8b",
+      "task_id": "HARD_03",
+      "overall_score": 8.29,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "证据链完整性不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_hard_03_d39dfc8b.json"
+    },
+    {
+      "eval_id": "legal_eval_hard_04_34dd7f20",
+      "task_id": "HARD_04",
+      "overall_score": 8.31,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "证据链完整性不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_hard_04_34dd7f20.json"
+    },
+    {
+      "eval_id": "legal_eval_hard_05_38e7b7ff",
+      "task_id": "HARD_05",
+      "overall_score": 7.52,
+      "decision": {
+        "pass_gate": "fail",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "存在 fatal_errors",
+        "decision_source": "rule_engine + judge"
+      },
+      "fatal_errors": [
+        {
+          "code": "UNSUPPORTED_HIGH_RISK_CONCLUSION",
+          "message": "高风险结论缺少事实依据或规范依据。",
+          "evidence_ids": [
+            "risk_007"
+          ],
+          "severity": "fatal"
+        }
+      ],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_hard_05_38e7b7ff.json"
+    },
+    {
+      "eval_id": "legal_eval_hard_06_6fcc4a2f",
+      "task_id": "HARD_06",
+      "overall_score": 7.81,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "研究质量分不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_hard_06_6fcc4a2f.json"
+    },
+    {
+      "eval_id": "legal_eval_hard_07_10489a79",
+      "task_id": "HARD_07",
+      "overall_score": 8.32,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "可修订后复评",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_hard_07_10489a79.json"
+    },
+    {
+      "eval_id": "legal_eval_hard_08_67151359",
+      "task_id": "HARD_08",
+      "overall_score": 8.05,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "证据链完整性不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_hard_08_67151359.json"
+    },
+    {
+      "eval_id": "legal_eval_hard_09_35f41f65",
+      "task_id": "HARD_09",
+      "overall_score": 7.91,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "研究质量分不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_hard_09_35f41f65.json"
+    },
+    {
+      "eval_id": "legal_eval_hard_10_4e7e8380",
+      "task_id": "HARD_10",
+      "overall_score": 8.69,
+      "decision": {
+        "pass_gate": "fail",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "存在 fatal_errors",
+        "decision_source": "rule_engine + judge"
+      },
+      "fatal_errors": [
+        {
+          "code": "FABRICATED_LAW_OR_CASE",
+          "message": "报告引用了 source_index 中无法匹配的法条、案号或 source_id。",
+          "evidence_ids": [
+            "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（三）》第十二条",
+            "《最高人民法院关于适用<中华人民共和国公司法>若干问题的规定（四）》第十五条"
+          ],
+          "severity": "fatal"
+        }
+      ],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_hard_10_4e7e8380.json"
+    },
+    {
+      "eval_id": "legal_eval_med_01_2c2e8a9c",
+      "task_id": "MED_01",
+      "overall_score": 7.74,
+      "decision": {
+        "pass_gate": "fail",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "存在 fatal_errors",
+        "decision_source": "rule_engine + judge"
+      },
+      "fatal_errors": [
+        {
+          "code": "DETERMINISTIC_LEGAL_ADVICE",
+          "message": "报告出现过度确定性的法律建议。",
+          "evidence_ids": [],
+          "severity": "fatal"
+        }
+      ],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_med_01_2c2e8a9c.json"
+    },
+    {
+      "eval_id": "legal_eval_med_02_ebe3a7a7",
+      "task_id": "MED_02",
+      "overall_score": 7.35,
+      "decision": {
+        "pass_gate": "fail",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "存在 fatal_errors",
+        "decision_source": "rule_engine + judge"
+      },
+      "fatal_errors": [
+        {
+          "code": "DETERMINISTIC_LEGAL_ADVICE",
+          "message": "报告出现过度确定性的法律建议。",
+          "evidence_ids": [],
+          "severity": "fatal"
+        },
+        {
+          "code": "UNSUPPORTED_HIGH_RISK_CONCLUSION",
+          "message": "高风险结论缺少事实依据或规范依据。",
+          "evidence_ids": [
+            "risk_001"
+          ],
+          "severity": "fatal"
+        }
+      ],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_med_02_ebe3a7a7.json"
+    },
+    {
+      "eval_id": "legal_eval_med_03_dc26f18c",
+      "task_id": "MED_03",
+      "overall_score": 8.69,
+      "decision": {
+        "pass_gate": "fail",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "Judge 输出与规则检查结果不一致",
+        "decision_source": "post_check"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_med_03_dc26f18c.json"
+    },
+    {
+      "eval_id": "legal_eval_med_04_bd605e32",
+      "task_id": "MED_04",
+      "overall_score": 8.15,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "证据链完整性不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_med_04_bd605e32.json"
+    },
+    {
+      "eval_id": "legal_eval_med_05_745d3774",
+      "task_id": "MED_05",
+      "overall_score": 8.94,
+      "decision": {
+        "pass_gate": "fail",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "Judge 输出与规则检查结果不一致",
+        "decision_source": "post_check"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_med_05_745d3774.json"
+    },
+    {
+      "eval_id": "legal_eval_med_06_e9fecaf9",
+      "task_id": "MED_06",
+      "overall_score": 8.08,
+      "decision": {
+        "pass_gate": "fail",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "存在 fatal_errors",
+        "decision_source": "rule_engine + judge"
+      },
+      "fatal_errors": [
+        {
+          "code": "UNSUPPORTED_HIGH_RISK_CONCLUSION",
+          "message": "高风险结论缺少事实依据或规范依据。",
+          "evidence_ids": [
+            "risk_003"
+          ],
+          "severity": "fatal"
+        }
+      ],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_med_06_e9fecaf9.json"
+    },
+    {
+      "eval_id": "legal_eval_med_07_95a04f31",
+      "task_id": "MED_07",
+      "overall_score": 7.69,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "研究质量分不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_med_07_95a04f31.json"
+    },
+    {
+      "eval_id": "legal_eval_med_08_06e6b3ef",
+      "task_id": "MED_08",
+      "overall_score": 7.89,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "证据链完整性不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_med_08_06e6b3ef.json"
+    },
+    {
+      "eval_id": "legal_eval_med_09_d0f7b4a7",
+      "task_id": "MED_09",
+      "overall_score": 7.65,
+      "decision": {
+        "pass_gate": "fail",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "存在 fatal_errors",
+        "decision_source": "rule_engine + judge"
+      },
+      "fatal_errors": [
+        {
+          "code": "UNSUPPORTED_HIGH_RISK_CONCLUSION",
+          "message": "高风险结论缺少事实依据或规范依据。",
+          "evidence_ids": [
+            "risk_001",
+            "risk_003"
+          ],
+          "severity": "fatal"
+        }
+      ],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_med_09_d0f7b4a7.json"
+    },
+    {
+      "eval_id": "legal_eval_med_10_76f6364b",
+      "task_id": "MED_10",
+      "overall_score": 7.97,
+      "decision": {
+        "pass_gate": "revise",
+        "release_ready": false,
+        "requires_human_review": true,
+        "reason": "证据链完整性不足",
+        "decision_source": "aggregator"
+      },
+      "fatal_errors": [],
+      "result_path": "/root/sakura/learn/deep/legal_deep_research_eval/eval_results/20260607/legal_eval_med_10_76f6364b.json"
+    }
+  ]
+}

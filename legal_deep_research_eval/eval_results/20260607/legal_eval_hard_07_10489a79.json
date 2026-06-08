@@ -1,0 +1,1618 @@
+{
+  "eval_id": "legal_eval_hard_07_10489a79",
+  "task_id": "HARD_07",
+  "session_id": "legal-batch-hard_07-ab6dffd8",
+  "overall_score": 8.32,
+  "goal_scores": {
+    "research_quality": 8.54,
+    "research_process": 8.29,
+    "business_effect": 7.51
+  },
+  "dimensions": {
+    "legal_factuality": {
+      "score": 4.2,
+      "comment": "基于规则引擎和引用核验的确定性诊断。",
+      "metrics": {
+        "unverified_claim_rate": 1.0,
+        "hallucination_rate": 0.0
+      }
+    },
+    "jurisdiction_version_match": {
+      "score": 5.0,
+      "comment": "按法域和版本字段进行规则化核验。",
+      "metrics": {
+        "jurisdiction_match": true,
+        "law_version_match": true,
+        "jurisdiction_match_rate": 1.0,
+        "effective_version_match_rate": 1.0,
+        "wrong_jurisdiction_sources": [],
+        "expired_sources_used_as_current": [],
+        "cross_border": true,
+        "has_boundary_statement": true,
+        "boundary_warning": false
+      }
+    },
+    "coverage": {
+      "score": 5.0,
+      "comment": "按 Gold 必须覆盖要点粗粒度召回。",
+      "metrics": {
+        "required_points_recall": 1.0,
+        "critical_omission_count": 0,
+        "covered_points": [
+          "应识别任务为上市前法律尽调，区分股权清晰度、公司治理、信息披露、监管合规和重大争议五大模块。",
+          "应要求核查境内外主体的公司文件、章程、股东协议、历次增资文件、董事会/股东会决议、期权计划、员工函件和代持解除文件。",
+          "应指出代持、未规范审批的关联交易、口头承诺的股权激励、历史行政处罚和正在整改的数据问题都可能影响披露和交易交割条件。",
+          "应说明不能在没有核到境内外公司登记、穿透股权和处罚文书前，对“股权清晰、无重大合规障碍”下结论。",
+          "应给出重大性判断维度：金额、持续性、是否影响控制权、是否影响上市披露、是否已整改闭环。",
+          "应提示需要跨法域人工复核，尤其是开曼/香港控股文件与内地经营合规之间的穿透核验。",
+          "应触发人工复核。"
+        ],
+        "missing_points": [],
+        "warnings": []
+      }
+    },
+    "evidence_chain": {
+      "score": 5.0,
+      "comment": "按 risk_item 到 evidence/source 的链路完整性评分。",
+      "metrics": {
+        "evidence_chain_complete": true,
+        "risk_with_evidence_ratio": 1.0,
+        "high_risk_dual_basis_ratio": 1.0,
+        "unsupported_high_risk_items": [],
+        "weak_evidence_risk_items": []
+      }
+    },
+    "citation_quality": {
+      "score": 3.68,
+      "comment": "综合引用匹配率和权威来源占比。",
+      "metrics": {
+        "citation_validity": true,
+        "num_citations_found": 46,
+        "num_citations_matched": 46,
+        "citation_match_rate": 1.0,
+        "pinpoint_citation_rate": 1.0,
+        "critical_claim_citation_coverage": 0.0,
+        "unmatched_citations": [],
+        "matched_citations": [
+          {
+            "type": "source_id",
+            "text": "source_001",
+            "matched_source_id": "source_001"
+          },
+          {
+            "type": "source_id",
+            "text": "source_002",
+            "matched_source_id": "source_002"
+          },
+          {
+            "type": "source_id",
+            "text": "source_003",
+            "matched_source_id": "source_003"
+          },
+          {
+            "type": "source_id",
+            "text": "source_004",
+            "matched_source_id": "source_004"
+          },
+          {
+            "type": "source_id",
+            "text": "source_005",
+            "matched_source_id": "source_005"
+          },
+          {
+            "type": "source_id",
+            "text": "source_006",
+            "matched_source_id": "source_006"
+          },
+          {
+            "type": "source_id",
+            "text": "source_007",
+            "matched_source_id": "source_007"
+          },
+          {
+            "type": "source_id",
+            "text": "source_008",
+            "matched_source_id": "source_008"
+          },
+          {
+            "type": "source_id",
+            "text": "source_009",
+            "matched_source_id": "source_009"
+          },
+          {
+            "type": "source_id",
+            "text": "source_010",
+            "matched_source_id": "source_010"
+          },
+          {
+            "type": "source_id",
+            "text": "source_011",
+            "matched_source_id": "source_011"
+          },
+          {
+            "type": "source_id",
+            "text": "source_012",
+            "matched_source_id": "source_012"
+          },
+          {
+            "type": "source_id",
+            "text": "source_013",
+            "matched_source_id": "source_013"
+          },
+          {
+            "type": "source_id",
+            "text": "source_014",
+            "matched_source_id": "source_014"
+          },
+          {
+            "type": "source_id",
+            "text": "source_015",
+            "matched_source_id": "source_015"
+          },
+          {
+            "type": "source_id",
+            "text": "source_016",
+            "matched_source_id": "source_016"
+          },
+          {
+            "type": "source_id",
+            "text": "source_017",
+            "matched_source_id": "source_017"
+          },
+          {
+            "type": "source_id",
+            "text": "source_018",
+            "matched_source_id": "source_018"
+          },
+          {
+            "type": "source_id",
+            "text": "source_019",
+            "matched_source_id": "source_019"
+          },
+          {
+            "type": "source_id",
+            "text": "source_020",
+            "matched_source_id": "source_020"
+          },
+          {
+            "type": "source_id",
+            "text": "source_021",
+            "matched_source_id": "source_021"
+          },
+          {
+            "type": "source_id",
+            "text": "source_022",
+            "matched_source_id": "source_022"
+          },
+          {
+            "type": "source_id",
+            "text": "source_023",
+            "matched_source_id": "source_023"
+          },
+          {
+            "type": "source_id",
+            "text": "source_024",
+            "matched_source_id": "source_024"
+          },
+          {
+            "type": "source_id",
+            "text": "source_025",
+            "matched_source_id": "source_025"
+          },
+          {
+            "type": "source_id",
+            "text": "source_026",
+            "matched_source_id": "source_026"
+          },
+          {
+            "type": "source_id",
+            "text": "source_027",
+            "matched_source_id": "source_027"
+          },
+          {
+            "type": "source_id",
+            "text": "source_028",
+            "matched_source_id": "source_028"
+          },
+          {
+            "type": "source_id",
+            "text": "source_029",
+            "matched_source_id": "source_029"
+          },
+          {
+            "type": "source_id",
+            "text": "source_030",
+            "matched_source_id": "source_030"
+          },
+          {
+            "type": "source_id",
+            "text": "source_031",
+            "matched_source_id": "source_031"
+          },
+          {
+            "type": "source_id",
+            "text": "source_032",
+            "matched_source_id": "source_032"
+          },
+          {
+            "type": "source_id",
+            "text": "source_033",
+            "matched_source_id": "source_033"
+          },
+          {
+            "type": "source_id",
+            "text": "source_034",
+            "matched_source_id": "source_034"
+          },
+          {
+            "type": "source_id",
+            "text": "source_035",
+            "matched_source_id": "source_035"
+          },
+          {
+            "type": "source_id",
+            "text": "source_036",
+            "matched_source_id": "source_036"
+          },
+          {
+            "type": "source_id",
+            "text": "source_037",
+            "matched_source_id": "source_037"
+          },
+          {
+            "type": "source_id",
+            "text": "source_038",
+            "matched_source_id": "source_038"
+          },
+          {
+            "type": "source_id",
+            "text": "source_039",
+            "matched_source_id": "source_039"
+          },
+          {
+            "type": "source_id",
+            "text": "source_040",
+            "matched_source_id": "source_040"
+          },
+          {
+            "type": "source_id",
+            "text": "source_041",
+            "matched_source_id": "source_041"
+          },
+          {
+            "type": "source_id",
+            "text": "source_042",
+            "matched_source_id": "source_042"
+          },
+          {
+            "type": "source_id",
+            "text": "source_043",
+            "matched_source_id": "source_043"
+          },
+          {
+            "type": "source_id",
+            "text": "source_044",
+            "matched_source_id": "source_044"
+          },
+          {
+            "type": "source_id",
+            "text": "source_045",
+            "matched_source_id": "source_045"
+          },
+          {
+            "type": "source_id",
+            "text": "source_046",
+            "matched_source_id": "source_046"
+          }
+        ],
+        "source_id_citation_count": 46,
+        "warnings": [],
+        "source_type_coverage": 10,
+        "official_source_ratio": 0.48623853211009177,
+        "authority_source_ratio": 0.48623853211009177,
+        "low_quality_source_ratio": 0.12844036697247707,
+        "unique_source_count": 109,
+        "legal_source_count": 23,
+        "case_source_count": 5,
+        "contract_source_count": 13,
+        "enforcement_source_count": 2,
+        "num_search_calls": 22,
+        "unique_queries": 4
+      }
+    },
+    "risk_consistency": {
+      "score": 3.0,
+      "comment": "按摘要、正文和 risk_items 的风险等级一致性估计。",
+      "metrics": {
+        "law_citation_match_rate": 1.0,
+        "case_number_match_rate": 1.0,
+        "critical_claim_citation_coverage": 0.0,
+        "pinpoint_citation_rate": 1.0,
+        "jurisdiction_match_rate": 1.0,
+        "effective_version_match_rate": 1.0,
+        "risk_with_evidence_ratio": 1.0,
+        "risk_score_consistency_rate": 0.6
+      }
+    },
+    "legal_reasoning": {
+      "score": 3.5,
+      "comment": "mock judge 不作外部法律判断，仅按结构完整性保守估计。",
+      "metrics": {}
+    },
+    "legal_boundary_compliance": {
+      "score": 5.0,
+      "comment": "免责声明和结论边界检查。",
+      "metrics": {}
+    },
+    "planning_quality": {
+      "score": 5.0,
+      "comment": "规划阶段轨迹检查。",
+      "metrics": {}
+    },
+    "retrieval_process": {
+      "score": 4.2,
+      "comment": "检索调用数量和 query 去重情况。",
+      "metrics": {
+        "phase_coverage": 1.0,
+        "event_completeness_rate": 1.0,
+        "num_agent_steps": 23,
+        "num_search_calls": 22,
+        "unique_queries": 4,
+        "critic_loop_count": 2,
+        "re_research_count": 0,
+        "revision_count": 17,
+        "has_planning": true,
+        "has_researching": true,
+        "has_analyzing": true,
+        "has_writing": true,
+        "has_reviewing": true,
+        "has_completed": true
+      }
+    },
+    "authority_priority": {
+      "score": 2.43,
+      "comment": "权威来源占比。",
+      "metrics": {
+        "source_type_coverage": 10,
+        "official_source_ratio": 0.48623853211009177,
+        "authority_source_ratio": 0.48623853211009177,
+        "low_quality_source_ratio": 0.12844036697247707,
+        "unique_source_count": 109,
+        "legal_source_count": 23,
+        "case_source_count": 5,
+        "contract_source_count": 13,
+        "enforcement_source_count": 2,
+        "num_search_calls": 22,
+        "unique_queries": 4
+      }
+    },
+    "self_correction": {
+      "score": 4.5,
+      "comment": "critic/research revision 轨迹。",
+      "metrics": {
+        "phase_coverage": 1.0,
+        "event_completeness_rate": 1.0,
+        "num_agent_steps": 23,
+        "num_search_calls": 22,
+        "unique_queries": 4,
+        "critic_loop_count": 2,
+        "re_research_count": 0,
+        "revision_count": 17,
+        "has_planning": true,
+        "has_researching": true,
+        "has_analyzing": true,
+        "has_writing": true,
+        "has_reviewing": true,
+        "has_completed": true
+      }
+    },
+    "trace_completeness": {
+      "score": 5.0,
+      "comment": "关键 phase 覆盖。",
+      "metrics": {
+        "phase_coverage": 1.0,
+        "event_completeness_rate": 1.0,
+        "num_agent_steps": 23,
+        "num_search_calls": 22,
+        "unique_queries": 4,
+        "critic_loop_count": 2,
+        "re_research_count": 0,
+        "revision_count": 17,
+        "has_planning": true,
+        "has_researching": true,
+        "has_analyzing": true,
+        "has_writing": true,
+        "has_reviewing": true,
+        "has_completed": true
+      }
+    },
+    "expert_acceptability": {
+      "score": 3.6,
+      "comment": "按 fatal、覆盖和证据链保守估计。",
+      "metrics": {}
+    },
+    "editing_cost": {
+      "score": 4.0,
+      "comment": "fatal 和遗漏越多，修订成本越高。",
+      "metrics": {}
+    },
+    "business_actionability": {
+      "score": 3.75,
+      "comment": "整改建议 owner/priority/deadline/action 检查。",
+      "metrics": {
+        "actionability_score": 0.75,
+        "action_item_count": 12,
+        "has_owner": true,
+        "has_priority": false,
+        "has_deadline": true,
+        "has_action_verbs": true,
+        "weaknesses": [
+          "missing_priority"
+        ]
+      }
+    }
+  },
+  "fatal_errors": [],
+  "warnings": [],
+  "auto_checks": {
+    "disclaimer_present": true,
+    "has_deterministic_legal_advice": false,
+    "citation_validity": true,
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "evidence_chain_complete": true,
+    "risk_consistency_pass": false,
+    "human_review_required_correctly_flagged": true
+  },
+  "metrics": {
+    "law_citation_match_rate": 1.0,
+    "case_number_match_rate": 1.0,
+    "critical_claim_citation_coverage": 0.0,
+    "pinpoint_citation_rate": 1.0,
+    "jurisdiction_match_rate": 1.0,
+    "effective_version_match_rate": 1.0,
+    "risk_with_evidence_ratio": 1.0,
+    "risk_score_consistency_rate": 0.6,
+    "citation_validity": true,
+    "num_citations_found": 46,
+    "num_citations_matched": 46,
+    "citation_match_rate": 1.0,
+    "unmatched_citations": [],
+    "matched_citations": [
+      {
+        "type": "source_id",
+        "text": "source_001",
+        "matched_source_id": "source_001"
+      },
+      {
+        "type": "source_id",
+        "text": "source_002",
+        "matched_source_id": "source_002"
+      },
+      {
+        "type": "source_id",
+        "text": "source_003",
+        "matched_source_id": "source_003"
+      },
+      {
+        "type": "source_id",
+        "text": "source_004",
+        "matched_source_id": "source_004"
+      },
+      {
+        "type": "source_id",
+        "text": "source_005",
+        "matched_source_id": "source_005"
+      },
+      {
+        "type": "source_id",
+        "text": "source_006",
+        "matched_source_id": "source_006"
+      },
+      {
+        "type": "source_id",
+        "text": "source_007",
+        "matched_source_id": "source_007"
+      },
+      {
+        "type": "source_id",
+        "text": "source_008",
+        "matched_source_id": "source_008"
+      },
+      {
+        "type": "source_id",
+        "text": "source_009",
+        "matched_source_id": "source_009"
+      },
+      {
+        "type": "source_id",
+        "text": "source_010",
+        "matched_source_id": "source_010"
+      },
+      {
+        "type": "source_id",
+        "text": "source_011",
+        "matched_source_id": "source_011"
+      },
+      {
+        "type": "source_id",
+        "text": "source_012",
+        "matched_source_id": "source_012"
+      },
+      {
+        "type": "source_id",
+        "text": "source_013",
+        "matched_source_id": "source_013"
+      },
+      {
+        "type": "source_id",
+        "text": "source_014",
+        "matched_source_id": "source_014"
+      },
+      {
+        "type": "source_id",
+        "text": "source_015",
+        "matched_source_id": "source_015"
+      },
+      {
+        "type": "source_id",
+        "text": "source_016",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "source_id",
+        "text": "source_017",
+        "matched_source_id": "source_017"
+      },
+      {
+        "type": "source_id",
+        "text": "source_018",
+        "matched_source_id": "source_018"
+      },
+      {
+        "type": "source_id",
+        "text": "source_019",
+        "matched_source_id": "source_019"
+      },
+      {
+        "type": "source_id",
+        "text": "source_020",
+        "matched_source_id": "source_020"
+      },
+      {
+        "type": "source_id",
+        "text": "source_021",
+        "matched_source_id": "source_021"
+      },
+      {
+        "type": "source_id",
+        "text": "source_022",
+        "matched_source_id": "source_022"
+      },
+      {
+        "type": "source_id",
+        "text": "source_023",
+        "matched_source_id": "source_023"
+      },
+      {
+        "type": "source_id",
+        "text": "source_024",
+        "matched_source_id": "source_024"
+      },
+      {
+        "type": "source_id",
+        "text": "source_025",
+        "matched_source_id": "source_025"
+      },
+      {
+        "type": "source_id",
+        "text": "source_026",
+        "matched_source_id": "source_026"
+      },
+      {
+        "type": "source_id",
+        "text": "source_027",
+        "matched_source_id": "source_027"
+      },
+      {
+        "type": "source_id",
+        "text": "source_028",
+        "matched_source_id": "source_028"
+      },
+      {
+        "type": "source_id",
+        "text": "source_029",
+        "matched_source_id": "source_029"
+      },
+      {
+        "type": "source_id",
+        "text": "source_030",
+        "matched_source_id": "source_030"
+      },
+      {
+        "type": "source_id",
+        "text": "source_031",
+        "matched_source_id": "source_031"
+      },
+      {
+        "type": "source_id",
+        "text": "source_032",
+        "matched_source_id": "source_032"
+      },
+      {
+        "type": "source_id",
+        "text": "source_033",
+        "matched_source_id": "source_033"
+      },
+      {
+        "type": "source_id",
+        "text": "source_034",
+        "matched_source_id": "source_034"
+      },
+      {
+        "type": "source_id",
+        "text": "source_035",
+        "matched_source_id": "source_035"
+      },
+      {
+        "type": "source_id",
+        "text": "source_036",
+        "matched_source_id": "source_036"
+      },
+      {
+        "type": "source_id",
+        "text": "source_037",
+        "matched_source_id": "source_037"
+      },
+      {
+        "type": "source_id",
+        "text": "source_038",
+        "matched_source_id": "source_038"
+      },
+      {
+        "type": "source_id",
+        "text": "source_039",
+        "matched_source_id": "source_039"
+      },
+      {
+        "type": "source_id",
+        "text": "source_040",
+        "matched_source_id": "source_040"
+      },
+      {
+        "type": "source_id",
+        "text": "source_041",
+        "matched_source_id": "source_041"
+      },
+      {
+        "type": "source_id",
+        "text": "source_042",
+        "matched_source_id": "source_042"
+      },
+      {
+        "type": "source_id",
+        "text": "source_043",
+        "matched_source_id": "source_043"
+      },
+      {
+        "type": "source_id",
+        "text": "source_044",
+        "matched_source_id": "source_044"
+      },
+      {
+        "type": "source_id",
+        "text": "source_045",
+        "matched_source_id": "source_045"
+      },
+      {
+        "type": "source_id",
+        "text": "source_046",
+        "matched_source_id": "source_046"
+      }
+    ],
+    "source_id_citation_count": 46,
+    "warnings": [],
+    "evidence_chain_complete": true,
+    "high_risk_dual_basis_ratio": 1.0,
+    "unsupported_high_risk_items": [],
+    "weak_evidence_risk_items": [],
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "wrong_jurisdiction_sources": [],
+    "expired_sources_used_as_current": [],
+    "cross_border": true,
+    "has_boundary_statement": true,
+    "boundary_warning": false,
+    "source_type_coverage": 10,
+    "official_source_ratio": 0.48623853211009177,
+    "authority_source_ratio": 0.48623853211009177,
+    "low_quality_source_ratio": 0.12844036697247707,
+    "unique_source_count": 109,
+    "legal_source_count": 23,
+    "case_source_count": 5,
+    "contract_source_count": 13,
+    "enforcement_source_count": 2,
+    "num_search_calls": 22,
+    "unique_queries": 4,
+    "phase_coverage": 1.0,
+    "event_completeness_rate": 1.0,
+    "num_agent_steps": 23,
+    "critic_loop_count": 2,
+    "re_research_count": 0,
+    "revision_count": 17,
+    "has_planning": true,
+    "has_researching": true,
+    "has_analyzing": true,
+    "has_writing": true,
+    "has_reviewing": true,
+    "has_completed": true,
+    "required_points_recall": 1.0,
+    "critical_omission_count": 0,
+    "covered_points": [
+      "应识别任务为上市前法律尽调，区分股权清晰度、公司治理、信息披露、监管合规和重大争议五大模块。",
+      "应要求核查境内外主体的公司文件、章程、股东协议、历次增资文件、董事会/股东会决议、期权计划、员工函件和代持解除文件。",
+      "应指出代持、未规范审批的关联交易、口头承诺的股权激励、历史行政处罚和正在整改的数据问题都可能影响披露和交易交割条件。",
+      "应说明不能在没有核到境内外公司登记、穿透股权和处罚文书前，对“股权清晰、无重大合规障碍”下结论。",
+      "应给出重大性判断维度：金额、持续性、是否影响控制权、是否影响上市披露、是否已整改闭环。",
+      "应提示需要跨法域人工复核，尤其是开曼/香港控股文件与内地经营合规之间的穿透核验。",
+      "应触发人工复核。"
+    ],
+    "missing_points": [],
+    "actionability_score": 0.75,
+    "action_item_count": 12,
+    "has_owner": true,
+    "has_priority": false,
+    "has_deadline": true,
+    "has_action_verbs": true,
+    "weaknesses": [
+      "missing_priority"
+    ]
+  },
+  "uncertainty": {
+    "judge_confidence": 0.78,
+    "human_review_recommended": true,
+    "reasons": [
+      "法律风控报告建议人工复核后使用"
+    ]
+  },
+  "notes": {
+    "strengths": [],
+    "weaknesses": [],
+    "missing_points": [],
+    "fix_recommendations": []
+  },
+  "rule_engine_result": {
+    "rule_engine_version": "legal_rule_engine_v1",
+    "fatal_errors": [],
+    "warnings": [],
+    "auto_checks": {
+      "disclaimer_present": true,
+      "has_deterministic_legal_advice": false,
+      "citation_validity": true,
+      "jurisdiction_match": true,
+      "law_version_match": true,
+      "evidence_chain_complete": true,
+      "risk_consistency_pass": false,
+      "human_review_required_correctly_flagged": true
+    },
+    "metrics": {
+      "law_citation_match_rate": 1.0,
+      "case_number_match_rate": 1.0,
+      "critical_claim_citation_coverage": 0.0,
+      "pinpoint_citation_rate": 1.0,
+      "jurisdiction_match_rate": 1.0,
+      "effective_version_match_rate": 1.0,
+      "risk_with_evidence_ratio": 1.0,
+      "risk_score_consistency_rate": 0.6
+    },
+    "rule_notes": []
+  },
+  "citation_result": {
+    "citation_validity": true,
+    "num_citations_found": 46,
+    "num_citations_matched": 46,
+    "citation_match_rate": 1.0,
+    "pinpoint_citation_rate": 1.0,
+    "critical_claim_citation_coverage": 0.0,
+    "unmatched_citations": [],
+    "matched_citations": [
+      {
+        "type": "source_id",
+        "text": "source_001",
+        "matched_source_id": "source_001"
+      },
+      {
+        "type": "source_id",
+        "text": "source_002",
+        "matched_source_id": "source_002"
+      },
+      {
+        "type": "source_id",
+        "text": "source_003",
+        "matched_source_id": "source_003"
+      },
+      {
+        "type": "source_id",
+        "text": "source_004",
+        "matched_source_id": "source_004"
+      },
+      {
+        "type": "source_id",
+        "text": "source_005",
+        "matched_source_id": "source_005"
+      },
+      {
+        "type": "source_id",
+        "text": "source_006",
+        "matched_source_id": "source_006"
+      },
+      {
+        "type": "source_id",
+        "text": "source_007",
+        "matched_source_id": "source_007"
+      },
+      {
+        "type": "source_id",
+        "text": "source_008",
+        "matched_source_id": "source_008"
+      },
+      {
+        "type": "source_id",
+        "text": "source_009",
+        "matched_source_id": "source_009"
+      },
+      {
+        "type": "source_id",
+        "text": "source_010",
+        "matched_source_id": "source_010"
+      },
+      {
+        "type": "source_id",
+        "text": "source_011",
+        "matched_source_id": "source_011"
+      },
+      {
+        "type": "source_id",
+        "text": "source_012",
+        "matched_source_id": "source_012"
+      },
+      {
+        "type": "source_id",
+        "text": "source_013",
+        "matched_source_id": "source_013"
+      },
+      {
+        "type": "source_id",
+        "text": "source_014",
+        "matched_source_id": "source_014"
+      },
+      {
+        "type": "source_id",
+        "text": "source_015",
+        "matched_source_id": "source_015"
+      },
+      {
+        "type": "source_id",
+        "text": "source_016",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "source_id",
+        "text": "source_017",
+        "matched_source_id": "source_017"
+      },
+      {
+        "type": "source_id",
+        "text": "source_018",
+        "matched_source_id": "source_018"
+      },
+      {
+        "type": "source_id",
+        "text": "source_019",
+        "matched_source_id": "source_019"
+      },
+      {
+        "type": "source_id",
+        "text": "source_020",
+        "matched_source_id": "source_020"
+      },
+      {
+        "type": "source_id",
+        "text": "source_021",
+        "matched_source_id": "source_021"
+      },
+      {
+        "type": "source_id",
+        "text": "source_022",
+        "matched_source_id": "source_022"
+      },
+      {
+        "type": "source_id",
+        "text": "source_023",
+        "matched_source_id": "source_023"
+      },
+      {
+        "type": "source_id",
+        "text": "source_024",
+        "matched_source_id": "source_024"
+      },
+      {
+        "type": "source_id",
+        "text": "source_025",
+        "matched_source_id": "source_025"
+      },
+      {
+        "type": "source_id",
+        "text": "source_026",
+        "matched_source_id": "source_026"
+      },
+      {
+        "type": "source_id",
+        "text": "source_027",
+        "matched_source_id": "source_027"
+      },
+      {
+        "type": "source_id",
+        "text": "source_028",
+        "matched_source_id": "source_028"
+      },
+      {
+        "type": "source_id",
+        "text": "source_029",
+        "matched_source_id": "source_029"
+      },
+      {
+        "type": "source_id",
+        "text": "source_030",
+        "matched_source_id": "source_030"
+      },
+      {
+        "type": "source_id",
+        "text": "source_031",
+        "matched_source_id": "source_031"
+      },
+      {
+        "type": "source_id",
+        "text": "source_032",
+        "matched_source_id": "source_032"
+      },
+      {
+        "type": "source_id",
+        "text": "source_033",
+        "matched_source_id": "source_033"
+      },
+      {
+        "type": "source_id",
+        "text": "source_034",
+        "matched_source_id": "source_034"
+      },
+      {
+        "type": "source_id",
+        "text": "source_035",
+        "matched_source_id": "source_035"
+      },
+      {
+        "type": "source_id",
+        "text": "source_036",
+        "matched_source_id": "source_036"
+      },
+      {
+        "type": "source_id",
+        "text": "source_037",
+        "matched_source_id": "source_037"
+      },
+      {
+        "type": "source_id",
+        "text": "source_038",
+        "matched_source_id": "source_038"
+      },
+      {
+        "type": "source_id",
+        "text": "source_039",
+        "matched_source_id": "source_039"
+      },
+      {
+        "type": "source_id",
+        "text": "source_040",
+        "matched_source_id": "source_040"
+      },
+      {
+        "type": "source_id",
+        "text": "source_041",
+        "matched_source_id": "source_041"
+      },
+      {
+        "type": "source_id",
+        "text": "source_042",
+        "matched_source_id": "source_042"
+      },
+      {
+        "type": "source_id",
+        "text": "source_043",
+        "matched_source_id": "source_043"
+      },
+      {
+        "type": "source_id",
+        "text": "source_044",
+        "matched_source_id": "source_044"
+      },
+      {
+        "type": "source_id",
+        "text": "source_045",
+        "matched_source_id": "source_045"
+      },
+      {
+        "type": "source_id",
+        "text": "source_046",
+        "matched_source_id": "source_046"
+      }
+    ],
+    "source_id_citation_count": 46,
+    "warnings": []
+  },
+  "evidence_result": {
+    "evidence_chain_complete": true,
+    "risk_with_evidence_ratio": 1.0,
+    "high_risk_dual_basis_ratio": 1.0,
+    "unsupported_high_risk_items": [],
+    "weak_evidence_risk_items": []
+  },
+  "jurisdiction_result": {
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "jurisdiction_match_rate": 1.0,
+    "effective_version_match_rate": 1.0,
+    "wrong_jurisdiction_sources": [],
+    "expired_sources_used_as_current": [],
+    "cross_border": true,
+    "has_boundary_statement": true,
+    "boundary_warning": false
+  },
+  "retrieval_result": {
+    "source_type_coverage": 10,
+    "official_source_ratio": 0.48623853211009177,
+    "authority_source_ratio": 0.48623853211009177,
+    "low_quality_source_ratio": 0.12844036697247707,
+    "unique_source_count": 109,
+    "legal_source_count": 23,
+    "case_source_count": 5,
+    "contract_source_count": 13,
+    "enforcement_source_count": 2,
+    "num_search_calls": 22,
+    "unique_queries": 4
+  },
+  "process_result": {
+    "phase_coverage": 1.0,
+    "event_completeness_rate": 1.0,
+    "num_agent_steps": 23,
+    "num_search_calls": 22,
+    "unique_queries": 4,
+    "critic_loop_count": 2,
+    "re_research_count": 0,
+    "revision_count": 17,
+    "has_planning": true,
+    "has_researching": true,
+    "has_analyzing": true,
+    "has_writing": true,
+    "has_reviewing": true,
+    "has_completed": true
+  },
+  "gold_comparison_result": {
+    "required_points_recall": 1.0,
+    "critical_omission_count": 0,
+    "covered_points": [
+      "应识别任务为上市前法律尽调，区分股权清晰度、公司治理、信息披露、监管合规和重大争议五大模块。",
+      "应要求核查境内外主体的公司文件、章程、股东协议、历次增资文件、董事会/股东会决议、期权计划、员工函件和代持解除文件。",
+      "应指出代持、未规范审批的关联交易、口头承诺的股权激励、历史行政处罚和正在整改的数据问题都可能影响披露和交易交割条件。",
+      "应说明不能在没有核到境内外公司登记、穿透股权和处罚文书前，对“股权清晰、无重大合规障碍”下结论。",
+      "应给出重大性判断维度：金额、持续性、是否影响控制权、是否影响上市披露、是否已整改闭环。",
+      "应提示需要跨法域人工复核，尤其是开曼/香港控股文件与内地经营合规之间的穿透核验。",
+      "应触发人工复核。"
+    ],
+    "missing_points": [],
+    "warnings": []
+  },
+  "actionability_result": {
+    "actionability_score": 0.75,
+    "action_item_count": 12,
+    "has_owner": true,
+    "has_priority": false,
+    "has_deadline": true,
+    "has_action_verbs": true,
+    "weaknesses": [
+      "missing_priority"
+    ]
+  },
+  "llm_judge_result": {
+    "evaluator_model": "mock_legal_eval_judge_v1",
+    "task_id": "HARD_07",
+    "overall_score": 0.0,
+    "goal_scores": {},
+    "dimensions": {
+      "legal_factuality": {
+        "score": 4.2,
+        "comment": "基于规则引擎和引用核验的确定性诊断。",
+        "metrics": {
+          "unverified_claim_rate": 1.0,
+          "hallucination_rate": 0.0
+        }
+      },
+      "jurisdiction_version_match": {
+        "score": 5.0,
+        "comment": "按法域和版本字段进行规则化核验。",
+        "metrics": {
+          "jurisdiction_match": true,
+          "law_version_match": true,
+          "jurisdiction_match_rate": 1.0,
+          "effective_version_match_rate": 1.0,
+          "wrong_jurisdiction_sources": [],
+          "expired_sources_used_as_current": [],
+          "cross_border": true,
+          "has_boundary_statement": true,
+          "boundary_warning": false
+        }
+      },
+      "coverage": {
+        "score": 5.0,
+        "comment": "按 Gold 必须覆盖要点粗粒度召回。",
+        "metrics": {
+          "required_points_recall": 1.0,
+          "critical_omission_count": 0,
+          "covered_points": [
+            "应识别任务为上市前法律尽调，区分股权清晰度、公司治理、信息披露、监管合规和重大争议五大模块。",
+            "应要求核查境内外主体的公司文件、章程、股东协议、历次增资文件、董事会/股东会决议、期权计划、员工函件和代持解除文件。",
+            "应指出代持、未规范审批的关联交易、口头承诺的股权激励、历史行政处罚和正在整改的数据问题都可能影响披露和交易交割条件。",
+            "应说明不能在没有核到境内外公司登记、穿透股权和处罚文书前，对“股权清晰、无重大合规障碍”下结论。",
+            "应给出重大性判断维度：金额、持续性、是否影响控制权、是否影响上市披露、是否已整改闭环。",
+            "应提示需要跨法域人工复核，尤其是开曼/香港控股文件与内地经营合规之间的穿透核验。",
+            "应触发人工复核。"
+          ],
+          "missing_points": [],
+          "warnings": []
+        }
+      },
+      "evidence_chain": {
+        "score": 5.0,
+        "comment": "按 risk_item 到 evidence/source 的链路完整性评分。",
+        "metrics": {
+          "evidence_chain_complete": true,
+          "risk_with_evidence_ratio": 1.0,
+          "high_risk_dual_basis_ratio": 1.0,
+          "unsupported_high_risk_items": [],
+          "weak_evidence_risk_items": []
+        }
+      },
+      "citation_quality": {
+        "score": 3.68,
+        "comment": "综合引用匹配率和权威来源占比。",
+        "metrics": {
+          "citation_validity": true,
+          "num_citations_found": 46,
+          "num_citations_matched": 46,
+          "citation_match_rate": 1.0,
+          "pinpoint_citation_rate": 1.0,
+          "critical_claim_citation_coverage": 0.0,
+          "unmatched_citations": [],
+          "matched_citations": [
+            {
+              "type": "source_id",
+              "text": "source_001",
+              "matched_source_id": "source_001"
+            },
+            {
+              "type": "source_id",
+              "text": "source_002",
+              "matched_source_id": "source_002"
+            },
+            {
+              "type": "source_id",
+              "text": "source_003",
+              "matched_source_id": "source_003"
+            },
+            {
+              "type": "source_id",
+              "text": "source_004",
+              "matched_source_id": "source_004"
+            },
+            {
+              "type": "source_id",
+              "text": "source_005",
+              "matched_source_id": "source_005"
+            },
+            {
+              "type": "source_id",
+              "text": "source_006",
+              "matched_source_id": "source_006"
+            },
+            {
+              "type": "source_id",
+              "text": "source_007",
+              "matched_source_id": "source_007"
+            },
+            {
+              "type": "source_id",
+              "text": "source_008",
+              "matched_source_id": "source_008"
+            },
+            {
+              "type": "source_id",
+              "text": "source_009",
+              "matched_source_id": "source_009"
+            },
+            {
+              "type": "source_id",
+              "text": "source_010",
+              "matched_source_id": "source_010"
+            },
+            {
+              "type": "source_id",
+              "text": "source_011",
+              "matched_source_id": "source_011"
+            },
+            {
+              "type": "source_id",
+              "text": "source_012",
+              "matched_source_id": "source_012"
+            },
+            {
+              "type": "source_id",
+              "text": "source_013",
+              "matched_source_id": "source_013"
+            },
+            {
+              "type": "source_id",
+              "text": "source_014",
+              "matched_source_id": "source_014"
+            },
+            {
+              "type": "source_id",
+              "text": "source_015",
+              "matched_source_id": "source_015"
+            },
+            {
+              "type": "source_id",
+              "text": "source_016",
+              "matched_source_id": "source_016"
+            },
+            {
+              "type": "source_id",
+              "text": "source_017",
+              "matched_source_id": "source_017"
+            },
+            {
+              "type": "source_id",
+              "text": "source_018",
+              "matched_source_id": "source_018"
+            },
+            {
+              "type": "source_id",
+              "text": "source_019",
+              "matched_source_id": "source_019"
+            },
+            {
+              "type": "source_id",
+              "text": "source_020",
+              "matched_source_id": "source_020"
+            },
+            {
+              "type": "source_id",
+              "text": "source_021",
+              "matched_source_id": "source_021"
+            },
+            {
+              "type": "source_id",
+              "text": "source_022",
+              "matched_source_id": "source_022"
+            },
+            {
+              "type": "source_id",
+              "text": "source_023",
+              "matched_source_id": "source_023"
+            },
+            {
+              "type": "source_id",
+              "text": "source_024",
+              "matched_source_id": "source_024"
+            },
+            {
+              "type": "source_id",
+              "text": "source_025",
+              "matched_source_id": "source_025"
+            },
+            {
+              "type": "source_id",
+              "text": "source_026",
+              "matched_source_id": "source_026"
+            },
+            {
+              "type": "source_id",
+              "text": "source_027",
+              "matched_source_id": "source_027"
+            },
+            {
+              "type": "source_id",
+              "text": "source_028",
+              "matched_source_id": "source_028"
+            },
+            {
+              "type": "source_id",
+              "text": "source_029",
+              "matched_source_id": "source_029"
+            },
+            {
+              "type": "source_id",
+              "text": "source_030",
+              "matched_source_id": "source_030"
+            },
+            {
+              "type": "source_id",
+              "text": "source_031",
+              "matched_source_id": "source_031"
+            },
+            {
+              "type": "source_id",
+              "text": "source_032",
+              "matched_source_id": "source_032"
+            },
+            {
+              "type": "source_id",
+              "text": "source_033",
+              "matched_source_id": "source_033"
+            },
+            {
+              "type": "source_id",
+              "text": "source_034",
+              "matched_source_id": "source_034"
+            },
+            {
+              "type": "source_id",
+              "text": "source_035",
+              "matched_source_id": "source_035"
+            },
+            {
+              "type": "source_id",
+              "text": "source_036",
+              "matched_source_id": "source_036"
+            },
+            {
+              "type": "source_id",
+              "text": "source_037",
+              "matched_source_id": "source_037"
+            },
+            {
+              "type": "source_id",
+              "text": "source_038",
+              "matched_source_id": "source_038"
+            },
+            {
+              "type": "source_id",
+              "text": "source_039",
+              "matched_source_id": "source_039"
+            },
+            {
+              "type": "source_id",
+              "text": "source_040",
+              "matched_source_id": "source_040"
+            },
+            {
+              "type": "source_id",
+              "text": "source_041",
+              "matched_source_id": "source_041"
+            },
+            {
+              "type": "source_id",
+              "text": "source_042",
+              "matched_source_id": "source_042"
+            },
+            {
+              "type": "source_id",
+              "text": "source_043",
+              "matched_source_id": "source_043"
+            },
+            {
+              "type": "source_id",
+              "text": "source_044",
+              "matched_source_id": "source_044"
+            },
+            {
+              "type": "source_id",
+              "text": "source_045",
+              "matched_source_id": "source_045"
+            },
+            {
+              "type": "source_id",
+              "text": "source_046",
+              "matched_source_id": "source_046"
+            }
+          ],
+          "source_id_citation_count": 46,
+          "warnings": [],
+          "source_type_coverage": 10,
+          "official_source_ratio": 0.48623853211009177,
+          "authority_source_ratio": 0.48623853211009177,
+          "low_quality_source_ratio": 0.12844036697247707,
+          "unique_source_count": 109,
+          "legal_source_count": 23,
+          "case_source_count": 5,
+          "contract_source_count": 13,
+          "enforcement_source_count": 2,
+          "num_search_calls": 22,
+          "unique_queries": 4
+        }
+      },
+      "risk_consistency": {
+        "score": 3.0,
+        "comment": "按摘要、正文和 risk_items 的风险等级一致性估计。",
+        "metrics": {
+          "law_citation_match_rate": 1.0,
+          "case_number_match_rate": 1.0,
+          "critical_claim_citation_coverage": 0.0,
+          "pinpoint_citation_rate": 1.0,
+          "jurisdiction_match_rate": 1.0,
+          "effective_version_match_rate": 1.0,
+          "risk_with_evidence_ratio": 1.0,
+          "risk_score_consistency_rate": 0.6
+        }
+      },
+      "legal_reasoning": {
+        "score": 3.5,
+        "comment": "mock judge 不作外部法律判断，仅按结构完整性保守估计。",
+        "metrics": {}
+      },
+      "legal_boundary_compliance": {
+        "score": 5.0,
+        "comment": "免责声明和结论边界检查。",
+        "metrics": {}
+      },
+      "planning_quality": {
+        "score": 5.0,
+        "comment": "规划阶段轨迹检查。",
+        "metrics": {}
+      },
+      "retrieval_process": {
+        "score": 4.2,
+        "comment": "检索调用数量和 query 去重情况。",
+        "metrics": {
+          "phase_coverage": 1.0,
+          "event_completeness_rate": 1.0,
+          "num_agent_steps": 23,
+          "num_search_calls": 22,
+          "unique_queries": 4,
+          "critic_loop_count": 2,
+          "re_research_count": 0,
+          "revision_count": 17,
+          "has_planning": true,
+          "has_researching": true,
+          "has_analyzing": true,
+          "has_writing": true,
+          "has_reviewing": true,
+          "has_completed": true
+        }
+      },
+      "authority_priority": {
+        "score": 2.43,
+        "comment": "权威来源占比。",
+        "metrics": {
+          "source_type_coverage": 10,
+          "official_source_ratio": 0.48623853211009177,
+          "authority_source_ratio": 0.48623853211009177,
+          "low_quality_source_ratio": 0.12844036697247707,
+          "unique_source_count": 109,
+          "legal_source_count": 23,
+          "case_source_count": 5,
+          "contract_source_count": 13,
+          "enforcement_source_count": 2,
+          "num_search_calls": 22,
+          "unique_queries": 4
+        }
+      },
+      "self_correction": {
+        "score": 4.5,
+        "comment": "critic/research revision 轨迹。",
+        "metrics": {
+          "phase_coverage": 1.0,
+          "event_completeness_rate": 1.0,
+          "num_agent_steps": 23,
+          "num_search_calls": 22,
+          "unique_queries": 4,
+          "critic_loop_count": 2,
+          "re_research_count": 0,
+          "revision_count": 17,
+          "has_planning": true,
+          "has_researching": true,
+          "has_analyzing": true,
+          "has_writing": true,
+          "has_reviewing": true,
+          "has_completed": true
+        }
+      },
+      "trace_completeness": {
+        "score": 5.0,
+        "comment": "关键 phase 覆盖。",
+        "metrics": {
+          "phase_coverage": 1.0,
+          "event_completeness_rate": 1.0,
+          "num_agent_steps": 23,
+          "num_search_calls": 22,
+          "unique_queries": 4,
+          "critic_loop_count": 2,
+          "re_research_count": 0,
+          "revision_count": 17,
+          "has_planning": true,
+          "has_researching": true,
+          "has_analyzing": true,
+          "has_writing": true,
+          "has_reviewing": true,
+          "has_completed": true
+        }
+      },
+      "expert_acceptability": {
+        "score": 3.6,
+        "comment": "按 fatal、覆盖和证据链保守估计。",
+        "metrics": {}
+      },
+      "editing_cost": {
+        "score": 4.0,
+        "comment": "fatal 和遗漏越多，修订成本越高。",
+        "metrics": {}
+      },
+      "business_actionability": {
+        "score": 3.75,
+        "comment": "整改建议 owner/priority/deadline/action 检查。",
+        "metrics": {
+          "actionability_score": 0.75,
+          "action_item_count": 12,
+          "has_owner": true,
+          "has_priority": false,
+          "has_deadline": true,
+          "has_action_verbs": true,
+          "weaknesses": [
+            "missing_priority"
+          ]
+        }
+      }
+    },
+    "fatal_errors": [],
+    "auto_checks": {
+      "disclaimer_present": true,
+      "has_deterministic_legal_advice": false,
+      "citation_validity": true,
+      "jurisdiction_match": true,
+      "law_version_match": true,
+      "evidence_chain_complete": true,
+      "risk_consistency_pass": false,
+      "human_review_required_correctly_flagged": true
+    },
+    "uncertainty": {
+      "judge_confidence": 0.78,
+      "human_review_recommended": true,
+      "reasons": [
+        "法律风控报告建议人工复核后使用"
+      ]
+    },
+    "notes": {
+      "strengths": [],
+      "weaknesses": [],
+      "missing_points": [],
+      "fix_recommendations": []
+    },
+    "decision": {
+      "pass_gate": "conditional_pass",
+      "release_ready": false
+    }
+  },
+  "post_check_result": {
+    "post_check_pass": true,
+    "errors": [],
+    "warnings": [],
+    "citation_validity": true
+  },
+  "eval_version": "legal_eval_v1",
+  "decision": {
+    "pass_gate": "revise",
+    "release_ready": false,
+    "requires_human_review": true,
+    "reason": "可修订后复评",
+    "decision_source": "aggregator"
+  }
+}

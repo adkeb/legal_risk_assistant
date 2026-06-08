@@ -1,0 +1,2940 @@
+# 法律风控 DeepResearch 评测系统工程方案
+
+建议将当前 `LLM_as_Judge` 做成一个独立的后处理评测系统，工程形态为：
+
+```text
+LegalEvalOrchestrator 评测编排器
+        │
+        ├── 数据读取类工具
+        ├── 报告解析类工具
+        ├── 规则引擎类工具
+        ├── 引用与证据链核验工具
+        ├── 过程日志分析工具
+        ├── Gold 标准比对工具
+        ├── LLM_as_Judge 语义评审 Agent
+        ├── 后置一致性检查工具
+        └── 评测结果存储工具
+```
+
+它应该是**固定流程型 Eval Agent**，而不是自由行动型 Agent。
+也就是说，LLM 只负责那些必须依赖语义判断的部分；凡是能用规则、字段、ID、正则、source 对齐完成的判断，都应由确定性工具完成。
+
+你当前的测评方案本身强调 DeepResearch 评估要从三类目标出发：**研究质量、研究过程、业务效果**，并将它们拆成可量化指标和固定流程。 当前项目又已经具备 DeepResearch V2、checkpoint、state_json、SSE 过程日志和最终报告等结构，适合在报告完成后追加一个独立评测编排器。项目文档中也说明 `/research/stream` 会通过 DeepResearch V2 生成报告，并在运行中保存状态和最终结果。
+
+---
+
+# 一、最终工程形态
+
+## 1.1 新增后端目录
+
+建议新增一个独立评测包，不要混入 `deep_research_v2/agents` 目录，避免把“生成 Agent”和“评测 Agent”耦合在一起。
+
+```text
+backend/app/service/legal_eval/
+  __init__.py
+
+  eval_service.py                  # 对外入口，供 router/script 调用
+  eval_orchestrator.py             # 评测编排器，固定流程
+  eval_state.py                    # LegalEvalState，全流程共享状态
+  schemas.py                       # Pydantic 输入输出 schema
+  config.py                        # 评分权重、红线规则、阈值配置
+
+  tools/
+    __init__.py
+    checkpoint_loader.py           # 读取 ResearchCheckpoint / state_json / final_report
+    task_loader.py                 # 读取 benchmark task / gold 标准
+    report_parser.py               # Markdown 报告解析
+    claim_extractor.py             # 关键 claim 抽取，可规则 + LLM
+    rule_engine.py                 # 确定性红线规则
+    citation_verifier.py           # 引用核验
+    evidence_verifier.py           # 证据链核验
+    jurisdiction_checker.py        # 法域与法规版本核验
+    retrieval_metrics.py           # 检索质量指标
+    process_trace_analyzer.py      # Agent 过程日志分析
+    gold_comparator.py             # Gold 标准覆盖度比对
+    actionability_checker.py       # 整改建议可执行性检查
+    post_checker.py                # LLM Judge 输出一致性复检
+    result_store.py                # JSON/DB 存储
+
+  judges/
+    __init__.py
+    llm_judge.py                   # LLM_as_Judge 调用与 JSON 解析
+    prompts.py                     # Judge prompt
+
+backend/app/router/
+  legal_eval_router.py             # 可选：评测 API
+
+backend/app/scripts/
+  run_legal_eval.py                # 单任务/批量评测脚本
+  test_legal_eval_components.py    # 组件级测试
+```
+
+---
+
+## 1.2 是否创建成 Agent？
+
+需要创建成 Agent，但它应命名为：
+
+```text
+LegalEvalOrchestrator
+```
+
+或者：
+
+```text
+LegalRiskEvalJudgeAgent
+```
+
+不过这里的 “Agent” 不是自由规划型 Agent，而是**评测编排器**。
+
+它不应该自己决定要不要查法条、要不要跳过规则、要不要放行报告。它只按照固定流程调用工具：
+
+```text
+加载报告
+→ 解析报告
+→ 抽取 claim
+→ 规则引擎预检
+→ 引用核验
+→ 证据链核验
+→ 法域版本核验
+→ 过程日志分析
+→ Gold 覆盖度比对
+→ LLM Judge 复核
+→ 后置一致性检查
+→ 聚合评分
+→ 保存评测结果
+```
+
+---
+
+## 1.3 与原 DeepResearch 的关系
+
+不要替换原来的 `CriticMaster`。
+
+两者职责不同：
+
+| 模块                      | 所属阶段    | 作用                  |
+| ----------------------- | ------- | ------------------- |
+| `CriticMaster`          | 报告生成过程中 | 帮助 agent 自我修订       |
+| `LegalEvalOrchestrator` | 报告生成完成后 | 独立评估这份报告质量          |
+| `LLM_as_Judge`          | 评测流程内部  | 对规则工具无法完全判断的维度做语义评分 |
+
+当前 DeepResearch V2 已经有 `ChiefArchitect → DeepScout → DataAnalyst → CodeWizard → LeadWriter → CriticMaster` 的流程，后续法律风控 Agent 会在这个流程内完成报告生成。 评测系统应该在 `research_complete` 之后运行，而不是插入原生成链路。
+
+---
+
+# 二、总体运行逻辑
+
+## 2.1 单报告评测流程
+
+```text
+输入：session_id 或 candidate_report + task_meta
+        │
+        ▼
+1. CheckpointLoader 读取 final_report / state_json / logs
+        │
+        ▼
+2. TaskLoader 读取 benchmark task / gold 标准
+        │
+        ▼
+3. ReportParser 解析报告结构
+        │
+        ▼
+4. ClaimExtractor 抽取关键结论
+        │
+        ▼
+5. RuleEngine 执行红线预检
+        │
+        ▼
+6. CitationVerifier 核验引用
+        │
+        ▼
+7. EvidenceVerifier 核验证据链
+        │
+        ▼
+8. JurisdictionChecker 核验法域与版本
+        │
+        ▼
+9. ProcessTraceAnalyzer 分析研究过程
+        │
+        ▼
+10. GoldComparator 比对关键要点覆盖
+        │
+        ▼
+11. LLMJudge 进行语义评分
+        │
+        ▼
+12. PostChecker 检查 Judge 是否自相矛盾
+        │
+        ▼
+13. Aggregator 汇总三大目标分和最终结论
+        │
+        ▼
+14. ResultStore 保存 eval_result
+```
+
+---
+
+## 2.2 批量评测流程
+
+用于 prompt、模型、检索策略、Agent 改动后的回归测试。
+
+```text
+benchmark_tasks.jsonl
+        │
+        ▼
+for each task:
+    调用 /research/stream 或读取已有 session
+    生成/读取 final_report
+    调用 LegalEvalOrchestrator
+    保存 eval_result
+        │
+        ▼
+生成 batch_eval_summary.json
+        │
+        ▼
+输出版本对比：
+    overall_score
+    research_quality
+    research_process
+    business_effect
+    fatal_error_rate
+    hallucination_rate
+    citation_coverage
+    evidence_chain_score
+```
+
+这与原测评方案的路线一致：输入任务和配置，调用 deepresearch pipeline，得到报告与过程日志，再调用独立 LLM Judge，并抽样做人类评审。
+
+---
+
+# 三、核心数据结构
+
+## 3.1 LegalEvalInput
+
+```python
+class LegalEvalInput(BaseModel):
+    eval_id: str
+    task_id: Optional[str] = None
+    session_id: Optional[str] = None
+
+    task_meta: Dict[str, Any] = Field(default_factory=dict)
+    candidate_report_markdown: str
+
+    state_json: Dict[str, Any] = Field(default_factory=dict)
+    process_events: List[Dict[str, Any]] = Field(default_factory=list)
+
+    source_index: List[Dict[str, Any]] = Field(default_factory=list)
+    risk_items: List[Dict[str, Any]] = Field(default_factory=list)
+    evidence_chain: List[Dict[str, Any]] = Field(default_factory=list)
+
+    gold_reference: Optional[Dict[str, Any]] = None
+    run_meta: Dict[str, Any] = Field(default_factory=dict)
+```
+
+说明：
+
+```text
+candidate_report_markdown：最终法律风控报告
+state_json：DeepResearch 全局状态
+source_index：法规、案例、合同、处罚、内部制度等来源
+risk_items：风险项
+evidence_chain：证据链
+gold_reference：Gold 标准，可为空
+```
+
+当前项目已有 `ResearchCheckpoint`，其中保存 `session_id`、`query`、`phase`、`iteration`、`state_json`、`ui_state_json`、`final_report`、`status`、`error_message`，这正好可以作为 `LegalEvalInput` 的主要数据来源。
+
+---
+
+## 3.2 LegalEvalState
+
+```python
+class LegalEvalState(BaseModel):
+    eval_input: LegalEvalInput
+
+    parsed_report: Dict[str, Any] = Field(default_factory=dict)
+    extracted_claims: List[Dict[str, Any]] = Field(default_factory=list)
+
+    rule_engine_result: Dict[str, Any] = Field(default_factory=dict)
+    citation_result: Dict[str, Any] = Field(default_factory=dict)
+    evidence_result: Dict[str, Any] = Field(default_factory=dict)
+    jurisdiction_result: Dict[str, Any] = Field(default_factory=dict)
+    retrieval_result: Dict[str, Any] = Field(default_factory=dict)
+    process_result: Dict[str, Any] = Field(default_factory=dict)
+    gold_comparison_result: Dict[str, Any] = Field(default_factory=dict)
+    actionability_result: Dict[str, Any] = Field(default_factory=dict)
+
+    llm_judge_result: Dict[str, Any] = Field(default_factory=dict)
+    post_check_result: Dict[str, Any] = Field(default_factory=dict)
+    final_result: Dict[str, Any] = Field(default_factory=dict)
+
+    errors: List[Dict[str, Any]] = Field(default_factory=list)
+```
+
+---
+
+## 3.3 LegalEvalResult
+
+```python
+class LegalEvalResult(BaseModel):
+    eval_id: str
+    task_id: Optional[str] = None
+    session_id: Optional[str] = None
+
+    overall_score: float
+    goal_scores: Dict[str, float]
+
+    dimensions: Dict[str, Any]
+    fatal_errors: List[Dict[str, Any]]
+    warnings: List[Dict[str, Any]]
+
+    auto_checks: Dict[str, Any]
+    metrics: Dict[str, Any]
+
+    decision: Dict[str, Any]
+    uncertainty: Dict[str, Any]
+    notes: Dict[str, Any]
+
+    rule_engine_result: Dict[str, Any]
+    llm_judge_result: Dict[str, Any]
+    post_check_result: Dict[str, Any]
+
+    created_at: str
+    eval_version: str
+```
+
+---
+
+# 四、评测工具与子 Agent 设计
+
+## 4.1 `CheckpointLoaderTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/checkpoint_loader.py
+```
+
+### 职责
+
+根据 `session_id` 读取 DeepResearch 输出：
+
+```text
+final_report
+state_json
+ui_state_json
+critic_feedback
+logs
+messages
+phase
+iteration
+status
+error_message
+```
+
+### 输入
+
+```python
+class CheckpointLoadRequest(BaseModel):
+    session_id: str
+```
+
+### 输出
+
+```python
+class CheckpointLoadResult(BaseModel):
+    session_id: str
+    query: str
+    final_report: str
+    state_json: Dict[str, Any]
+    ui_state_json: Dict[str, Any]
+    process_events: List[Dict[str, Any]]
+    status: str
+```
+
+### 检查点
+
+Codex 实现后必须验证：
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.checkpoint_loader import CheckpointLoaderTool
+print("CheckpointLoaderTool import ok")
+PY
+```
+
+验收标准：
+
+```text
+1. session_id 不存在时返回清晰错误，不抛未捕获异常。
+2. final_report 为空时能返回 warning。
+3. state_json 缺少法律字段时不崩溃。
+4. 不修改原 checkpoint 数据。
+```
+
+---
+
+## 4.2 `EvalTaskLoaderTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/task_loader.py
+```
+
+### 职责
+
+读取 benchmark 任务卡和 Gold 标准。
+
+第一版可以用 JSONL 文件，不需要马上建数据库：
+
+```text
+backend/app/eval_data/legal_benchmark_tasks.jsonl
+```
+
+### 任务卡格式
+
+```json
+{
+  "task_id": "contract_purchase_001",
+  "scenario": "contract_review",
+  "legal_domain": ["contract"],
+  "jurisdiction": "CN-mainland",
+  "difficulty": "medium",
+  "input_type": "contract_text",
+  "requires_human_review": true,
+  "must_include_disclaimer": true,
+  "must_cover_points": [
+    "识别违约责任约定不明确风险",
+    "识别解除权缺失风险",
+    "提出签署前修改建议"
+  ],
+  "gold_risk_items": [
+    {
+      "risk_title": "违约责任不明确",
+      "risk_level": "high",
+      "required_basis_types": ["contract_clause", "law"]
+    }
+  ],
+  "prohibited_outputs": [
+    "可以直接签署",
+    "无需律师复核"
+  ]
+}
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.task_loader import EvalTaskLoaderTool
+tool = EvalTaskLoaderTool()
+print("EvalTaskLoaderTool import ok")
+PY
+```
+
+验收标准：
+
+```text
+1. 没有 task_id 时允许 gold_reference=None。
+2. 有 task_id 时能加载 JSONL 中对应任务。
+3. JSONL 格式错误时返回明确错误。
+4. 不要求第一版必须接数据库。
+```
+
+---
+
+## 4.3 `ReportParserTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/report_parser.py
+```
+
+### 职责
+
+把 Markdown 报告解析成结构化对象。
+
+### 输出
+
+```json
+{
+  "title": "法律风控分析报告",
+  "sections": [
+    {
+      "heading": "重要提示",
+      "level": 2,
+      "content": "..."
+    }
+  ],
+  "tables": [],
+  "risk_mentions": [],
+  "citation_markers": [],
+  "disclaimer_candidates": [],
+  "action_items": []
+}
+```
+
+### 第一版解析能力
+
+```text
+1. 提取 Markdown 标题。
+2. 提取表格块。
+3. 提取包含“风险”的段落。
+4. 提取包含“建议/整改/修订/补充”的段落。
+5. 提取免责声明候选文本。
+6. 提取引用标记，例如 [source_id]、##编号$$、法条名、案号。
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.report_parser import ReportParserTool
+
+report = "# 法律风控分析报告\n\n## 重要提示\n本报告仅供参考，不构成正式法律意见。\n\n## 风险识别\n存在高风险。"
+parsed = ReportParserTool().parse(report)
+assert parsed["title"] == "法律风控分析报告"
+assert len(parsed["sections"]) >= 2
+assert parsed["disclaimer_candidates"]
+print("ReportParserTool ok")
+PY
+```
+
+验收标准：
+
+```text
+1. 空报告不崩溃。
+2. 能提取标题和章节。
+3. 能识别免责声明候选。
+4. 不依赖 LLM。
+```
+
+---
+
+## 4.4 `ClaimExtractorTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/claim_extractor.py
+```
+
+### 职责
+
+抽取报告中的关键 claim。
+
+### 推荐策略
+
+第一版采用：
+
+```text
+规则抽取 + 可选 LLM 抽取
+```
+
+规则抽取先覆盖：
+
+```text
+1. 包含“构成/不构成/适用/不适用”的句子。
+2. 包含“高风险/重大风险/中风险”的句子。
+3. 包含“应当/建议/需要/必须”的句子。
+4. 包含法规名、条文号、案号的句子。
+5. 包含“可能导致/可能承担/面临”的句子。
+```
+
+### 输出
+
+```json
+{
+  "claims": [
+    {
+      "claim_id": "C001",
+      "text": "该违约责任条款存在高风险。",
+      "claim_type": "risk_conclusion",
+      "importance": "high",
+      "section": "风险识别",
+      "linked_citations": [],
+      "source_span": {
+        "start": 120,
+        "end": 148
+      }
+    }
+  ]
+}
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.claim_extractor import ClaimExtractorTool
+
+report = "该条款存在高风险。根据《民法典》第五百七十七条，违约方可能承担违约责任。"
+claims = ClaimExtractorTool().extract_by_rules(report)
+assert len(claims) >= 2
+print("ClaimExtractorTool ok")
+PY
+```
+
+验收标准：
+
+```text
+1. 不调用 LLM 也能抽取关键 claim。
+2. 每个 claim 有 claim_id。
+3. 每个 claim 有 claim_type 和 importance。
+4. LLM 抽取失败时 fallback 到规则抽取。
+```
+
+---
+
+## 4.5 `LegalRuleEngineTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/rule_engine.py
+```
+
+### 职责
+
+执行硬红线检查。
+
+### 第一版必须实现的 fatal 规则
+
+```text
+MISSING_DISCLAIMER
+DETERMINISTIC_LEGAL_ADVICE
+FABRICATED_LAW_OR_CASE
+WRONG_JURISDICTION
+EXPIRED_LAW_AS_CURRENT
+UNSUPPORTED_HIGH_RISK_CONCLUSION
+REQUIRED_HUMAN_REVIEW_SKIPPED
+```
+
+### 核心正则
+
+```python
+DISCLAIMER_RE = r"(不构成(正式)?法律意见|仅供.*参考|应咨询(执业)?律师|需由.*律师复核|需由.*法务复核)"
+
+ABSOLUTE_ADVICE_RE = r"(可以直接|无需.*复核|肯定|必然|一定|保证).{0,20}(签署|胜诉|败诉|违法|无效|解除|裁员|付款|放行)"
+
+LAW_CIT_RE = r"《[^》]{2,50}》第[一二三四五六七八九十百千万0-9]+条"
+
+CASE_NO_RE = r"（\d{4}）[^\\s，。；、]{1,40}号"
+```
+
+### 输出
+
+```json
+{
+  "rule_engine_version": "legal_rule_engine_v1",
+  "fatal_errors": [],
+  "warnings": [],
+  "auto_checks": {
+    "disclaimer_present": true,
+    "has_deterministic_legal_advice": false,
+    "citation_validity": true,
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "evidence_chain_complete": true,
+    "human_review_required_correctly_flagged": true
+  },
+  "metrics": {
+    "law_citation_match_rate": 1.0,
+    "case_number_match_rate": 1.0,
+    "risk_with_evidence_ratio": 1.0
+  }
+}
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.rule_engine import LegalRuleEngineTool
+
+tool = LegalRuleEngineTool()
+res = tool.run(
+    task_meta={"must_include_disclaimer": True},
+    report_markdown="该合同可以直接签署。",
+    source_index=[],
+    risk_items=[],
+    evidence_chain=[],
+    claims=[],
+    gold_reference=None
+)
+codes = {e["code"] for e in res["fatal_errors"]}
+assert "MISSING_DISCLAIMER" in codes
+assert "DETERMINISTIC_LEGAL_ADVICE" in codes
+print("LegalRuleEngineTool ok")
+PY
+```
+
+验收标准：
+
+```text
+1. 缺免责声明必须命中 fatal。
+2. 确定性法律建议必须命中 fatal。
+3. 高风险无证据链必须命中 fatal。
+4. fatal_errors 非空时后续 final decision 不可 release_ready。
+5. 规则引擎不调用 LLM。
+```
+
+---
+
+## 4.6 `CitationVerifierTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/citation_verifier.py
+```
+
+### 职责
+
+检查报告中的引用是否能在 `source_index` 中找到。
+
+### 核验对象
+
+```text
+法规名称
+条文号
+案号
+法院
+监管文件标题
+source_id
+合同条款号
+页码/span
+```
+
+### 输出指标
+
+```json
+{
+  "citation_validity": true,
+  "num_citations_found": 8,
+  "num_citations_matched": 7,
+  "citation_match_rate": 0.875,
+  "pinpoint_citation_rate": 0.75,
+  "unmatched_citations": []
+}
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.citation_verifier import CitationVerifierTool
+
+source_index = [
+    {"source_id": "law_001", "title": "中华人民共和国民法典", "article_no": "第五百七十七条"}
+]
+report = "根据《中华人民共和国民法典》第五百七十七条，违约方可能承担违约责任。"
+res = CitationVerifierTool().verify(report, source_index, claims=[])
+assert res["num_citations_found"] >= 1
+assert res["num_citations_matched"] >= 1
+print("CitationVerifierTool ok")
+PY
+```
+
+验收标准：
+
+```text
+1. 能匹配法规名 + 条文号。
+2. 能识别无法匹配的引用。
+3. 输出 citation_match_rate。
+4. 不把无法核验的引用当成通过。
+```
+
+---
+
+## 4.7 `EvidenceChainVerifierTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/evidence_verifier.py
+```
+
+### 职责
+
+检查风险项是否有完整证据链。
+
+### 规则
+
+```text
+1. 每个 risk_item 最好有 evidence_ids。
+2. 每个 evidence_id 必须能匹配 evidence_chain。
+3. evidence_chain 中每个 evidence 必须有 source_id。
+4. 高风险/重大风险必须至少有事实依据。
+5. 高风险/重大风险最好同时有规范依据。
+```
+
+### 输出
+
+```json
+{
+  "evidence_chain_complete": true,
+  "risk_with_evidence_ratio": 0.91,
+  "high_risk_dual_basis_ratio": 0.8,
+  "unsupported_high_risk_items": [],
+  "weak_evidence_risk_items": []
+}
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.evidence_verifier import EvidenceChainVerifierTool
+
+risk_items = [{"risk_id": "R1", "risk_level": "高风险", "evidence_ids": []}]
+res = EvidenceChainVerifierTool().verify(risk_items, evidence_chain=[], source_index=[])
+assert res["unsupported_high_risk_items"]
+print("EvidenceChainVerifierTool ok")
+PY
+```
+
+验收标准：
+
+```text
+1. 高风险无 evidence_ids 必须标记 unsupported。
+2. evidence_id 不存在必须标记 weak。
+3. 输出 risk_with_evidence_ratio。
+4. 不调用 LLM。
+```
+
+---
+
+## 4.8 `JurisdictionVersionCheckerTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/jurisdiction_checker.py
+```
+
+### 职责
+
+检查法域和法规版本。
+
+### 输入
+
+```python
+task_meta["jurisdiction"]
+source_index[].jurisdiction
+source_index[].effective_from
+source_index[].effective_to
+source_index[].validity_status
+```
+
+### 输出
+
+```json
+{
+  "jurisdiction_match": true,
+  "law_version_match": true,
+  "jurisdiction_match_rate": 1.0,
+  "effective_version_match_rate": 0.95,
+  "wrong_jurisdiction_sources": [],
+  "expired_sources_used_as_current": []
+}
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.jurisdiction_checker import JurisdictionVersionCheckerTool
+
+source_index = [
+    {"source_id": "law_us_001", "jurisdiction": "US", "validity_status": "effective"}
+]
+res = JurisdictionVersionCheckerTool().verify(
+    task_meta={"jurisdiction": "CN-mainland"},
+    source_index=source_index,
+    report_markdown="根据美国法律，该合同在中国大陆当然无效。"
+)
+assert res["jurisdiction_match"] is False
+print("JurisdictionVersionCheckerTool ok")
+PY
+```
+
+验收标准：
+
+```text
+1. 非任务法域直接作为适用依据时能标记。
+2. 失效法规作为现行依据时能标记。
+3. cross_border=True 时允许多法域，但必须要求边界说明。
+4. 不调用 LLM。
+```
+
+---
+
+## 4.9 `ProcessTraceAnalyzerTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/process_trace_analyzer.py
+```
+
+### 职责
+
+分析 DeepResearch 过程质量。
+
+当前项目的 DeepResearch state 中已有 `phase`、`outline`、`research_questions`、`raw_sources`、`charts`、`critic_feedback`、`pending_search_queries`、`logs`、`messages` 等字段。 法律风控改造后还建议加入 `jurisdiction`、`legal_sources`、`risk_items`、`evidence_chain`、`human_review_required` 等字段。 这些字段都可以作为过程评估输入。
+
+### 输出
+
+```json
+{
+  "phase_coverage": 0.89,
+  "event_completeness_rate": 0.92,
+  "num_agent_steps": 24,
+  "num_search_calls": 8,
+  "unique_queries": 6,
+  "critic_loop_count": 1,
+  "re_research_count": 1,
+  "revision_count": 1,
+  "has_planning": true,
+  "has_researching": true,
+  "has_analyzing": true,
+  "has_writing": true,
+  "has_reviewing": true,
+  "has_completed": true
+}
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.process_trace_analyzer import ProcessTraceAnalyzerTool
+
+state_json = {
+    "messages": [
+        {"type": "phase", "data": {"phase": "planning"}},
+        {"type": "phase", "data": {"phase": "researching"}},
+        {"type": "critic_feedback", "data": {"verdict": "needs_revision"}}
+    ],
+    "raw_sources": [{"title": "source"}],
+    "critic_feedback": {"verdict": "needs_revision"}
+}
+res = ProcessTraceAnalyzerTool().analyze(state_json=state_json, process_events=[])
+assert res["has_planning"] is True
+assert res["critic_loop_count"] >= 1
+print("ProcessTraceAnalyzerTool ok")
+PY
+```
+
+验收标准：
+
+```text
+1. 缺 logs 时能从 messages 或 state_json fallback。
+2. 能识别关键 phase。
+3. 能统计 critic_loop_count。
+4. 不依赖前端。
+```
+
+---
+
+## 4.10 `RetrievalMetricsTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/retrieval_metrics.py
+```
+
+### 职责
+
+计算检索质量。
+
+### 第一版指标
+
+```text
+source_type_coverage
+official_source_ratio
+low_quality_source_ratio
+unique_source_count
+legal_source_count
+case_source_count
+contract_source_count
+enforcement_source_count
+```
+
+如果有 Gold：
+
+```text
+reference_source_recall
+required_source_type_recall
+```
+
+### 输出
+
+```json
+{
+  "source_type_coverage": 0.75,
+  "official_source_ratio": 0.7,
+  "low_quality_source_ratio": 0.05,
+  "unique_source_count": 12,
+  "reference_source_recall": 0.8
+}
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.retrieval_metrics import RetrievalMetricsTool
+
+sources = [
+    {"source_id": "law_1", "source_type": "law"},
+    {"source_id": "case_1", "source_type": "case"},
+    {"source_id": "blog_1", "source_type": "blog"}
+]
+res = RetrievalMetricsTool().score(source_index=sources, gold_reference=None)
+assert res["unique_source_count"] == 3
+assert "official_source_ratio" in res
+print("RetrievalMetricsTool ok")
+PY
+```
+
+验收标准：
+
+```text
+1. 能处理空 source_index。
+2. 能输出来源类型覆盖率。
+3. 能区分权威来源和低质量来源。
+4. Gold 缺失时不报错。
+```
+
+---
+
+## 4.11 `GoldComparatorTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/gold_comparator.py
+```
+
+### 职责
+
+将报告与 Gold 标准比对。
+
+### 支持两种 Gold
+
+```text
+1. 完整 Gold Report
+2. 关键点列表：must_cover_points、gold_risk_items、required_sources
+```
+
+### 输出
+
+```json
+{
+  "required_points_recall": 0.82,
+  "critical_omission_count": 1,
+  "covered_points": [],
+  "missing_points": [],
+  "partial_points": [],
+  "gold_risk_recall": 0.75,
+  "high_risk_recall": 0.8
+}
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.gold_comparator import GoldComparatorTool
+
+gold = {"must_cover_points": ["违约责任风险", "解除权缺失风险"]}
+report = "本报告识别了违约责任风险，并建议补充违约金。"
+res = GoldComparatorTool().compare(report_markdown=report, gold_reference=gold, claims=[])
+assert "required_points_recall" in res
+print("GoldComparatorTool ok")
+PY
+```
+
+验收标准：
+
+```text
+1. 无 Gold 时返回 skipped=True。
+2. 有 must_cover_points 时输出召回率。
+3. 不要求第一版语义匹配很完美，可以先做关键词 + LLM fallback。
+4. Gold 缺失不影响整体评测。
+```
+
+---
+
+## 4.12 `ActionabilityCheckerTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/actionability_checker.py
+```
+
+### 职责
+
+评估整改建议是否可执行。
+
+### 检查维度
+
+```text
+action：是否有具体动作
+owner：是否建议责任主体
+priority：是否有优先级
+deadline：是否有期限
+basis：是否有法律或风险依据
+risk_link：是否对应具体风险项
+```
+
+### 输出
+
+```json
+{
+  "action_item_count": 5,
+  "action_item_completeness_rate": 0.72,
+  "high_risk_remediation_coverage": 0.8,
+  "priority_assignment_rate": 0.6,
+  "weak_action_items": []
+}
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.actionability_checker import ActionabilityCheckerTool
+
+report = "建议签署前补充违约金条款，并由法务在3个工作日内复核。"
+res = ActionabilityCheckerTool().check(report_markdown=report, risk_items=[])
+assert "action_item_completeness_rate" in res
+print("ActionabilityCheckerTool ok")
+PY
+```
+
+验收标准：
+
+```text
+1. 能识别整改建议。
+2. 能输出 action_item_count。
+3. 能判断建议是否空泛。
+4. 不调用 LLM 也能有基础判断。
+```
+
+---
+
+## 4.13 `LLMJudgeAgent`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/judges/llm_judge.py
+backend/app/service/legal_eval/judges/prompts.py
+```
+
+### 职责
+
+基于工具结果做语义评分。
+
+### 输入给 Judge 的不是原始全量材料，而是裁判材料包
+
+```json
+{
+  "task_meta": {},
+  "report_digest": {},
+  "critical_claims": [],
+  "rule_engine_result": {},
+  "citation_result": {},
+  "evidence_result": {},
+  "jurisdiction_result": {},
+  "retrieval_result": {},
+  "process_result": {},
+  "gold_comparison_result": {},
+  "actionability_result": {}
+}
+```
+
+### Judge 必须输出 JSON
+
+```json
+{
+  "evaluator_model": "string",
+  "overall_score": 0,
+  "goal_scores": {
+    "research_quality": 0,
+    "research_process": 0,
+    "business_effect": 0
+  },
+  "dimensions": {},
+  "fatal_errors": [],
+  "uncertainty": {
+    "judge_confidence": 0,
+    "human_review_recommended": true,
+    "reasons": []
+  },
+  "notes": {
+    "strengths": [],
+    "weaknesses": [],
+    "missing_points": [],
+    "fix_recommendations": []
+  },
+  "decision": {
+    "pass_gate": "pass | conditional_pass | revise | fail",
+    "release_ready": false
+  }
+}
+```
+
+### Judge 调用约束
+
+```text
+temperature = 0
+必须强制 JSON schema
+最多重试 2 次
+不得联网
+不得自行补充 source_index 外的法律事实
+必须继承 rule_engine_result.fatal_errors
+fatal_errors 非空时 release_ready 必须 false
+```
+
+### 检查点
+
+先用 mock LLM，不直接接真实模型：
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.judges.llm_judge import LLMJudgeAgent
+print("LLMJudgeAgent import ok")
+PY
+```
+
+再测试 JSON 解析：
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.judges.llm_judge import parse_judge_json
+
+raw = '{"overall_score": 8.0, "fatal_errors": [], "decision": {"release_ready": false}}'
+parsed = parse_judge_json(raw)
+assert parsed["overall_score"] == 8.0
+print("LLM Judge JSON parser ok")
+PY
+```
+
+验收标准：
+
+```text
+1. Judge 输出不是合法 JSON 时能重试或返回 judge_invalid。
+2. Judge 不能覆盖规则引擎 fatal。
+3. fatal_errors 非空时 release_ready 不可为 true。
+4. 不因 LLM 调用失败导致整个评测服务崩溃。
+```
+
+---
+
+## 4.14 `PostCheckTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/post_checker.py
+```
+
+### 职责
+
+检查 LLM Judge 输出是否和规则工具冲突。
+
+### 必检项
+
+```text
+1. rule_engine fatal 是否全部出现在 judge_result.fatal_errors。
+2. fatal_errors 非空时 release_ready 是否 false。
+3. rule_engine 判定无免责声明时 Judge 是否错误写成有。
+4. evidence_chain 不完整时 Judge 是否给 evidence_chain 高分。
+5. source_index 缺失严重时 judge_confidence 是否过高。
+6. JSON schema 是否完整。
+```
+
+### 输出
+
+```json
+{
+  "post_check_pass": true,
+  "judge_invalid": false,
+  "inconsistencies": [],
+  "repair_attempted": false
+}
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.post_checker import PostCheckTool
+
+rule = {"fatal_errors": [{"code": "MISSING_DISCLAIMER"}], "auto_checks": {"disclaimer_present": False}}
+judge = {"fatal_errors": [], "decision": {"release_ready": True}, "auto_checks": {"disclaimer_present": True}}
+res = PostCheckTool().check(rule_engine_result=rule, llm_judge_result=judge)
+assert res["post_check_pass"] is False
+assert res["inconsistencies"]
+print("PostCheckTool ok")
+PY
+```
+
+验收标准：
+
+```text
+1. 能发现 Judge 未继承 fatal。
+2. 能发现 fatal 仍放行。
+3. 能发现免责声明判断冲突。
+4. post_check 失败时 final decision 不可 pass。
+```
+
+---
+
+## 4.15 `EvalResultStoreTool`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/tools/result_store.py
+```
+
+### 职责
+
+保存评测结果。
+
+第一版建议先保存 JSON 文件：
+
+```text
+backend/eval_results/{eval_id}.json
+```
+
+后续再加数据库表：
+
+```text
+legal_eval_runs
+```
+
+### JSON 存储结构
+
+```json
+{
+  "eval_id": "legal_eval_001",
+  "task_id": "contract_purchase_001",
+  "session_id": "xxx",
+  "overall_score": 8.1,
+  "decision": {},
+  "rule_engine_result": {},
+  "llm_judge_result": {},
+  "final_result": {},
+  "created_at": "..."
+}
+```
+
+### 检查点
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.result_store import EvalResultStoreTool
+
+store = EvalResultStoreTool(base_dir="eval_results_test")
+path = store.save({"eval_id": "test_eval", "overall_score": 8.0})
+assert path
+print("EvalResultStoreTool ok", path)
+PY
+```
+
+验收标准：
+
+```text
+1. 能保存 JSON。
+2. 文件名安全，不允许路径穿越。
+3. 保存失败时返回明确错误。
+4. 不要求第一版建数据库。
+```
+
+---
+
+# 五、评测编排器设计
+
+## 5.1 `LegalEvalOrchestrator`
+
+### 文件
+
+```text
+backend/app/service/legal_eval/eval_orchestrator.py
+```
+
+### 职责
+
+统一编排所有工具。
+
+### 伪代码
+
+```python
+class LegalEvalOrchestrator:
+    def __init__(
+        self,
+        checkpoint_loader: CheckpointLoaderTool,
+        task_loader: EvalTaskLoaderTool,
+        report_parser: ReportParserTool,
+        claim_extractor: ClaimExtractorTool,
+        rule_engine: LegalRuleEngineTool,
+        citation_verifier: CitationVerifierTool,
+        evidence_verifier: EvidenceChainVerifierTool,
+        jurisdiction_checker: JurisdictionVersionCheckerTool,
+        retrieval_metrics: RetrievalMetricsTool,
+        process_trace_analyzer: ProcessTraceAnalyzerTool,
+        gold_comparator: GoldComparatorTool,
+        actionability_checker: ActionabilityCheckerTool,
+        llm_judge: LLMJudgeAgent,
+        post_checker: PostCheckTool,
+        result_store: EvalResultStoreTool,
+    ):
+        ...
+
+    async def evaluate(self, request: LegalEvalRequest) -> LegalEvalResult:
+        state = LegalEvalState(eval_input=await self._build_eval_input(request))
+
+        state.parsed_report = self.report_parser.parse(
+            state.eval_input.candidate_report_markdown
+        )
+
+        state.extracted_claims = await self.claim_extractor.extract(
+            report_markdown=state.eval_input.candidate_report_markdown,
+            parsed_report=state.parsed_report,
+            task_meta=state.eval_input.task_meta
+        )
+
+        state.rule_engine_result = self.rule_engine.run(
+            task_meta=state.eval_input.task_meta,
+            report_markdown=state.eval_input.candidate_report_markdown,
+            source_index=state.eval_input.source_index,
+            risk_items=state.eval_input.risk_items,
+            evidence_chain=state.eval_input.evidence_chain,
+            claims=state.extracted_claims,
+            gold_reference=state.eval_input.gold_reference
+        )
+
+        state.citation_result = self.citation_verifier.verify(
+            report_markdown=state.eval_input.candidate_report_markdown,
+            source_index=state.eval_input.source_index,
+            claims=state.extracted_claims
+        )
+
+        state.evidence_result = self.evidence_verifier.verify(
+            risk_items=state.eval_input.risk_items,
+            evidence_chain=state.eval_input.evidence_chain,
+            source_index=state.eval_input.source_index
+        )
+
+        state.jurisdiction_result = self.jurisdiction_checker.verify(
+            task_meta=state.eval_input.task_meta,
+            source_index=state.eval_input.source_index,
+            report_markdown=state.eval_input.candidate_report_markdown
+        )
+
+        state.process_result = self.process_trace_analyzer.analyze(
+            state_json=state.eval_input.state_json,
+            process_events=state.eval_input.process_events
+        )
+
+        state.retrieval_result = self.retrieval_metrics.score(
+            source_index=state.eval_input.source_index,
+            gold_reference=state.eval_input.gold_reference,
+            process_result=state.process_result
+        )
+
+        state.gold_comparison_result = self.gold_comparator.compare(
+            report_markdown=state.eval_input.candidate_report_markdown,
+            gold_reference=state.eval_input.gold_reference,
+            claims=state.extracted_claims
+        )
+
+        state.actionability_result = self.actionability_checker.check(
+            report_markdown=state.eval_input.candidate_report_markdown,
+            risk_items=state.eval_input.risk_items
+        )
+
+        state.llm_judge_result = await self.llm_judge.score(
+            eval_input=state.eval_input,
+            parsed_report=state.parsed_report,
+            claims=state.extracted_claims,
+            rule_engine_result=state.rule_engine_result,
+            citation_result=state.citation_result,
+            evidence_result=state.evidence_result,
+            jurisdiction_result=state.jurisdiction_result,
+            retrieval_result=state.retrieval_result,
+            process_result=state.process_result,
+            gold_comparison_result=state.gold_comparison_result,
+            actionability_result=state.actionability_result,
+        )
+
+        state.post_check_result = self.post_checker.check(
+            rule_engine_result=state.rule_engine_result,
+            llm_judge_result=state.llm_judge_result,
+            evidence_result=state.evidence_result,
+            citation_result=state.citation_result
+        )
+
+        state.final_result = aggregate_final_result(state)
+
+        self.result_store.save(state.final_result)
+
+        return LegalEvalResult(**state.final_result)
+```
+
+---
+
+## 5.2 Aggregator 聚合规则
+
+### 文件
+
+```text
+backend/app/service/legal_eval/eval_service.py
+```
+
+或者：
+
+```text
+backend/app/service/legal_eval/aggregator.py
+```
+
+### 评分权重
+
+```python
+RESEARCH_QUALITY_WEIGHTS = {
+    "legal_factuality": 0.18,
+    "jurisdiction_version_match": 0.12,
+    "coverage": 0.12,
+    "evidence_chain": 0.16,
+    "citation_quality": 0.12,
+    "risk_identification_and_scoring": 0.14,
+    "legal_reasoning": 0.10,
+    "legal_boundary_compliance": 0.06,
+}
+
+RESEARCH_PROCESS_WEIGHTS = {
+    "planning_quality": 0.20,
+    "retrieval_process": 0.30,
+    "authority_priority": 0.20,
+    "self_correction": 0.20,
+    "trace_completeness": 0.10,
+}
+
+BUSINESS_EFFECT_WEIGHTS = {
+    "expert_acceptability": 0.40,
+    "editing_cost": 0.25,
+    "business_actionability": 0.35,
+}
+
+OVERALL_WEIGHTS = {
+    "research_quality": 0.60,
+    "research_process": 0.25,
+    "business_effect": 0.15,
+}
+```
+
+### Gate 规则
+
+```python
+def decide_gate(final_result: dict) -> dict:
+    fatal_errors = final_result.get("fatal_errors", [])
+    goal_scores = final_result.get("goal_scores", {})
+    dimensions = final_result.get("dimensions", {})
+    post_check = final_result.get("post_check_result", {})
+
+    if fatal_errors:
+        return {
+            "pass_gate": "fail",
+            "release_ready": False,
+            "requires_human_review": True,
+            "reason": "存在 fatal_errors"
+        }
+
+    if not post_check.get("post_check_pass", True):
+        return {
+            "pass_gate": "fail",
+            "release_ready": False,
+            "requires_human_review": True,
+            "reason": "Judge 输出与规则检查结果不一致"
+        }
+
+    if goal_scores.get("research_quality", 0) < 7.5:
+        return {
+            "pass_gate": "revise",
+            "release_ready": False,
+            "requires_human_review": True,
+            "reason": "研究质量分不足"
+        }
+
+    if dimensions.get("legal_factuality", {}).get("score", 0) < 4.0:
+        return {
+            "pass_gate": "fail",
+            "release_ready": False,
+            "requires_human_review": True,
+            "reason": "法律事实正确性不足"
+        }
+
+    if dimensions.get("evidence_chain", {}).get("score", 0) < 4.0:
+        return {
+            "pass_gate": "revise",
+            "release_ready": False,
+            "requires_human_review": True,
+            "reason": "证据链完整性不足"
+        }
+
+    if final_result.get("overall_score", 0) >= 8.5:
+        return {
+            "pass_gate": "conditional_pass",
+            "release_ready": False,
+            "requires_human_review": True,
+            "reason": "法律风控报告建议人工复核后使用"
+        }
+
+    if final_result.get("overall_score", 0) >= 7.5:
+        return {
+            "pass_gate": "revise",
+            "release_ready": False,
+            "requires_human_review": True,
+            "reason": "可修订后复评"
+        }
+
+    return {
+        "pass_gate": "fail",
+        "release_ready": False,
+        "requires_human_review": True,
+        "reason": "整体质量不足"
+    }
+```
+
+法律风控场景下，第一阶段建议几乎不要输出 `release_ready=true`。即便高分，也建议是：
+
+```json
+{
+  "pass_gate": "conditional_pass",
+  "release_ready": false,
+  "requires_human_review": true
+}
+```
+
+---
+
+# 六、API 设计
+
+## 6.1 新增 Router
+
+```text
+backend/app/router/legal_eval_router.py
+```
+
+## 6.2 API 路由
+
+### 单报告评测
+
+```text
+POST /legal-eval/evaluate
+```
+
+请求：
+
+```json
+{
+  "session_id": "xxx",
+  "task_id": "contract_purchase_001",
+  "use_llm_judge": true,
+  "save_result": true
+}
+```
+
+或者直接传报告：
+
+```json
+{
+  "candidate_report_markdown": "# 法律风控分析报告...",
+  "task_meta": {
+    "scenario": "contract_review",
+    "jurisdiction": "CN-mainland"
+  },
+  "source_index": [],
+  "risk_items": [],
+  "evidence_chain": [],
+  "gold_reference": null,
+  "use_llm_judge": true
+}
+```
+
+响应：
+
+```json
+{
+  "eval_id": "legal_eval_xxx",
+  "overall_score": 8.1,
+  "goal_scores": {
+    "research_quality": 8.3,
+    "research_process": 7.8,
+    "business_effect": 7.4
+  },
+  "fatal_errors": [],
+  "decision": {
+    "pass_gate": "conditional_pass",
+    "release_ready": false,
+    "requires_human_review": true
+  }
+}
+```
+
+### 规则引擎快速评测
+
+```text
+POST /legal-eval/rule-only
+```
+
+用于开发调试，成本低，不调用 LLM。
+
+### 获取评测结果
+
+```text
+GET /legal-eval/results/{eval_id}
+```
+
+### 批量评测
+
+```text
+POST /legal-eval/batch
+```
+
+第一版可以先不做 HTTP 批量，使用脚本。
+
+---
+
+# 七、详细实现计划
+
+下面是给 Codex 的分阶段实施计划。
+
+---
+
+# Phase 0：基线检查与保护
+
+## 目标
+
+确认当前项目可导入、可编译，不在尚未稳定的代码上直接重构。
+
+当前项目文档中说明根目录不是 git 仓库，执行 `git status` 会报 `fatal: not a git repository`。 因此 Codex 不能假设可以用 git 回滚。
+
+## 执行动作
+
+```bash
+pwd
+ls
+git status || true
+
+cd backend
+python -m compileall app
+```
+
+## 创建变更日志
+
+```bash
+cd backend
+touch LEGAL_EVAL_IMPLEMENTATION_LOG.md
+```
+
+写入：
+
+```text
+# Legal Eval Implementation Log
+
+- Phase 0 baseline check
+```
+
+## 检查点
+
+通过条件：
+
+```text
+1. backend/app 可 compile。
+2. 不修改现有 DeepResearch V2 主流程。
+3. 记录当前环境是否有 git。
+4. 没有启动任何重构代码。
+```
+
+失败处理：
+
+```text
+compileall 失败时，先记录原始错误，不进入 Phase 1。
+```
+
+---
+
+# Phase 1：创建 legal_eval 包骨架
+
+## 目标
+
+新增评测模块目录，不接入主流程。
+
+## 新增文件
+
+```text
+backend/app/service/legal_eval/__init__.py
+backend/app/service/legal_eval/config.py
+backend/app/service/legal_eval/schemas.py
+backend/app/service/legal_eval/eval_state.py
+backend/app/service/legal_eval/eval_service.py
+backend/app/service/legal_eval/eval_orchestrator.py
+
+backend/app/service/legal_eval/tools/__init__.py
+backend/app/service/legal_eval/judges/__init__.py
+```
+
+## config.py 内容
+
+```python
+LEGAL_EVAL_VERSION = "legal_eval_v1"
+
+LEGAL_EVAL_THRESHOLDS = {
+    "quality_pass": 8.5,
+    "quality_revise": 7.5,
+    "fatal_release_block": True,
+}
+
+OVERALL_WEIGHTS = {
+    "research_quality": 0.60,
+    "research_process": 0.25,
+    "business_effect": 0.15,
+}
+```
+
+## schemas.py 先定义空壳
+
+```python
+from typing import Any, Dict, List, Optional
+from pydantic import BaseModel, Field
+
+
+class LegalEvalRequest(BaseModel):
+    session_id: Optional[str] = None
+    task_id: Optional[str] = None
+    candidate_report_markdown: Optional[str] = None
+    task_meta: Dict[str, Any] = Field(default_factory=dict)
+    source_index: List[Dict[str, Any]] = Field(default_factory=list)
+    risk_items: List[Dict[str, Any]] = Field(default_factory=list)
+    evidence_chain: List[Dict[str, Any]] = Field(default_factory=list)
+    gold_reference: Optional[Dict[str, Any]] = None
+    use_llm_judge: bool = True
+    save_result: bool = True
+
+
+class LegalEvalResult(BaseModel):
+    eval_id: str
+    overall_score: float = 0.0
+    goal_scores: Dict[str, float] = Field(default_factory=dict)
+    dimensions: Dict[str, Any] = Field(default_factory=dict)
+    fatal_errors: List[Dict[str, Any]] = Field(default_factory=list)
+    warnings: List[Dict[str, Any]] = Field(default_factory=list)
+    auto_checks: Dict[str, Any] = Field(default_factory=dict)
+    metrics: Dict[str, Any] = Field(default_factory=dict)
+    decision: Dict[str, Any] = Field(default_factory=dict)
+    notes: Dict[str, Any] = Field(default_factory=dict)
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall app/service/legal_eval
+
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.schemas import LegalEvalRequest, LegalEvalResult
+req = LegalEvalRequest(candidate_report_markdown="test")
+assert req.use_llm_judge is True
+print("Phase 1 legal_eval skeleton ok")
+PY
+```
+
+## 检查点
+
+```text
+1. legal_eval 包可导入。
+2. 不修改 research_router。
+3. 不修改 deep_research_v2。
+4. 不新增数据库表。
+```
+
+---
+
+# Phase 2：实现 CheckpointLoaderTool
+
+## 目标
+
+支持根据 `session_id` 读取已有 DeepResearch 结果。
+
+## 新增文件
+
+```text
+backend/app/service/legal_eval/tools/checkpoint_loader.py
+```
+
+## 实现要求
+
+```text
+1. 复用现有数据库 Session 和 ResearchCheckpoint 模型。
+2. 只读，不修改 checkpoint。
+3. session_id 不存在时抛出业务错误或返回 structured error。
+4. final_report 为空时返回 warning。
+5. state_json 字符串要安全解析成 dict。
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall app/service/legal_eval/tools/checkpoint_loader.py
+
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.checkpoint_loader import CheckpointLoaderTool
+print("Phase 2 CheckpointLoaderTool import ok")
+PY
+```
+
+## 检查点
+
+```text
+1. 工具可导入。
+2. 不直接依赖 FastAPI Request。
+3. 不修改 checkpoint。
+4. 没有 session_id 时不崩溃。
+```
+
+---
+
+# Phase 3：实现 TaskLoaderTool 与样例 benchmark 文件
+
+## 目标
+
+支持 Gold 标准读取，为覆盖度、风险召回、人审标注做准备。
+
+## 新增文件
+
+```text
+backend/app/service/legal_eval/tools/task_loader.py
+backend/app/eval_data/legal_benchmark_tasks.jsonl
+```
+
+## 样例 JSONL
+
+```json
+{"task_id":"contract_purchase_001","scenario":"contract_review","legal_domain":["contract"],"jurisdiction":"CN-mainland","difficulty":"medium","requires_human_review":true,"must_include_disclaimer":true,"must_cover_points":["识别违约责任约定不明确风险","识别解除权缺失风险","提出签署前修改建议"],"gold_risk_items":[{"risk_title":"违约责任不明确","risk_level":"high"}],"prohibited_outputs":["可以直接签署","无需律师复核"]}
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall app/service/legal_eval/tools/task_loader.py
+
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.task_loader import EvalTaskLoaderTool
+tool = EvalTaskLoaderTool(default_path="app/eval_data/legal_benchmark_tasks.jsonl")
+task = tool.load("contract_purchase_001")
+assert task["task_id"] == "contract_purchase_001"
+print("Phase 3 TaskLoaderTool ok")
+PY
+```
+
+## 检查点
+
+```text
+1. 可读取 JSONL。
+2. task_id 不存在时返回 None 或明确错误。
+3. Gold 缺失不影响后续评测。
+4. benchmark 文件不含真实敏感合同。
+```
+
+---
+
+# Phase 4：实现 ReportParserTool
+
+## 目标
+
+实现不依赖 LLM 的 Markdown 解析。
+
+## 新增文件
+
+```text
+backend/app/service/legal_eval/tools/report_parser.py
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall app/service/legal_eval/tools/report_parser.py
+
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.report_parser import ReportParserTool
+report = "# 法律风控分析报告\n\n## 重要提示\n本报告仅供参考，不构成正式法律意见。\n\n## 风险识别\n存在高风险。"
+res = ReportParserTool().parse(report)
+assert res["title"] == "法律风控分析报告"
+assert len(res["sections"]) >= 2
+assert res["disclaimer_candidates"]
+print("Phase 4 ReportParserTool ok")
+PY
+```
+
+## 检查点
+
+```text
+1. 空字符串能处理。
+2. Markdown 标题能解析。
+3. 免责声明候选能识别。
+4. 不调用 LLM。
+```
+
+---
+
+# Phase 5：实现 ClaimExtractorTool
+
+## 目标
+
+抽取关键法律 claim，先实现规则版。
+
+## 新增文件
+
+```text
+backend/app/service/legal_eval/tools/claim_extractor.py
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall app/service/legal_eval/tools/claim_extractor.py
+
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.claim_extractor import ClaimExtractorTool
+report = "该条款存在高风险。根据《民法典》第五百七十七条，违约方可能承担违约责任。建议签署前补充违约金条款。"
+claims = ClaimExtractorTool().extract_by_rules(report)
+assert len(claims) >= 2
+assert all("claim_id" in c for c in claims)
+print("Phase 5 ClaimExtractorTool ok")
+PY
+```
+
+## 检查点
+
+```text
+1. 不调用 LLM 也可工作。
+2. 每个 claim 有 id。
+3. 能识别 risk_conclusion / legal_rule / recommendation。
+4. 后续可加 LLM 版，但第一版不强依赖。
+```
+
+---
+
+# Phase 6：实现 LegalRuleEngineTool
+
+## 目标
+
+完成红线规则引擎。
+
+## 新增文件
+
+```text
+backend/app/service/legal_eval/tools/rule_engine.py
+```
+
+## 必测用例
+
+```text
+1. 缺免责声明。
+2. 出现“可以直接签署”。
+3. 高风险 risk_item 无 evidence_ids。
+4. task_meta.requires_human_review=true 但报告未提示人审。
+5. 引用 source_index 中不存在的法条。
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall app/service/legal_eval/tools/rule_engine.py
+
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.rule_engine import LegalRuleEngineTool
+tool = LegalRuleEngineTool()
+
+res = tool.run(
+    task_meta={"must_include_disclaimer": True, "requires_human_review": True},
+    report_markdown="该合同可以直接签署。",
+    source_index=[],
+    risk_items=[{"risk_id":"R1","risk_level":"高风险","evidence_ids":[]}],
+    evidence_chain=[],
+    claims=[],
+    gold_reference=None
+)
+codes = {e["code"] for e in res["fatal_errors"]}
+assert "MISSING_DISCLAIMER" in codes
+assert "DETERMINISTIC_LEGAL_ADVICE" in codes
+assert "UNSUPPORTED_HIGH_RISK_CONCLUSION" in codes
+print("Phase 6 RuleEngine ok", codes)
+PY
+```
+
+## 检查点
+
+```text
+1. fatal 规则稳定。
+2. 不调用 LLM。
+3. 输出字段包含 fatal_errors、warnings、auto_checks、metrics。
+4. 后续所有评测必须先执行 RuleEngine。
+```
+
+---
+
+# Phase 7：实现 CitationVerifier、EvidenceVerifier、JurisdictionChecker
+
+## 目标
+
+实现三个确定性核验工具。
+
+## 新增文件
+
+```text
+backend/app/service/legal_eval/tools/citation_verifier.py
+backend/app/service/legal_eval/tools/evidence_verifier.py
+backend/app/service/legal_eval/tools/jurisdiction_checker.py
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall \
+  app/service/legal_eval/tools/citation_verifier.py \
+  app/service/legal_eval/tools/evidence_verifier.py \
+  app/service/legal_eval/tools/jurisdiction_checker.py
+```
+
+综合测试：
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.citation_verifier import CitationVerifierTool
+from app.service.legal_eval.tools.evidence_verifier import EvidenceChainVerifierTool
+from app.service.legal_eval.tools.jurisdiction_checker import JurisdictionVersionCheckerTool
+
+sources = [{"source_id":"law_001","title":"中华人民共和国民法典","article_no":"第五百七十七条","jurisdiction":"CN-mainland","validity_status":"effective"}]
+report = "根据《中华人民共和国民法典》第五百七十七条，违约方可能承担违约责任。"
+
+cit = CitationVerifierTool().verify(report, sources, claims=[])
+assert cit["num_citations_found"] >= 1
+
+ev = EvidenceChainVerifierTool().verify(
+    risk_items=[{"risk_id":"R1","risk_level":"高风险","evidence_ids":[]}],
+    evidence_chain=[],
+    source_index=sources
+)
+assert ev["unsupported_high_risk_items"]
+
+jur = JurisdictionVersionCheckerTool().verify(
+    task_meta={"jurisdiction":"CN-mainland"},
+    source_index=sources,
+    report_markdown=report
+)
+assert jur["jurisdiction_match"] is True
+
+print("Phase 7 verifier tools ok")
+PY
+```
+
+## 检查点
+
+```text
+1. 三个工具均不调用 LLM。
+2. 输出 metrics 可被 Judge 使用。
+3. 高风险无证据链能被拦截。
+4. 法域、版本字段缺失时给 warning，不直接崩溃。
+```
+
+---
+
+# Phase 8：实现 ProcessTraceAnalyzer、RetrievalMetrics、GoldComparator、ActionabilityChecker
+
+## 目标
+
+完成研究过程和业务效果的可计算指标。
+
+## 新增文件
+
+```text
+backend/app/service/legal_eval/tools/process_trace_analyzer.py
+backend/app/service/legal_eval/tools/retrieval_metrics.py
+backend/app/service/legal_eval/tools/gold_comparator.py
+backend/app/service/legal_eval/tools/actionability_checker.py
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall \
+  app/service/legal_eval/tools/process_trace_analyzer.py \
+  app/service/legal_eval/tools/retrieval_metrics.py \
+  app/service/legal_eval/tools/gold_comparator.py \
+  app/service/legal_eval/tools/actionability_checker.py
+```
+
+综合测试：
+
+```bash
+cd backend
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.process_trace_analyzer import ProcessTraceAnalyzerTool
+from app.service.legal_eval.tools.retrieval_metrics import RetrievalMetricsTool
+from app.service.legal_eval.tools.gold_comparator import GoldComparatorTool
+from app.service.legal_eval.tools.actionability_checker import ActionabilityCheckerTool
+
+state = {"messages":[{"type":"phase","data":{"phase":"planning"}},{"type":"phase","data":{"phase":"researching"}}],"critic_feedback":{"verdict":"approved"}}
+proc = ProcessTraceAnalyzerTool().analyze(state_json=state, process_events=[])
+assert "phase_coverage" in proc
+
+retr = RetrievalMetricsTool().score(source_index=[{"source_type":"law"},{"source_type":"case"}], gold_reference=None)
+assert "source_type_coverage" in retr
+
+gold = GoldComparatorTool().compare("存在违约责任风险。", {"must_cover_points":["违约责任风险"]}, claims=[])
+assert "required_points_recall" in gold
+
+act = ActionabilityCheckerTool().check("建议法务在签署前补充违约金条款。", risk_items=[])
+assert "action_item_count" in act
+
+print("Phase 8 process/business tools ok")
+PY
+```
+
+## 检查点
+
+```text
+1. 无 process_events 时可从 state_json fallback。
+2. Gold 缺失时不报错。
+3. source_index 为空时输出低分/警告，不崩溃。
+4. actionability 能识别基本整改建议。
+```
+
+---
+
+# Phase 9：实现 LLMJudgeAgent
+
+## 目标
+
+接入 LLM_as_Judge，但先支持 mock 模式，避免初期依赖外部 API。
+
+## 新增文件
+
+```text
+backend/app/service/legal_eval/judges/prompts.py
+backend/app/service/legal_eval/judges/llm_judge.py
+```
+
+## 实现要求
+
+```text
+1. 支持 mock=True，直接返回固定 JSON。
+2. 支持真实 LLM 调用，但失败时返回 judge_invalid。
+3. temperature=0。
+4. 强制 JSON 解析。
+5. 继承 rule_engine fatal。
+6. fatal 非空时 release_ready=false。
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall app/service/legal_eval/judges
+
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.judges.llm_judge import LLMJudgeAgent
+
+judge = LLMJudgeAgent(mock=True)
+res = judge.score_sync(
+    eval_input={},
+    parsed_report={},
+    claims=[],
+    rule_engine_result={"fatal_errors":[{"code":"MISSING_DISCLAIMER"}]},
+    citation_result={},
+    evidence_result={},
+    jurisdiction_result={},
+    retrieval_result={},
+    process_result={},
+    gold_comparison_result={},
+    actionability_result={}
+)
+assert res["decision"]["release_ready"] is False
+assert res["fatal_errors"]
+print("Phase 9 LLMJudgeAgent mock ok")
+PY
+```
+
+## 检查点
+
+```text
+1. mock 模式可用。
+2. 真实 LLM 不可用时不影响 rule-only 评测。
+3. Judge 输出必须是 JSON。
+4. Judge 不得放行 fatal 报告。
+```
+
+---
+
+# Phase 10：实现 PostCheckTool 与 Aggregator
+
+## 目标
+
+防止 LLM Judge 自相矛盾，并形成最终评分。
+
+## 新增或修改文件
+
+```text
+backend/app/service/legal_eval/tools/post_checker.py
+backend/app/service/legal_eval/eval_service.py
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall \
+  app/service/legal_eval/tools/post_checker.py \
+  app/service/legal_eval/eval_service.py
+
+PYTHONPATH=. python - <<'PY'
+from app.service.legal_eval.tools.post_checker import PostCheckTool
+
+rule = {"fatal_errors":[{"code":"MISSING_DISCLAIMER"}], "auto_checks":{"disclaimer_present":False}}
+judge = {"fatal_errors":[], "decision":{"release_ready":True}, "auto_checks":{"disclaimer_present":True}}
+res = PostCheckTool().check(rule, judge)
+assert res["post_check_pass"] is False
+print("Phase 10 PostCheck ok")
+PY
+```
+
+## 检查点
+
+```text
+1. fatal 未继承时 post_check_fail。
+2. fatal 仍 release_ready=true 时 post_check_fail。
+3. post_check_fail 时 final decision 必须 fail。
+4. 聚合器输出 overall_score、goal_scores、decision。
+```
+
+---
+
+# Phase 11：实现 LegalEvalOrchestrator 全流程
+
+## 目标
+
+串联所有工具，完成端到端评测。
+
+## 修改文件
+
+```text
+backend/app/service/legal_eval/eval_orchestrator.py
+backend/app/service/legal_eval/eval_service.py
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall app/service/legal_eval
+
+PYTHONPATH=. python - <<'PY'
+import asyncio
+from app.service.legal_eval.eval_service import LegalEvalService
+from app.service.legal_eval.schemas import LegalEvalRequest
+
+async def main():
+    service = LegalEvalService(mock_judge=True)
+    req = LegalEvalRequest(
+        candidate_report_markdown="# 法律风控分析报告\n\n该合同可以直接签署。",
+        task_meta={"must_include_disclaimer": True, "requires_human_review": True},
+        risk_items=[{"risk_id":"R1","risk_level":"高风险","evidence_ids":[]}],
+        source_index=[],
+        evidence_chain=[],
+        use_llm_judge=True,
+        save_result=False
+    )
+    res = await service.evaluate(req)
+    assert res.fatal_errors
+    assert res.decision["release_ready"] is False
+    print("Phase 11 orchestrator e2e ok", res.decision)
+
+asyncio.run(main())
+PY
+```
+
+## 检查点
+
+```text
+1. 可以直接传报告评测。
+2. mock_judge 模式可跑通。
+3. fatal 报告不会被放行。
+4. 各工具结果都进入 final_result。
+5. 不依赖 /research/stream。
+```
+
+---
+
+# Phase 12：实现 ResultStore 与 CLI 脚本
+
+## 目标
+
+支持开发期离线评测和结果保存。
+
+## 新增文件
+
+```text
+backend/app/service/legal_eval/tools/result_store.py
+backend/app/scripts/run_legal_eval.py
+```
+
+## CLI 支持
+
+```bash
+python app/scripts/run_legal_eval.py \
+  --report-file path/to/report.md \
+  --task-id contract_purchase_001 \
+  --mock-judge
+```
+
+或者：
+
+```bash
+python app/scripts/run_legal_eval.py \
+  --session-id xxx \
+  --task-id contract_purchase_001 \
+  --mock-judge
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall app/scripts/run_legal_eval.py
+
+PYTHONPATH=. python app/scripts/run_legal_eval.py \
+  --report-text "# 法律风控分析报告\n\n该合同可以直接签署。" \
+  --mock-judge \
+  --no-save
+```
+
+## 检查点
+
+```text
+1. CLI 能用 report_text 跑通。
+2. CLI 能输出 JSON。
+3. no-save 时不写文件。
+4. save 时写入 eval_results。
+```
+
+---
+
+# Phase 13：新增 Router
+
+## 目标
+
+提供 API 调用，但不影响现有 `/research/stream`。
+
+## 新增文件
+
+```text
+backend/app/router/legal_eval_router.py
+```
+
+## 修改文件
+
+```text
+backend/app/app_main.py
+```
+
+只新增 router 注册：
+
+```python
+from app.router import legal_eval_router
+app.include_router(legal_eval_router.router, prefix="/legal-eval", tags=["Legal Eval"])
+```
+
+## API
+
+```text
+POST /legal-eval/evaluate
+POST /legal-eval/rule-only
+GET /legal-eval/results/{eval_id}
+```
+
+## 检查命令
+
+```bash
+cd backend
+python -m compileall app/router/legal_eval_router.py app/app_main.py
+
+PYTHONPATH=. python - <<'PY'
+from app.router import legal_eval_router
+print("Phase 13 legal_eval_router import ok")
+PY
+```
+
+启动后烟测：
+
+```bash
+cd backend
+python app/app_main.py
+```
+
+另开终端：
+
+```bash
+curl http://localhost:8000/hello
+```
+
+规则评测接口：
+
+```bash
+curl -X POST http://localhost:8000/legal-eval/rule-only \
+  -H "Content-Type: application/json" \
+  -d '{
+    "candidate_report_markdown": "# 法律风控分析报告\n\n该合同可以直接签署。",
+    "task_meta": {"must_include_disclaimer": true, "requires_human_review": true},
+    "risk_items": [{"risk_id":"R1","risk_level":"高风险","evidence_ids":[]}],
+    "source_index": [],
+    "evidence_chain": []
+  }'
+```
+
+## 检查点
+
+```text
+1. /hello 仍正常。
+2. /research/stream 未被修改。
+3. /legal-eval/rule-only 可返回 fatal。
+4. Router 不强制依赖前端。
+```
+
+---
+
+# Phase 14：新增组件测试脚本
+
+## 目标
+
+让 Codex 每次改动后可快速回归。
+
+## 新增文件
+
+```text
+backend/app/scripts/test_legal_eval_components.py
+```
+
+## 测试内容
+
+```text
+test_report_parser
+test_claim_extractor
+test_rule_engine_missing_disclaimer
+test_rule_engine_absolute_advice
+test_evidence_verifier_high_risk
+test_citation_verifier
+test_jurisdiction_checker
+test_process_trace_analyzer
+test_post_checker
+test_orchestrator_mock_judge
+```
+
+## 检查命令
+
+```bash
+cd backend
+PYTHONPATH=. python app/scripts/test_legal_eval_components.py
+python -m compileall app
+```
+
+## 检查点
+
+```text
+1. 测试不依赖真实 LLM。
+2. 测试不依赖 Milvus。
+3. 测试不依赖真实 checkpoint。
+4. 所有新增工具至少有一个正向和一个反向样例。
+```
+
+---
+
+# Phase 15：批量评测脚本
+
+## 目标
+
+支持 benchmark 回归评测。
+
+## 修改文件
+
+```text
+backend/app/scripts/run_legal_eval.py
+```
+
+新增参数：
+
+```text
+--benchmark-file app/eval_data/legal_benchmark_tasks.jsonl
+--mock-judge
+--output-file eval_results/batch_summary.json
+```
+
+## 输出 batch_summary
+
+```json
+{
+  "batch_id": "legal_eval_batch_20260607",
+  "num_tasks": 20,
+  "avg_overall_score": 7.8,
+  "avg_research_quality": 8.0,
+  "avg_research_process": 7.2,
+  "avg_business_effect": 7.0,
+  "fatal_error_rate": 0.1,
+  "decision_counts": {
+    "pass": 0,
+    "conditional_pass": 5,
+    "revise": 12,
+    "fail": 3
+  },
+  "top_fatal_codes": [
+    ["MISSING_DISCLAIMER", 2],
+    ["UNSUPPORTED_HIGH_RISK_CONCLUSION", 1]
+  ]
+}
+```
+
+## 检查点
+
+```text
+1. 支持至少跑 1 条 benchmark。
+2. 单条失败不影响整个批次。
+3. 输出 batch_summary。
+4. batch 结果可用于版本对比。
+```
+
+---
+
+# Phase 16：接入真实 LLM Judge
+
+## 目标
+
+在所有 rule-only 和 mock 流程稳定后，再接入真实 LLM。
+
+## 实现要求
+
+```text
+1. 复用当前项目 llm_config.py 中的 LLM 客户端风格。
+2. 不硬编码 API key。
+3. temperature=0。
+4. max_tokens 设置足够，但控制输入大小。
+5. Judge prompt 中明确“只输出 JSON”。
+6. 失败时 fallback 为 judge_invalid，不影响 rule result。
+```
+
+## 检查点
+
+```text
+1. 没有 API key 时 mock/rule-only 仍可用。
+2. Judge 输出非法 JSON 时能重试。
+3. Judge 不继承 fatal 时 post_check 能拦截。
+4. Judge 不得联网补充法律事实。
+```
+
+---
+
+# Phase 17：最终集成检查
+
+## 编译
+
+```bash
+cd backend
+python -m compileall app
+```
+
+## 组件测试
+
+```bash
+cd backend
+PYTHONPATH=. python app/scripts/test_legal_eval_components.py
+```
+
+## API 烟测
+
+```bash
+curl http://localhost:8000/hello
+```
+
+```bash
+curl -X POST http://localhost:8000/legal-eval/rule-only \
+  -H "Content-Type: application/json" \
+  -d '{
+    "candidate_report_markdown": "# 法律风控分析报告\n\n该合同可以直接签署。",
+    "task_meta": {"must_include_disclaimer": true},
+    "source_index": [],
+    "risk_items": [],
+    "evidence_chain": []
+  }'
+```
+
+## 不允许出现的问题
+
+```text
+1. 修改 /research/stream 请求结构。
+2. 修改 DeepResearch V2 生成主流程。
+3. 因 legal_eval 导入失败导致后端无法启动。
+4. RuleEngine 调用 LLM。
+5. fatal_errors 非空但 release_ready=true。
+6. 无免责声明仍 pass。
+7. 高风险无证据链仍 pass。
+8. Judge 输出非法 JSON 未被捕获。
+```
+
+---
+
+# 八、每个维度的评分验证方法
+
+下面这张表是 Codex 实现时要对齐的评分方法。
+
+| 目标   | 维度      | 验证方法                                                    | 主工具                                          | 是否可规则化 |
+| ---- | ------- | ------------------------------------------------------- | -------------------------------------------- | ------ |
+| 研究质量 | 法律事实正确性 | claim 是否被 source 支撑，是否与 Gold 冲突                         | ClaimExtractor + CitationVerifier + LLMJudge | 半规则    |
+| 研究质量 | 法域与版本匹配 | task jurisdiction 与 source jurisdiction/effective_to 比对 | JurisdictionChecker                          | 是      |
+| 研究质量 | 覆盖度     | must_cover_points 召回率                                   | GoldComparator                               | 半规则    |
+| 研究质量 | 证据链完整性  | risk_item → evidence_id → source_id/span                | EvidenceVerifier                             | 是      |
+| 研究质量 | 引用质量    | 法条、案号、source_id、span 匹配                                 | CitationVerifier                             | 是      |
+| 研究质量 | 风险识别与分级 | Gold 风险召回、风险等级一致性                                       | GoldComparator + LLMJudge                    | 半规则    |
+| 研究质量 | 法律推理质量  | 是否有事实-规则-适用-结论链条                                        | LLMJudge                                     | 否      |
+| 研究质量 | 表述边界    | 免责声明、确定性建议、不当建议                                         | RuleEngine                                   | 是      |
+| 研究过程 | 规划质量    | task_type、jurisdiction、legal_questions 是否存在并覆盖子问题       | ProcessTraceAnalyzer + LLMJudge              | 半规则    |
+| 研究过程 | 检索过程质量  | search calls、source_type 覆盖、权威源占比                       | RetrievalMetrics                             | 是      |
+| 研究过程 | 权威源优先级  | 官方/法院/监管/内部知识库占比                                        | RetrievalMetrics                             | 是      |
+| 研究过程 | 自我校验    | critic_loop、re_research、revision、resolved_issue         | ProcessTraceAnalyzer                         | 是      |
+| 研究过程 | 轨迹完整性   | phase、messages、checkpoint、final_report 是否完整             | ProcessTraceAnalyzer                         | 是      |
+| 业务效果 | 专家可采纳性  | 是否可作为法务工作底稿                                             | LLMJudge + 人审抽样                              | 否      |
+| 业务效果 | 修订成本    | fatal 数、missing_points、fix 数、人工 diff                    | LLMJudge + Diff 后续                           | 半规则    |
+| 业务效果 | 业务可执行性  | 整改建议是否有 action/owner/priority/deadline                  | ActionabilityChecker + LLMJudge              | 半规则    |
+
+---
+
+# 九、评分映射
+
+## 9.1 维度分
+
+每个维度 0-5 分：
+
+```text
+5：优秀，可直接作为高质量工作底稿
+4：良好，小修可用
+3：基本可用，但有明显补充空间
+2：质量不足，需要大修
+1：严重不足，仅有少量参考价值
+0：红线错误或完全不可用
+```
+
+## 9.2 三大目标分
+
+```text
+research_quality = 0-10
+research_process = 0-10
+business_effect = 0-10
+```
+
+换算方式：
+
+```python
+goal_score_0_10 = weighted_dimension_score_0_5 * 2
+```
+
+## 9.3 总分
+
+```python
+overall_score = (
+    research_quality * 0.60
+    + research_process * 0.25
+    + business_effect * 0.15
+)
+```
+
+## 9.4 放行规则
+
+```text
+fatal_errors 非空：fail
+post_check 不通过：fail
+research_quality < 7.5：revise
+legal_factuality < 4/5：fail
+evidence_chain < 4/5：revise
+overall >= 8.5：conditional_pass
+overall 7.5-8.5：revise
+overall < 7.5：fail
+```
+
+---
+
+# 十、Codex 执行提示词
+
+下面这段可以直接交给 Codex：
+
+```text
+你要在现有 FastAPI 项目中新增一个法律风控 DeepResearch 评测系统。它是独立的后处理评测模块，不要修改 /research/stream，不要修改 DeepResearch V2 生成主流程。
+
+目标工程形态：
+backend/app/service/legal_eval/
+  eval_service.py
+  eval_orchestrator.py
+  eval_state.py
+  schemas.py
+  config.py
+  tools/
+  judges/
+
+新增可选 router：
+backend/app/router/legal_eval_router.py
+
+新增脚本：
+backend/app/scripts/run_legal_eval.py
+backend/app/scripts/test_legal_eval_components.py
+
+严格要求：
+1. 评测编排器是固定流程，不是自由 agent。
+2. RuleEngine 必须先于 LLMJudge 执行。
+3. RuleEngine 不允许调用 LLM。
+4. LLMJudge 只做语义评分，不允许覆盖 fatal。
+5. fatal_errors 非空时 release_ready 必须 false。
+6. 缺免责声明必须 fatal。
+7. 确定性法律建议必须 fatal。
+8. 高风险无证据链必须 fatal。
+9. Judge 输出必须是 JSON。
+10. Judge 输出必须经过 PostCheck。
+11. 第一版必须支持 mock_judge，不能强依赖真实 LLM。
+12. 第一版必须支持 rule-only API。
+13. 不新增 /research/stream 必填字段。
+14. 不影响 /hello 和现有路由启动。
+15. 每个 Phase 完成后运行对应 compile/import/pure function 测试。
+
+按以下 Phase 执行：
+Phase 0：基线检查；
+Phase 1：创建 legal_eval 包骨架；
+Phase 2：实现 CheckpointLoaderTool；
+Phase 3：实现 TaskLoaderTool 和 legal_benchmark_tasks.jsonl；
+Phase 4：实现 ReportParserTool；
+Phase 5：实现 ClaimExtractorTool；
+Phase 6：实现 LegalRuleEngineTool；
+Phase 7：实现 CitationVerifier、EvidenceVerifier、JurisdictionChecker；
+Phase 8：实现 ProcessTraceAnalyzer、RetrievalMetrics、GoldComparator、ActionabilityChecker；
+Phase 9：实现 LLMJudgeAgent mock 模式；
+Phase 10：实现 PostCheckTool 和 Aggregator；
+Phase 11：实现 LegalEvalOrchestrator 全流程；
+Phase 12：实现 ResultStore 和 run_legal_eval.py；
+Phase 13：新增 legal_eval_router；
+Phase 14：新增 test_legal_eval_components.py；
+Phase 15：新增 benchmark 批量评测；
+Phase 16：接入真实 LLM Judge；
+Phase 17：最终 compileall、组件测试、API 烟测。
+```
+
+---
+
+# 十一、最终落地优先级
+
+## P0 必须先做
+
+```text
+legal_eval 包骨架
+schemas
+rule_engine
+citation_verifier
+evidence_verifier
+post_checker
+orchestrator mock_judge
+test_legal_eval_components.py
+rule-only API
+```
+
+## P1 再做
+
+```text
+LLMJudge 真实调用
+GoldComparator 语义匹配
+ProcessTraceAnalyzer 深化
+RetrievalMetrics 深化
+ResultStore JSON
+batch eval 脚本
+```
+
+## P2 后续增强
+
+```text
+数据库 legal_eval_runs
+前端评分面板
+多 Judge 复核
+人工评审队列
+模型版本对比 Dashboard
+CI 回归评测
+```
+
+---
+
+# 十二、最关键的防跑偏检查
+
+Codex 每完成一阶段，都要确认下面这些条件：
+
+```text
+1. legal_eval 是独立评测模块，不侵入生成流程。
+2. RuleEngine 先于 LLMJudge。
+3. 能规则判断的内容不交给 LLM。
+4. LLMJudge 不能放行 fatal。
+5. 所有输出是结构化 JSON。
+6. mock_judge 可跑通。
+7. 没有真实 LLM key 时项目仍能启动。
+8. /research/stream 没有被破坏。
+9. /hello 正常。
+10. compileall 通过。
+```
+
+这套工程形态的核心思想是：
+
+```text
+LegalEvalOrchestrator 负责流程编排；
+RuleEngine 负责硬红线；
+Verifier 工具负责事实、引用、证据链核验；
+Process 工具负责研究行为评估；
+LLMJudge 负责语义质量判断；
+PostCheck 负责防止 Judge 自相矛盾；
+Aggregator 负责最终分数和放行决策。
+```

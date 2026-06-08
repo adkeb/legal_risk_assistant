@@ -1,0 +1,104 @@
+/**
+ * Copyright © 2026 深圳市深维智见教育科技有限公司 版权所有
+ * 未经授权，禁止转售或仿制。
+ */
+
+.index-page {
+  margin: 0 auto;
+  min-height: 100%;
+  padding: 72px 40px;
+  box-sizing: border-box;
+  max-width: 1110px + 80px;
+  min-width: 600px;
+
+  .header {
+    position: relative;
+    min-height: 166px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: 139px;
+
+    .bg {
+      width: 204px;
+      height: 166px;
+      position: absolute;
+      z-index: -1;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .title {
+      font-weight: bold;
+      font-size: 24px;
+    }
+    .desc {
+      font-size: 16px;
+      color: #999;
+    }
+  }
+
+  .entry-panel {
+    margin-top: 110px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 22px 24px;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+
+    .entry-panel__icon {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--ant-color-primary);
+      border-radius: 8px;
+      background: #eff4ff;
+
+      img {
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    .entry-panel__content {
+      flex: 1;
+      min-width: 0;
+
+      .entry-panel__title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .entry-panel__desc {
+        margin-top: 6px;
+        font-size: 14px;
+        color: #666;
+        line-height: 1.6;
+      }
+    }
+  }
+
+  .scenario-list {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+
+    .scenario-item {
+      padding: 8px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background: #fafafa;
+      color: #4b5563;
+      font-size: 13px;
+    }
+  }
+}

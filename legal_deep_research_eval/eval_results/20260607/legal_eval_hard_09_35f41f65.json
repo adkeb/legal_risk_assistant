@@ -1,0 +1,2770 @@
+{
+  "eval_id": "legal_eval_hard_09_35f41f65",
+  "task_id": "HARD_09",
+  "session_id": "legal-batch-hard_09-0c25a2f0",
+  "overall_score": 7.91,
+  "goal_scores": {
+    "research_quality": 7.44,
+    "research_process": 8.75,
+    "business_effect": 8.38
+  },
+  "dimensions": {
+    "legal_factuality": {
+      "score": 4.2,
+      "comment": "基于规则引擎和引用核验的确定性诊断。",
+      "metrics": {
+        "unverified_claim_rate": 1.0,
+        "hallucination_rate": 0.0
+      }
+    },
+    "jurisdiction_version_match": {
+      "score": 5.0,
+      "comment": "按法域和版本字段进行规则化核验。",
+      "metrics": {
+        "jurisdiction_match": true,
+        "law_version_match": true,
+        "jurisdiction_match_rate": 1.0,
+        "effective_version_match_rate": 1.0,
+        "wrong_jurisdiction_sources": [],
+        "expired_sources_used_as_current": [],
+        "cross_border": true,
+        "has_boundary_statement": true,
+        "boundary_warning": false
+      }
+    },
+    "coverage": {
+      "score": 5.0,
+      "comment": "按 Gold 必须覆盖要点粗粒度召回。",
+      "metrics": {
+        "required_points_recall": 1.0,
+        "critical_omission_count": 0,
+        "covered_points": [
+          "应区分四类语料风险：版权作品、商标/品牌元素、开源软件许可、含个人信息或商业秘密的客服记录。",
+          "应明确中国大陆主法域分析，同时提示面向 EU 客户商业化可能叠加 GDPR、版权许可和 ToS/爬取限制等问题。",
+          "应要求核验数据来源合法性、许可链、抓取规则、开源许可证兼容性、去标识化处理、客户授权和数据集留痕。",
+          "应指出仅因素材“公开可访问”并不当然意味着可无条件训练或商业化使用。",
+          "应给出产品与合同侧控制点：训练数据治理台账、黑名单来源、客户数据开关、输出过滤、第三方侵权投诉机制、服务条款限制。",
+          "应提示模型训练的著作权合理使用、开源传染性条款、个人信息匿名化充分性等问题存在较强争议，不能给绝对安全结论。",
+          "应触发人工复核，原因是 AI、版权、开源许可、个人信息和跨境商用叠加。"
+        ],
+        "missing_points": [],
+        "warnings": []
+      }
+    },
+    "evidence_chain": {
+      "score": 0.0,
+      "comment": "按 risk_item 到 evidence/source 的链路完整性评分。",
+      "metrics": {
+        "evidence_chain_complete": false,
+        "risk_with_evidence_ratio": 0.8333333333333334,
+        "high_risk_dual_basis_ratio": 0.0,
+        "unsupported_high_risk_items": [],
+        "weak_evidence_risk_items": [
+          {
+            "risk_id": "risk_001",
+            "reason": "missing_source",
+            "missing_ids": [
+              "CN_COPYRIGHT_LAW_2020",
+              "US_ANDY_WARHOL_FOUNDATION_V_GOLDSMITH_2023",
+              "CN_QINGDAO_MEDIUM_COURT_2024"
+            ]
+          },
+          {
+            "risk_id": "risk_001",
+            "reason": "missing_normative_basis",
+            "missing_ids": []
+          },
+          {
+            "risk_id": "risk_002",
+            "reason": "missing_source",
+            "missing_ids": [
+              "TYPICAL_GPL_V3_LICENSE"
+            ]
+          },
+          {
+            "risk_id": "risk_002",
+            "reason": "missing_normative_basis",
+            "missing_ids": []
+          },
+          {
+            "risk_id": "risk_003",
+            "reason": "missing_source",
+            "missing_ids": [
+              "CN_PIPL_2021",
+              "CN_PIPL_2021",
+              "EU_GDPR_2016"
+            ]
+          },
+          {
+            "risk_id": "risk_003",
+            "reason": "missing_normative_basis",
+            "missing_ids": []
+          },
+          {
+            "risk_id": "risk_004",
+            "reason": "missing_source",
+            "missing_ids": [
+              "EU_GDPR_2016",
+              "EU_GDPR_2016"
+            ]
+          },
+          {
+            "risk_id": "risk_004",
+            "reason": "missing_normative_basis",
+            "missing_ids": []
+          },
+          {
+            "risk_id": "risk_005",
+            "reason": "missing_source",
+            "missing_ids": [
+              "CN_CYBERSPACE_ADMIN_2023"
+            ]
+          },
+          {
+            "risk_id": "risk_005",
+            "reason": "missing_normative_basis",
+            "missing_ids": []
+          }
+        ]
+      }
+    },
+    "citation_quality": {
+      "score": 3.43,
+      "comment": "综合引用匹配率和权威来源占比。",
+      "metrics": {
+        "citation_validity": true,
+        "num_citations_found": 90,
+        "num_citations_matched": 90,
+        "citation_match_rate": 1.0,
+        "pinpoint_citation_rate": 1.0,
+        "critical_claim_citation_coverage": 0.0,
+        "unmatched_citations": [],
+        "matched_citations": [
+          {
+            "type": "source_id",
+            "text": "source_001",
+            "matched_source_id": "source_001"
+          },
+          {
+            "type": "source_id",
+            "text": "source_002",
+            "matched_source_id": "source_002"
+          },
+          {
+            "type": "source_id",
+            "text": "source_003",
+            "matched_source_id": "source_003"
+          },
+          {
+            "type": "source_id",
+            "text": "source_004",
+            "matched_source_id": "source_004"
+          },
+          {
+            "type": "source_id",
+            "text": "source_005",
+            "matched_source_id": "source_005"
+          },
+          {
+            "type": "source_id",
+            "text": "source_006",
+            "matched_source_id": "source_006"
+          },
+          {
+            "type": "source_id",
+            "text": "source_007",
+            "matched_source_id": "source_007"
+          },
+          {
+            "type": "source_id",
+            "text": "source_008",
+            "matched_source_id": "source_008"
+          },
+          {
+            "type": "source_id",
+            "text": "source_009",
+            "matched_source_id": "source_009"
+          },
+          {
+            "type": "source_id",
+            "text": "source_010",
+            "matched_source_id": "source_010"
+          },
+          {
+            "type": "source_id",
+            "text": "source_011",
+            "matched_source_id": "source_011"
+          },
+          {
+            "type": "source_id",
+            "text": "source_012",
+            "matched_source_id": "source_012"
+          },
+          {
+            "type": "source_id",
+            "text": "source_013",
+            "matched_source_id": "source_013"
+          },
+          {
+            "type": "source_id",
+            "text": "source_014",
+            "matched_source_id": "source_014"
+          },
+          {
+            "type": "source_id",
+            "text": "source_015",
+            "matched_source_id": "source_015"
+          },
+          {
+            "type": "source_id",
+            "text": "source_016",
+            "matched_source_id": "source_016"
+          },
+          {
+            "type": "source_id",
+            "text": "source_017",
+            "matched_source_id": "source_017"
+          },
+          {
+            "type": "source_id",
+            "text": "source_018",
+            "matched_source_id": "source_018"
+          },
+          {
+            "type": "source_id",
+            "text": "source_019",
+            "matched_source_id": "source_019"
+          },
+          {
+            "type": "source_id",
+            "text": "source_020",
+            "matched_source_id": "source_020"
+          },
+          {
+            "type": "source_id",
+            "text": "source_021",
+            "matched_source_id": "source_021"
+          },
+          {
+            "type": "source_id",
+            "text": "source_022",
+            "matched_source_id": "source_022"
+          },
+          {
+            "type": "source_id",
+            "text": "source_023",
+            "matched_source_id": "source_023"
+          },
+          {
+            "type": "source_id",
+            "text": "source_024",
+            "matched_source_id": "source_024"
+          },
+          {
+            "type": "source_id",
+            "text": "source_025",
+            "matched_source_id": "source_025"
+          },
+          {
+            "type": "source_id",
+            "text": "source_026",
+            "matched_source_id": "source_026"
+          },
+          {
+            "type": "source_id",
+            "text": "source_027",
+            "matched_source_id": "source_027"
+          },
+          {
+            "type": "source_id",
+            "text": "source_028",
+            "matched_source_id": "source_028"
+          },
+          {
+            "type": "source_id",
+            "text": "source_029",
+            "matched_source_id": "source_029"
+          },
+          {
+            "type": "source_id",
+            "text": "source_030",
+            "matched_source_id": "source_030"
+          },
+          {
+            "type": "source_id",
+            "text": "source_031",
+            "matched_source_id": "source_031"
+          },
+          {
+            "type": "source_id",
+            "text": "source_032",
+            "matched_source_id": "source_032"
+          },
+          {
+            "type": "source_id",
+            "text": "source_033",
+            "matched_source_id": "source_033"
+          },
+          {
+            "type": "source_id",
+            "text": "source_034",
+            "matched_source_id": "source_034"
+          },
+          {
+            "type": "source_id",
+            "text": "source_035",
+            "matched_source_id": "source_035"
+          },
+          {
+            "type": "source_id",
+            "text": "source_036",
+            "matched_source_id": "source_036"
+          },
+          {
+            "type": "source_id",
+            "text": "source_037",
+            "matched_source_id": "source_037"
+          },
+          {
+            "type": "source_id",
+            "text": "source_038",
+            "matched_source_id": "source_038"
+          },
+          {
+            "type": "source_id",
+            "text": "source_039",
+            "matched_source_id": "source_039"
+          },
+          {
+            "type": "source_id",
+            "text": "source_040",
+            "matched_source_id": "source_040"
+          },
+          {
+            "type": "source_id",
+            "text": "source_041",
+            "matched_source_id": "source_041"
+          },
+          {
+            "type": "source_id",
+            "text": "source_042",
+            "matched_source_id": "source_042"
+          },
+          {
+            "type": "source_id",
+            "text": "source_043",
+            "matched_source_id": "source_043"
+          },
+          {
+            "type": "source_id",
+            "text": "source_044",
+            "matched_source_id": "source_044"
+          },
+          {
+            "type": "source_id",
+            "text": "source_045",
+            "matched_source_id": "source_045"
+          },
+          {
+            "type": "source_id",
+            "text": "source_046",
+            "matched_source_id": "source_046"
+          },
+          {
+            "type": "source_id",
+            "text": "source_047",
+            "matched_source_id": "source_047"
+          },
+          {
+            "type": "source_id",
+            "text": "source_048",
+            "matched_source_id": "source_048"
+          },
+          {
+            "type": "source_id",
+            "text": "source_049",
+            "matched_source_id": "source_049"
+          },
+          {
+            "type": "source_id",
+            "text": "source_050",
+            "matched_source_id": "source_050"
+          },
+          {
+            "type": "source_id",
+            "text": "source_051",
+            "matched_source_id": "source_051"
+          },
+          {
+            "type": "source_id",
+            "text": "source_052",
+            "matched_source_id": "source_052"
+          },
+          {
+            "type": "source_id",
+            "text": "source_053",
+            "matched_source_id": "source_053"
+          },
+          {
+            "type": "source_id",
+            "text": "source_054",
+            "matched_source_id": "source_054"
+          },
+          {
+            "type": "source_id",
+            "text": "source_055",
+            "matched_source_id": "source_055"
+          },
+          {
+            "type": "source_id",
+            "text": "source_056",
+            "matched_source_id": "source_056"
+          },
+          {
+            "type": "source_id",
+            "text": "source_057",
+            "matched_source_id": "source_057"
+          },
+          {
+            "type": "source_id",
+            "text": "source_058",
+            "matched_source_id": "source_058"
+          },
+          {
+            "type": "source_id",
+            "text": "source_059",
+            "matched_source_id": "source_059"
+          },
+          {
+            "type": "source_id",
+            "text": "source_060",
+            "matched_source_id": "source_060"
+          },
+          {
+            "type": "source_id",
+            "text": "source_061",
+            "matched_source_id": "source_061"
+          },
+          {
+            "type": "source_id",
+            "text": "source_062",
+            "matched_source_id": "source_062"
+          },
+          {
+            "type": "source_id",
+            "text": "source_063",
+            "matched_source_id": "source_063"
+          },
+          {
+            "type": "source_id",
+            "text": "source_064",
+            "matched_source_id": "source_064"
+          },
+          {
+            "type": "source_id",
+            "text": "source_065",
+            "matched_source_id": "source_065"
+          },
+          {
+            "type": "source_id",
+            "text": "source_066",
+            "matched_source_id": "source_066"
+          },
+          {
+            "type": "source_id",
+            "text": "source_067",
+            "matched_source_id": "source_067"
+          },
+          {
+            "type": "source_id",
+            "text": "source_068",
+            "matched_source_id": "source_068"
+          },
+          {
+            "type": "source_id",
+            "text": "source_069",
+            "matched_source_id": "source_069"
+          },
+          {
+            "type": "source_id",
+            "text": "source_070",
+            "matched_source_id": "source_070"
+          },
+          {
+            "type": "source_id",
+            "text": "source_071",
+            "matched_source_id": "source_071"
+          },
+          {
+            "type": "source_id",
+            "text": "source_072",
+            "matched_source_id": "source_072"
+          },
+          {
+            "type": "source_id",
+            "text": "source_073",
+            "matched_source_id": "source_073"
+          },
+          {
+            "type": "source_id",
+            "text": "source_074",
+            "matched_source_id": "source_074"
+          },
+          {
+            "type": "source_id",
+            "text": "source_075",
+            "matched_source_id": "source_075"
+          },
+          {
+            "type": "source_id",
+            "text": "source_076",
+            "matched_source_id": "source_076"
+          },
+          {
+            "type": "source_id",
+            "text": "source_077",
+            "matched_source_id": "source_077"
+          },
+          {
+            "type": "source_id",
+            "text": "source_078",
+            "matched_source_id": "source_078"
+          },
+          {
+            "type": "source_id",
+            "text": "source_079",
+            "matched_source_id": "source_079"
+          },
+          {
+            "type": "source_id",
+            "text": "source_080",
+            "matched_source_id": "source_080"
+          },
+          {
+            "type": "source_id",
+            "text": "source_081",
+            "matched_source_id": "source_081"
+          },
+          {
+            "type": "source_id",
+            "text": "source_082",
+            "matched_source_id": "source_082"
+          },
+          {
+            "type": "source_id",
+            "text": "source_083",
+            "matched_source_id": "source_083"
+          },
+          {
+            "type": "source_id",
+            "text": "source_084",
+            "matched_source_id": "source_084"
+          },
+          {
+            "type": "source_id",
+            "text": "source_085",
+            "matched_source_id": "source_085"
+          },
+          {
+            "type": "source_id",
+            "text": "source_086",
+            "matched_source_id": "source_086"
+          },
+          {
+            "type": "source_id",
+            "text": "source_087",
+            "matched_source_id": "source_087"
+          },
+          {
+            "type": "source_id",
+            "text": "source_088",
+            "matched_source_id": "source_088"
+          },
+          {
+            "type": "law",
+            "text": "《著作权法》第二十四条",
+            "title": "著作权法",
+            "article_no": "二十四条",
+            "matched_source_id": "source_010"
+          },
+          {
+            "type": "law",
+            "text": "《生成式人工智能服务管理暂行办法》第七条",
+            "title": "生成式人工智能服务管理暂行办法",
+            "article_no": "七条",
+            "matched_source_id": "source_044"
+          }
+        ],
+        "source_id_citation_count": 88,
+        "warnings": [],
+        "source_type_coverage": 11,
+        "official_source_ratio": 0.435,
+        "authority_source_ratio": 0.435,
+        "low_quality_source_ratio": 0.065,
+        "unique_source_count": 200,
+        "legal_source_count": 48,
+        "case_source_count": 20,
+        "contract_source_count": 25,
+        "enforcement_source_count": 12,
+        "num_search_calls": 28,
+        "unique_queries": 6
+      }
+    },
+    "risk_consistency": {
+      "score": 5.0,
+      "comment": "按摘要、正文和 risk_items 的风险等级一致性估计。",
+      "metrics": {
+        "law_citation_match_rate": 1.0,
+        "case_number_match_rate": 1.0,
+        "critical_claim_citation_coverage": 0.0,
+        "pinpoint_citation_rate": 1.0,
+        "jurisdiction_match_rate": 1.0,
+        "effective_version_match_rate": 1.0,
+        "risk_with_evidence_ratio": 0.8333333333333334,
+        "risk_score_consistency_rate": 1.0
+      }
+    },
+    "legal_reasoning": {
+      "score": 3.5,
+      "comment": "mock judge 不作外部法律判断，仅按结构完整性保守估计。",
+      "metrics": {}
+    },
+    "legal_boundary_compliance": {
+      "score": 5.0,
+      "comment": "免责声明和结论边界检查。",
+      "metrics": {}
+    },
+    "planning_quality": {
+      "score": 5.0,
+      "comment": "规划阶段轨迹检查。",
+      "metrics": {}
+    },
+    "retrieval_process": {
+      "score": 4.8,
+      "comment": "检索调用数量和 query 去重情况。",
+      "metrics": {
+        "phase_coverage": 1.0,
+        "event_completeness_rate": 1.0,
+        "num_agent_steps": 39,
+        "num_search_calls": 28,
+        "unique_queries": 6,
+        "critic_loop_count": 12,
+        "re_research_count": 1,
+        "revision_count": 3,
+        "has_planning": true,
+        "has_researching": true,
+        "has_analyzing": true,
+        "has_writing": true,
+        "has_reviewing": true,
+        "has_completed": true
+      }
+    },
+    "authority_priority": {
+      "score": 2.17,
+      "comment": "权威来源占比。",
+      "metrics": {
+        "source_type_coverage": 11,
+        "official_source_ratio": 0.435,
+        "authority_source_ratio": 0.435,
+        "low_quality_source_ratio": 0.065,
+        "unique_source_count": 200,
+        "legal_source_count": 48,
+        "case_source_count": 20,
+        "contract_source_count": 25,
+        "enforcement_source_count": 12,
+        "num_search_calls": 28,
+        "unique_queries": 6
+      }
+    },
+    "self_correction": {
+      "score": 5.0,
+      "comment": "critic/research revision 轨迹。",
+      "metrics": {
+        "phase_coverage": 1.0,
+        "event_completeness_rate": 1.0,
+        "num_agent_steps": 39,
+        "num_search_calls": 28,
+        "unique_queries": 6,
+        "critic_loop_count": 12,
+        "re_research_count": 1,
+        "revision_count": 3,
+        "has_planning": true,
+        "has_researching": true,
+        "has_analyzing": true,
+        "has_writing": true,
+        "has_reviewing": true,
+        "has_completed": true
+      }
+    },
+    "trace_completeness": {
+      "score": 5.0,
+      "comment": "关键 phase 覆盖。",
+      "metrics": {
+        "phase_coverage": 1.0,
+        "event_completeness_rate": 1.0,
+        "num_agent_steps": 39,
+        "num_search_calls": 28,
+        "unique_queries": 6,
+        "critic_loop_count": 12,
+        "re_research_count": 1,
+        "revision_count": 3,
+        "has_planning": true,
+        "has_researching": true,
+        "has_analyzing": true,
+        "has_writing": true,
+        "has_reviewing": true,
+        "has_completed": true
+      }
+    },
+    "expert_acceptability": {
+      "score": 3.6,
+      "comment": "按 fatal、覆盖和证据链保守估计。",
+      "metrics": {}
+    },
+    "editing_cost": {
+      "score": 4.0,
+      "comment": "fatal 和遗漏越多，修订成本越高。",
+      "metrics": {}
+    },
+    "business_actionability": {
+      "score": 5.0,
+      "comment": "整改建议 owner/priority/deadline/action 检查。",
+      "metrics": {
+        "actionability_score": 1.0,
+        "action_item_count": 7,
+        "has_owner": true,
+        "has_priority": true,
+        "has_deadline": true,
+        "has_action_verbs": true,
+        "weaknesses": []
+      }
+    }
+  },
+  "fatal_errors": [],
+  "warnings": [],
+  "auto_checks": {
+    "disclaimer_present": true,
+    "has_deterministic_legal_advice": false,
+    "citation_validity": true,
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "evidence_chain_complete": false,
+    "risk_consistency_pass": true,
+    "human_review_required_correctly_flagged": true
+  },
+  "metrics": {
+    "law_citation_match_rate": 1.0,
+    "case_number_match_rate": 1.0,
+    "critical_claim_citation_coverage": 0.0,
+    "pinpoint_citation_rate": 1.0,
+    "jurisdiction_match_rate": 1.0,
+    "effective_version_match_rate": 1.0,
+    "risk_with_evidence_ratio": 0.8333333333333334,
+    "risk_score_consistency_rate": 1.0,
+    "citation_validity": true,
+    "num_citations_found": 90,
+    "num_citations_matched": 90,
+    "citation_match_rate": 1.0,
+    "unmatched_citations": [],
+    "matched_citations": [
+      {
+        "type": "source_id",
+        "text": "source_001",
+        "matched_source_id": "source_001"
+      },
+      {
+        "type": "source_id",
+        "text": "source_002",
+        "matched_source_id": "source_002"
+      },
+      {
+        "type": "source_id",
+        "text": "source_003",
+        "matched_source_id": "source_003"
+      },
+      {
+        "type": "source_id",
+        "text": "source_004",
+        "matched_source_id": "source_004"
+      },
+      {
+        "type": "source_id",
+        "text": "source_005",
+        "matched_source_id": "source_005"
+      },
+      {
+        "type": "source_id",
+        "text": "source_006",
+        "matched_source_id": "source_006"
+      },
+      {
+        "type": "source_id",
+        "text": "source_007",
+        "matched_source_id": "source_007"
+      },
+      {
+        "type": "source_id",
+        "text": "source_008",
+        "matched_source_id": "source_008"
+      },
+      {
+        "type": "source_id",
+        "text": "source_009",
+        "matched_source_id": "source_009"
+      },
+      {
+        "type": "source_id",
+        "text": "source_010",
+        "matched_source_id": "source_010"
+      },
+      {
+        "type": "source_id",
+        "text": "source_011",
+        "matched_source_id": "source_011"
+      },
+      {
+        "type": "source_id",
+        "text": "source_012",
+        "matched_source_id": "source_012"
+      },
+      {
+        "type": "source_id",
+        "text": "source_013",
+        "matched_source_id": "source_013"
+      },
+      {
+        "type": "source_id",
+        "text": "source_014",
+        "matched_source_id": "source_014"
+      },
+      {
+        "type": "source_id",
+        "text": "source_015",
+        "matched_source_id": "source_015"
+      },
+      {
+        "type": "source_id",
+        "text": "source_016",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "source_id",
+        "text": "source_017",
+        "matched_source_id": "source_017"
+      },
+      {
+        "type": "source_id",
+        "text": "source_018",
+        "matched_source_id": "source_018"
+      },
+      {
+        "type": "source_id",
+        "text": "source_019",
+        "matched_source_id": "source_019"
+      },
+      {
+        "type": "source_id",
+        "text": "source_020",
+        "matched_source_id": "source_020"
+      },
+      {
+        "type": "source_id",
+        "text": "source_021",
+        "matched_source_id": "source_021"
+      },
+      {
+        "type": "source_id",
+        "text": "source_022",
+        "matched_source_id": "source_022"
+      },
+      {
+        "type": "source_id",
+        "text": "source_023",
+        "matched_source_id": "source_023"
+      },
+      {
+        "type": "source_id",
+        "text": "source_024",
+        "matched_source_id": "source_024"
+      },
+      {
+        "type": "source_id",
+        "text": "source_025",
+        "matched_source_id": "source_025"
+      },
+      {
+        "type": "source_id",
+        "text": "source_026",
+        "matched_source_id": "source_026"
+      },
+      {
+        "type": "source_id",
+        "text": "source_027",
+        "matched_source_id": "source_027"
+      },
+      {
+        "type": "source_id",
+        "text": "source_028",
+        "matched_source_id": "source_028"
+      },
+      {
+        "type": "source_id",
+        "text": "source_029",
+        "matched_source_id": "source_029"
+      },
+      {
+        "type": "source_id",
+        "text": "source_030",
+        "matched_source_id": "source_030"
+      },
+      {
+        "type": "source_id",
+        "text": "source_031",
+        "matched_source_id": "source_031"
+      },
+      {
+        "type": "source_id",
+        "text": "source_032",
+        "matched_source_id": "source_032"
+      },
+      {
+        "type": "source_id",
+        "text": "source_033",
+        "matched_source_id": "source_033"
+      },
+      {
+        "type": "source_id",
+        "text": "source_034",
+        "matched_source_id": "source_034"
+      },
+      {
+        "type": "source_id",
+        "text": "source_035",
+        "matched_source_id": "source_035"
+      },
+      {
+        "type": "source_id",
+        "text": "source_036",
+        "matched_source_id": "source_036"
+      },
+      {
+        "type": "source_id",
+        "text": "source_037",
+        "matched_source_id": "source_037"
+      },
+      {
+        "type": "source_id",
+        "text": "source_038",
+        "matched_source_id": "source_038"
+      },
+      {
+        "type": "source_id",
+        "text": "source_039",
+        "matched_source_id": "source_039"
+      },
+      {
+        "type": "source_id",
+        "text": "source_040",
+        "matched_source_id": "source_040"
+      },
+      {
+        "type": "source_id",
+        "text": "source_041",
+        "matched_source_id": "source_041"
+      },
+      {
+        "type": "source_id",
+        "text": "source_042",
+        "matched_source_id": "source_042"
+      },
+      {
+        "type": "source_id",
+        "text": "source_043",
+        "matched_source_id": "source_043"
+      },
+      {
+        "type": "source_id",
+        "text": "source_044",
+        "matched_source_id": "source_044"
+      },
+      {
+        "type": "source_id",
+        "text": "source_045",
+        "matched_source_id": "source_045"
+      },
+      {
+        "type": "source_id",
+        "text": "source_046",
+        "matched_source_id": "source_046"
+      },
+      {
+        "type": "source_id",
+        "text": "source_047",
+        "matched_source_id": "source_047"
+      },
+      {
+        "type": "source_id",
+        "text": "source_048",
+        "matched_source_id": "source_048"
+      },
+      {
+        "type": "source_id",
+        "text": "source_049",
+        "matched_source_id": "source_049"
+      },
+      {
+        "type": "source_id",
+        "text": "source_050",
+        "matched_source_id": "source_050"
+      },
+      {
+        "type": "source_id",
+        "text": "source_051",
+        "matched_source_id": "source_051"
+      },
+      {
+        "type": "source_id",
+        "text": "source_052",
+        "matched_source_id": "source_052"
+      },
+      {
+        "type": "source_id",
+        "text": "source_053",
+        "matched_source_id": "source_053"
+      },
+      {
+        "type": "source_id",
+        "text": "source_054",
+        "matched_source_id": "source_054"
+      },
+      {
+        "type": "source_id",
+        "text": "source_055",
+        "matched_source_id": "source_055"
+      },
+      {
+        "type": "source_id",
+        "text": "source_056",
+        "matched_source_id": "source_056"
+      },
+      {
+        "type": "source_id",
+        "text": "source_057",
+        "matched_source_id": "source_057"
+      },
+      {
+        "type": "source_id",
+        "text": "source_058",
+        "matched_source_id": "source_058"
+      },
+      {
+        "type": "source_id",
+        "text": "source_059",
+        "matched_source_id": "source_059"
+      },
+      {
+        "type": "source_id",
+        "text": "source_060",
+        "matched_source_id": "source_060"
+      },
+      {
+        "type": "source_id",
+        "text": "source_061",
+        "matched_source_id": "source_061"
+      },
+      {
+        "type": "source_id",
+        "text": "source_062",
+        "matched_source_id": "source_062"
+      },
+      {
+        "type": "source_id",
+        "text": "source_063",
+        "matched_source_id": "source_063"
+      },
+      {
+        "type": "source_id",
+        "text": "source_064",
+        "matched_source_id": "source_064"
+      },
+      {
+        "type": "source_id",
+        "text": "source_065",
+        "matched_source_id": "source_065"
+      },
+      {
+        "type": "source_id",
+        "text": "source_066",
+        "matched_source_id": "source_066"
+      },
+      {
+        "type": "source_id",
+        "text": "source_067",
+        "matched_source_id": "source_067"
+      },
+      {
+        "type": "source_id",
+        "text": "source_068",
+        "matched_source_id": "source_068"
+      },
+      {
+        "type": "source_id",
+        "text": "source_069",
+        "matched_source_id": "source_069"
+      },
+      {
+        "type": "source_id",
+        "text": "source_070",
+        "matched_source_id": "source_070"
+      },
+      {
+        "type": "source_id",
+        "text": "source_071",
+        "matched_source_id": "source_071"
+      },
+      {
+        "type": "source_id",
+        "text": "source_072",
+        "matched_source_id": "source_072"
+      },
+      {
+        "type": "source_id",
+        "text": "source_073",
+        "matched_source_id": "source_073"
+      },
+      {
+        "type": "source_id",
+        "text": "source_074",
+        "matched_source_id": "source_074"
+      },
+      {
+        "type": "source_id",
+        "text": "source_075",
+        "matched_source_id": "source_075"
+      },
+      {
+        "type": "source_id",
+        "text": "source_076",
+        "matched_source_id": "source_076"
+      },
+      {
+        "type": "source_id",
+        "text": "source_077",
+        "matched_source_id": "source_077"
+      },
+      {
+        "type": "source_id",
+        "text": "source_078",
+        "matched_source_id": "source_078"
+      },
+      {
+        "type": "source_id",
+        "text": "source_079",
+        "matched_source_id": "source_079"
+      },
+      {
+        "type": "source_id",
+        "text": "source_080",
+        "matched_source_id": "source_080"
+      },
+      {
+        "type": "source_id",
+        "text": "source_081",
+        "matched_source_id": "source_081"
+      },
+      {
+        "type": "source_id",
+        "text": "source_082",
+        "matched_source_id": "source_082"
+      },
+      {
+        "type": "source_id",
+        "text": "source_083",
+        "matched_source_id": "source_083"
+      },
+      {
+        "type": "source_id",
+        "text": "source_084",
+        "matched_source_id": "source_084"
+      },
+      {
+        "type": "source_id",
+        "text": "source_085",
+        "matched_source_id": "source_085"
+      },
+      {
+        "type": "source_id",
+        "text": "source_086",
+        "matched_source_id": "source_086"
+      },
+      {
+        "type": "source_id",
+        "text": "source_087",
+        "matched_source_id": "source_087"
+      },
+      {
+        "type": "source_id",
+        "text": "source_088",
+        "matched_source_id": "source_088"
+      },
+      {
+        "type": "law",
+        "text": "《著作权法》第二十四条",
+        "title": "著作权法",
+        "article_no": "二十四条",
+        "matched_source_id": "source_010"
+      },
+      {
+        "type": "law",
+        "text": "《生成式人工智能服务管理暂行办法》第七条",
+        "title": "生成式人工智能服务管理暂行办法",
+        "article_no": "七条",
+        "matched_source_id": "source_044"
+      }
+    ],
+    "source_id_citation_count": 88,
+    "warnings": [],
+    "evidence_chain_complete": false,
+    "high_risk_dual_basis_ratio": 0.0,
+    "unsupported_high_risk_items": [],
+    "weak_evidence_risk_items": [
+      {
+        "risk_id": "risk_001",
+        "reason": "missing_source",
+        "missing_ids": [
+          "CN_COPYRIGHT_LAW_2020",
+          "US_ANDY_WARHOL_FOUNDATION_V_GOLDSMITH_2023",
+          "CN_QINGDAO_MEDIUM_COURT_2024"
+        ]
+      },
+      {
+        "risk_id": "risk_001",
+        "reason": "missing_normative_basis",
+        "missing_ids": []
+      },
+      {
+        "risk_id": "risk_002",
+        "reason": "missing_source",
+        "missing_ids": [
+          "TYPICAL_GPL_V3_LICENSE"
+        ]
+      },
+      {
+        "risk_id": "risk_002",
+        "reason": "missing_normative_basis",
+        "missing_ids": []
+      },
+      {
+        "risk_id": "risk_003",
+        "reason": "missing_source",
+        "missing_ids": [
+          "CN_PIPL_2021",
+          "CN_PIPL_2021",
+          "EU_GDPR_2016"
+        ]
+      },
+      {
+        "risk_id": "risk_003",
+        "reason": "missing_normative_basis",
+        "missing_ids": []
+      },
+      {
+        "risk_id": "risk_004",
+        "reason": "missing_source",
+        "missing_ids": [
+          "EU_GDPR_2016",
+          "EU_GDPR_2016"
+        ]
+      },
+      {
+        "risk_id": "risk_004",
+        "reason": "missing_normative_basis",
+        "missing_ids": []
+      },
+      {
+        "risk_id": "risk_005",
+        "reason": "missing_source",
+        "missing_ids": [
+          "CN_CYBERSPACE_ADMIN_2023"
+        ]
+      },
+      {
+        "risk_id": "risk_005",
+        "reason": "missing_normative_basis",
+        "missing_ids": []
+      }
+    ],
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "wrong_jurisdiction_sources": [],
+    "expired_sources_used_as_current": [],
+    "cross_border": true,
+    "has_boundary_statement": true,
+    "boundary_warning": false,
+    "source_type_coverage": 11,
+    "official_source_ratio": 0.435,
+    "authority_source_ratio": 0.435,
+    "low_quality_source_ratio": 0.065,
+    "unique_source_count": 200,
+    "legal_source_count": 48,
+    "case_source_count": 20,
+    "contract_source_count": 25,
+    "enforcement_source_count": 12,
+    "num_search_calls": 28,
+    "unique_queries": 6,
+    "phase_coverage": 1.0,
+    "event_completeness_rate": 1.0,
+    "num_agent_steps": 39,
+    "critic_loop_count": 12,
+    "re_research_count": 1,
+    "revision_count": 3,
+    "has_planning": true,
+    "has_researching": true,
+    "has_analyzing": true,
+    "has_writing": true,
+    "has_reviewing": true,
+    "has_completed": true,
+    "required_points_recall": 1.0,
+    "critical_omission_count": 0,
+    "covered_points": [
+      "应区分四类语料风险：版权作品、商标/品牌元素、开源软件许可、含个人信息或商业秘密的客服记录。",
+      "应明确中国大陆主法域分析，同时提示面向 EU 客户商业化可能叠加 GDPR、版权许可和 ToS/爬取限制等问题。",
+      "应要求核验数据来源合法性、许可链、抓取规则、开源许可证兼容性、去标识化处理、客户授权和数据集留痕。",
+      "应指出仅因素材“公开可访问”并不当然意味着可无条件训练或商业化使用。",
+      "应给出产品与合同侧控制点：训练数据治理台账、黑名单来源、客户数据开关、输出过滤、第三方侵权投诉机制、服务条款限制。",
+      "应提示模型训练的著作权合理使用、开源传染性条款、个人信息匿名化充分性等问题存在较强争议，不能给绝对安全结论。",
+      "应触发人工复核，原因是 AI、版权、开源许可、个人信息和跨境商用叠加。"
+    ],
+    "missing_points": [],
+    "actionability_score": 1.0,
+    "action_item_count": 7,
+    "has_owner": true,
+    "has_priority": true,
+    "has_deadline": true,
+    "has_action_verbs": true,
+    "weaknesses": []
+  },
+  "uncertainty": {
+    "judge_confidence": 0.78,
+    "human_review_recommended": true,
+    "reasons": [
+      "法律风控报告建议人工复核后使用"
+    ]
+  },
+  "notes": {
+    "strengths": [],
+    "weaknesses": [],
+    "missing_points": [],
+    "fix_recommendations": []
+  },
+  "rule_engine_result": {
+    "rule_engine_version": "legal_rule_engine_v1",
+    "fatal_errors": [],
+    "warnings": [],
+    "auto_checks": {
+      "disclaimer_present": true,
+      "has_deterministic_legal_advice": false,
+      "citation_validity": true,
+      "jurisdiction_match": true,
+      "law_version_match": true,
+      "evidence_chain_complete": false,
+      "risk_consistency_pass": true,
+      "human_review_required_correctly_flagged": true
+    },
+    "metrics": {
+      "law_citation_match_rate": 1.0,
+      "case_number_match_rate": 1.0,
+      "critical_claim_citation_coverage": 0.0,
+      "pinpoint_citation_rate": 1.0,
+      "jurisdiction_match_rate": 1.0,
+      "effective_version_match_rate": 1.0,
+      "risk_with_evidence_ratio": 0.8333333333333334,
+      "risk_score_consistency_rate": 1.0
+    },
+    "rule_notes": []
+  },
+  "citation_result": {
+    "citation_validity": true,
+    "num_citations_found": 90,
+    "num_citations_matched": 90,
+    "citation_match_rate": 1.0,
+    "pinpoint_citation_rate": 1.0,
+    "critical_claim_citation_coverage": 0.0,
+    "unmatched_citations": [],
+    "matched_citations": [
+      {
+        "type": "source_id",
+        "text": "source_001",
+        "matched_source_id": "source_001"
+      },
+      {
+        "type": "source_id",
+        "text": "source_002",
+        "matched_source_id": "source_002"
+      },
+      {
+        "type": "source_id",
+        "text": "source_003",
+        "matched_source_id": "source_003"
+      },
+      {
+        "type": "source_id",
+        "text": "source_004",
+        "matched_source_id": "source_004"
+      },
+      {
+        "type": "source_id",
+        "text": "source_005",
+        "matched_source_id": "source_005"
+      },
+      {
+        "type": "source_id",
+        "text": "source_006",
+        "matched_source_id": "source_006"
+      },
+      {
+        "type": "source_id",
+        "text": "source_007",
+        "matched_source_id": "source_007"
+      },
+      {
+        "type": "source_id",
+        "text": "source_008",
+        "matched_source_id": "source_008"
+      },
+      {
+        "type": "source_id",
+        "text": "source_009",
+        "matched_source_id": "source_009"
+      },
+      {
+        "type": "source_id",
+        "text": "source_010",
+        "matched_source_id": "source_010"
+      },
+      {
+        "type": "source_id",
+        "text": "source_011",
+        "matched_source_id": "source_011"
+      },
+      {
+        "type": "source_id",
+        "text": "source_012",
+        "matched_source_id": "source_012"
+      },
+      {
+        "type": "source_id",
+        "text": "source_013",
+        "matched_source_id": "source_013"
+      },
+      {
+        "type": "source_id",
+        "text": "source_014",
+        "matched_source_id": "source_014"
+      },
+      {
+        "type": "source_id",
+        "text": "source_015",
+        "matched_source_id": "source_015"
+      },
+      {
+        "type": "source_id",
+        "text": "source_016",
+        "matched_source_id": "source_016"
+      },
+      {
+        "type": "source_id",
+        "text": "source_017",
+        "matched_source_id": "source_017"
+      },
+      {
+        "type": "source_id",
+        "text": "source_018",
+        "matched_source_id": "source_018"
+      },
+      {
+        "type": "source_id",
+        "text": "source_019",
+        "matched_source_id": "source_019"
+      },
+      {
+        "type": "source_id",
+        "text": "source_020",
+        "matched_source_id": "source_020"
+      },
+      {
+        "type": "source_id",
+        "text": "source_021",
+        "matched_source_id": "source_021"
+      },
+      {
+        "type": "source_id",
+        "text": "source_022",
+        "matched_source_id": "source_022"
+      },
+      {
+        "type": "source_id",
+        "text": "source_023",
+        "matched_source_id": "source_023"
+      },
+      {
+        "type": "source_id",
+        "text": "source_024",
+        "matched_source_id": "source_024"
+      },
+      {
+        "type": "source_id",
+        "text": "source_025",
+        "matched_source_id": "source_025"
+      },
+      {
+        "type": "source_id",
+        "text": "source_026",
+        "matched_source_id": "source_026"
+      },
+      {
+        "type": "source_id",
+        "text": "source_027",
+        "matched_source_id": "source_027"
+      },
+      {
+        "type": "source_id",
+        "text": "source_028",
+        "matched_source_id": "source_028"
+      },
+      {
+        "type": "source_id",
+        "text": "source_029",
+        "matched_source_id": "source_029"
+      },
+      {
+        "type": "source_id",
+        "text": "source_030",
+        "matched_source_id": "source_030"
+      },
+      {
+        "type": "source_id",
+        "text": "source_031",
+        "matched_source_id": "source_031"
+      },
+      {
+        "type": "source_id",
+        "text": "source_032",
+        "matched_source_id": "source_032"
+      },
+      {
+        "type": "source_id",
+        "text": "source_033",
+        "matched_source_id": "source_033"
+      },
+      {
+        "type": "source_id",
+        "text": "source_034",
+        "matched_source_id": "source_034"
+      },
+      {
+        "type": "source_id",
+        "text": "source_035",
+        "matched_source_id": "source_035"
+      },
+      {
+        "type": "source_id",
+        "text": "source_036",
+        "matched_source_id": "source_036"
+      },
+      {
+        "type": "source_id",
+        "text": "source_037",
+        "matched_source_id": "source_037"
+      },
+      {
+        "type": "source_id",
+        "text": "source_038",
+        "matched_source_id": "source_038"
+      },
+      {
+        "type": "source_id",
+        "text": "source_039",
+        "matched_source_id": "source_039"
+      },
+      {
+        "type": "source_id",
+        "text": "source_040",
+        "matched_source_id": "source_040"
+      },
+      {
+        "type": "source_id",
+        "text": "source_041",
+        "matched_source_id": "source_041"
+      },
+      {
+        "type": "source_id",
+        "text": "source_042",
+        "matched_source_id": "source_042"
+      },
+      {
+        "type": "source_id",
+        "text": "source_043",
+        "matched_source_id": "source_043"
+      },
+      {
+        "type": "source_id",
+        "text": "source_044",
+        "matched_source_id": "source_044"
+      },
+      {
+        "type": "source_id",
+        "text": "source_045",
+        "matched_source_id": "source_045"
+      },
+      {
+        "type": "source_id",
+        "text": "source_046",
+        "matched_source_id": "source_046"
+      },
+      {
+        "type": "source_id",
+        "text": "source_047",
+        "matched_source_id": "source_047"
+      },
+      {
+        "type": "source_id",
+        "text": "source_048",
+        "matched_source_id": "source_048"
+      },
+      {
+        "type": "source_id",
+        "text": "source_049",
+        "matched_source_id": "source_049"
+      },
+      {
+        "type": "source_id",
+        "text": "source_050",
+        "matched_source_id": "source_050"
+      },
+      {
+        "type": "source_id",
+        "text": "source_051",
+        "matched_source_id": "source_051"
+      },
+      {
+        "type": "source_id",
+        "text": "source_052",
+        "matched_source_id": "source_052"
+      },
+      {
+        "type": "source_id",
+        "text": "source_053",
+        "matched_source_id": "source_053"
+      },
+      {
+        "type": "source_id",
+        "text": "source_054",
+        "matched_source_id": "source_054"
+      },
+      {
+        "type": "source_id",
+        "text": "source_055",
+        "matched_source_id": "source_055"
+      },
+      {
+        "type": "source_id",
+        "text": "source_056",
+        "matched_source_id": "source_056"
+      },
+      {
+        "type": "source_id",
+        "text": "source_057",
+        "matched_source_id": "source_057"
+      },
+      {
+        "type": "source_id",
+        "text": "source_058",
+        "matched_source_id": "source_058"
+      },
+      {
+        "type": "source_id",
+        "text": "source_059",
+        "matched_source_id": "source_059"
+      },
+      {
+        "type": "source_id",
+        "text": "source_060",
+        "matched_source_id": "source_060"
+      },
+      {
+        "type": "source_id",
+        "text": "source_061",
+        "matched_source_id": "source_061"
+      },
+      {
+        "type": "source_id",
+        "text": "source_062",
+        "matched_source_id": "source_062"
+      },
+      {
+        "type": "source_id",
+        "text": "source_063",
+        "matched_source_id": "source_063"
+      },
+      {
+        "type": "source_id",
+        "text": "source_064",
+        "matched_source_id": "source_064"
+      },
+      {
+        "type": "source_id",
+        "text": "source_065",
+        "matched_source_id": "source_065"
+      },
+      {
+        "type": "source_id",
+        "text": "source_066",
+        "matched_source_id": "source_066"
+      },
+      {
+        "type": "source_id",
+        "text": "source_067",
+        "matched_source_id": "source_067"
+      },
+      {
+        "type": "source_id",
+        "text": "source_068",
+        "matched_source_id": "source_068"
+      },
+      {
+        "type": "source_id",
+        "text": "source_069",
+        "matched_source_id": "source_069"
+      },
+      {
+        "type": "source_id",
+        "text": "source_070",
+        "matched_source_id": "source_070"
+      },
+      {
+        "type": "source_id",
+        "text": "source_071",
+        "matched_source_id": "source_071"
+      },
+      {
+        "type": "source_id",
+        "text": "source_072",
+        "matched_source_id": "source_072"
+      },
+      {
+        "type": "source_id",
+        "text": "source_073",
+        "matched_source_id": "source_073"
+      },
+      {
+        "type": "source_id",
+        "text": "source_074",
+        "matched_source_id": "source_074"
+      },
+      {
+        "type": "source_id",
+        "text": "source_075",
+        "matched_source_id": "source_075"
+      },
+      {
+        "type": "source_id",
+        "text": "source_076",
+        "matched_source_id": "source_076"
+      },
+      {
+        "type": "source_id",
+        "text": "source_077",
+        "matched_source_id": "source_077"
+      },
+      {
+        "type": "source_id",
+        "text": "source_078",
+        "matched_source_id": "source_078"
+      },
+      {
+        "type": "source_id",
+        "text": "source_079",
+        "matched_source_id": "source_079"
+      },
+      {
+        "type": "source_id",
+        "text": "source_080",
+        "matched_source_id": "source_080"
+      },
+      {
+        "type": "source_id",
+        "text": "source_081",
+        "matched_source_id": "source_081"
+      },
+      {
+        "type": "source_id",
+        "text": "source_082",
+        "matched_source_id": "source_082"
+      },
+      {
+        "type": "source_id",
+        "text": "source_083",
+        "matched_source_id": "source_083"
+      },
+      {
+        "type": "source_id",
+        "text": "source_084",
+        "matched_source_id": "source_084"
+      },
+      {
+        "type": "source_id",
+        "text": "source_085",
+        "matched_source_id": "source_085"
+      },
+      {
+        "type": "source_id",
+        "text": "source_086",
+        "matched_source_id": "source_086"
+      },
+      {
+        "type": "source_id",
+        "text": "source_087",
+        "matched_source_id": "source_087"
+      },
+      {
+        "type": "source_id",
+        "text": "source_088",
+        "matched_source_id": "source_088"
+      },
+      {
+        "type": "law",
+        "text": "《著作权法》第二十四条",
+        "title": "著作权法",
+        "article_no": "二十四条",
+        "matched_source_id": "source_010"
+      },
+      {
+        "type": "law",
+        "text": "《生成式人工智能服务管理暂行办法》第七条",
+        "title": "生成式人工智能服务管理暂行办法",
+        "article_no": "七条",
+        "matched_source_id": "source_044"
+      }
+    ],
+    "source_id_citation_count": 88,
+    "warnings": []
+  },
+  "evidence_result": {
+    "evidence_chain_complete": false,
+    "risk_with_evidence_ratio": 0.8333333333333334,
+    "high_risk_dual_basis_ratio": 0.0,
+    "unsupported_high_risk_items": [],
+    "weak_evidence_risk_items": [
+      {
+        "risk_id": "risk_001",
+        "reason": "missing_source",
+        "missing_ids": [
+          "CN_COPYRIGHT_LAW_2020",
+          "US_ANDY_WARHOL_FOUNDATION_V_GOLDSMITH_2023",
+          "CN_QINGDAO_MEDIUM_COURT_2024"
+        ]
+      },
+      {
+        "risk_id": "risk_001",
+        "reason": "missing_normative_basis",
+        "missing_ids": []
+      },
+      {
+        "risk_id": "risk_002",
+        "reason": "missing_source",
+        "missing_ids": [
+          "TYPICAL_GPL_V3_LICENSE"
+        ]
+      },
+      {
+        "risk_id": "risk_002",
+        "reason": "missing_normative_basis",
+        "missing_ids": []
+      },
+      {
+        "risk_id": "risk_003",
+        "reason": "missing_source",
+        "missing_ids": [
+          "CN_PIPL_2021",
+          "CN_PIPL_2021",
+          "EU_GDPR_2016"
+        ]
+      },
+      {
+        "risk_id": "risk_003",
+        "reason": "missing_normative_basis",
+        "missing_ids": []
+      },
+      {
+        "risk_id": "risk_004",
+        "reason": "missing_source",
+        "missing_ids": [
+          "EU_GDPR_2016",
+          "EU_GDPR_2016"
+        ]
+      },
+      {
+        "risk_id": "risk_004",
+        "reason": "missing_normative_basis",
+        "missing_ids": []
+      },
+      {
+        "risk_id": "risk_005",
+        "reason": "missing_source",
+        "missing_ids": [
+          "CN_CYBERSPACE_ADMIN_2023"
+        ]
+      },
+      {
+        "risk_id": "risk_005",
+        "reason": "missing_normative_basis",
+        "missing_ids": []
+      }
+    ]
+  },
+  "jurisdiction_result": {
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "jurisdiction_match_rate": 1.0,
+    "effective_version_match_rate": 1.0,
+    "wrong_jurisdiction_sources": [],
+    "expired_sources_used_as_current": [],
+    "cross_border": true,
+    "has_boundary_statement": true,
+    "boundary_warning": false
+  },
+  "retrieval_result": {
+    "source_type_coverage": 11,
+    "official_source_ratio": 0.435,
+    "authority_source_ratio": 0.435,
+    "low_quality_source_ratio": 0.065,
+    "unique_source_count": 200,
+    "legal_source_count": 48,
+    "case_source_count": 20,
+    "contract_source_count": 25,
+    "enforcement_source_count": 12,
+    "num_search_calls": 28,
+    "unique_queries": 6
+  },
+  "process_result": {
+    "phase_coverage": 1.0,
+    "event_completeness_rate": 1.0,
+    "num_agent_steps": 39,
+    "num_search_calls": 28,
+    "unique_queries": 6,
+    "critic_loop_count": 12,
+    "re_research_count": 1,
+    "revision_count": 3,
+    "has_planning": true,
+    "has_researching": true,
+    "has_analyzing": true,
+    "has_writing": true,
+    "has_reviewing": true,
+    "has_completed": true
+  },
+  "gold_comparison_result": {
+    "required_points_recall": 1.0,
+    "critical_omission_count": 0,
+    "covered_points": [
+      "应区分四类语料风险：版权作品、商标/品牌元素、开源软件许可、含个人信息或商业秘密的客服记录。",
+      "应明确中国大陆主法域分析，同时提示面向 EU 客户商业化可能叠加 GDPR、版权许可和 ToS/爬取限制等问题。",
+      "应要求核验数据来源合法性、许可链、抓取规则、开源许可证兼容性、去标识化处理、客户授权和数据集留痕。",
+      "应指出仅因素材“公开可访问”并不当然意味着可无条件训练或商业化使用。",
+      "应给出产品与合同侧控制点：训练数据治理台账、黑名单来源、客户数据开关、输出过滤、第三方侵权投诉机制、服务条款限制。",
+      "应提示模型训练的著作权合理使用、开源传染性条款、个人信息匿名化充分性等问题存在较强争议，不能给绝对安全结论。",
+      "应触发人工复核，原因是 AI、版权、开源许可、个人信息和跨境商用叠加。"
+    ],
+    "missing_points": [],
+    "warnings": []
+  },
+  "actionability_result": {
+    "actionability_score": 1.0,
+    "action_item_count": 7,
+    "has_owner": true,
+    "has_priority": true,
+    "has_deadline": true,
+    "has_action_verbs": true,
+    "weaknesses": []
+  },
+  "llm_judge_result": {
+    "evaluator_model": "mock_legal_eval_judge_v1",
+    "task_id": "HARD_09",
+    "overall_score": 0.0,
+    "goal_scores": {},
+    "dimensions": {
+      "legal_factuality": {
+        "score": 4.2,
+        "comment": "基于规则引擎和引用核验的确定性诊断。",
+        "metrics": {
+          "unverified_claim_rate": 1.0,
+          "hallucination_rate": 0.0
+        }
+      },
+      "jurisdiction_version_match": {
+        "score": 5.0,
+        "comment": "按法域和版本字段进行规则化核验。",
+        "metrics": {
+          "jurisdiction_match": true,
+          "law_version_match": true,
+          "jurisdiction_match_rate": 1.0,
+          "effective_version_match_rate": 1.0,
+          "wrong_jurisdiction_sources": [],
+          "expired_sources_used_as_current": [],
+          "cross_border": true,
+          "has_boundary_statement": true,
+          "boundary_warning": false
+        }
+      },
+      "coverage": {
+        "score": 5.0,
+        "comment": "按 Gold 必须覆盖要点粗粒度召回。",
+        "metrics": {
+          "required_points_recall": 1.0,
+          "critical_omission_count": 0,
+          "covered_points": [
+            "应区分四类语料风险：版权作品、商标/品牌元素、开源软件许可、含个人信息或商业秘密的客服记录。",
+            "应明确中国大陆主法域分析，同时提示面向 EU 客户商业化可能叠加 GDPR、版权许可和 ToS/爬取限制等问题。",
+            "应要求核验数据来源合法性、许可链、抓取规则、开源许可证兼容性、去标识化处理、客户授权和数据集留痕。",
+            "应指出仅因素材“公开可访问”并不当然意味着可无条件训练或商业化使用。",
+            "应给出产品与合同侧控制点：训练数据治理台账、黑名单来源、客户数据开关、输出过滤、第三方侵权投诉机制、服务条款限制。",
+            "应提示模型训练的著作权合理使用、开源传染性条款、个人信息匿名化充分性等问题存在较强争议，不能给绝对安全结论。",
+            "应触发人工复核，原因是 AI、版权、开源许可、个人信息和跨境商用叠加。"
+          ],
+          "missing_points": [],
+          "warnings": []
+        }
+      },
+      "evidence_chain": {
+        "score": 0.0,
+        "comment": "按 risk_item 到 evidence/source 的链路完整性评分。",
+        "metrics": {
+          "evidence_chain_complete": false,
+          "risk_with_evidence_ratio": 0.8333333333333334,
+          "high_risk_dual_basis_ratio": 0.0,
+          "unsupported_high_risk_items": [],
+          "weak_evidence_risk_items": [
+            {
+              "risk_id": "risk_001",
+              "reason": "missing_source",
+              "missing_ids": [
+                "CN_COPYRIGHT_LAW_2020",
+                "US_ANDY_WARHOL_FOUNDATION_V_GOLDSMITH_2023",
+                "CN_QINGDAO_MEDIUM_COURT_2024"
+              ]
+            },
+            {
+              "risk_id": "risk_001",
+              "reason": "missing_normative_basis",
+              "missing_ids": []
+            },
+            {
+              "risk_id": "risk_002",
+              "reason": "missing_source",
+              "missing_ids": [
+                "TYPICAL_GPL_V3_LICENSE"
+              ]
+            },
+            {
+              "risk_id": "risk_002",
+              "reason": "missing_normative_basis",
+              "missing_ids": []
+            },
+            {
+              "risk_id": "risk_003",
+              "reason": "missing_source",
+              "missing_ids": [
+                "CN_PIPL_2021",
+                "CN_PIPL_2021",
+                "EU_GDPR_2016"
+              ]
+            },
+            {
+              "risk_id": "risk_003",
+              "reason": "missing_normative_basis",
+              "missing_ids": []
+            },
+            {
+              "risk_id": "risk_004",
+              "reason": "missing_source",
+              "missing_ids": [
+                "EU_GDPR_2016",
+                "EU_GDPR_2016"
+              ]
+            },
+            {
+              "risk_id": "risk_004",
+              "reason": "missing_normative_basis",
+              "missing_ids": []
+            },
+            {
+              "risk_id": "risk_005",
+              "reason": "missing_source",
+              "missing_ids": [
+                "CN_CYBERSPACE_ADMIN_2023"
+              ]
+            },
+            {
+              "risk_id": "risk_005",
+              "reason": "missing_normative_basis",
+              "missing_ids": []
+            }
+          ]
+        }
+      },
+      "citation_quality": {
+        "score": 3.43,
+        "comment": "综合引用匹配率和权威来源占比。",
+        "metrics": {
+          "citation_validity": true,
+          "num_citations_found": 90,
+          "num_citations_matched": 90,
+          "citation_match_rate": 1.0,
+          "pinpoint_citation_rate": 1.0,
+          "critical_claim_citation_coverage": 0.0,
+          "unmatched_citations": [],
+          "matched_citations": [
+            {
+              "type": "source_id",
+              "text": "source_001",
+              "matched_source_id": "source_001"
+            },
+            {
+              "type": "source_id",
+              "text": "source_002",
+              "matched_source_id": "source_002"
+            },
+            {
+              "type": "source_id",
+              "text": "source_003",
+              "matched_source_id": "source_003"
+            },
+            {
+              "type": "source_id",
+              "text": "source_004",
+              "matched_source_id": "source_004"
+            },
+            {
+              "type": "source_id",
+              "text": "source_005",
+              "matched_source_id": "source_005"
+            },
+            {
+              "type": "source_id",
+              "text": "source_006",
+              "matched_source_id": "source_006"
+            },
+            {
+              "type": "source_id",
+              "text": "source_007",
+              "matched_source_id": "source_007"
+            },
+            {
+              "type": "source_id",
+              "text": "source_008",
+              "matched_source_id": "source_008"
+            },
+            {
+              "type": "source_id",
+              "text": "source_009",
+              "matched_source_id": "source_009"
+            },
+            {
+              "type": "source_id",
+              "text": "source_010",
+              "matched_source_id": "source_010"
+            },
+            {
+              "type": "source_id",
+              "text": "source_011",
+              "matched_source_id": "source_011"
+            },
+            {
+              "type": "source_id",
+              "text": "source_012",
+              "matched_source_id": "source_012"
+            },
+            {
+              "type": "source_id",
+              "text": "source_013",
+              "matched_source_id": "source_013"
+            },
+            {
+              "type": "source_id",
+              "text": "source_014",
+              "matched_source_id": "source_014"
+            },
+            {
+              "type": "source_id",
+              "text": "source_015",
+              "matched_source_id": "source_015"
+            },
+            {
+              "type": "source_id",
+              "text": "source_016",
+              "matched_source_id": "source_016"
+            },
+            {
+              "type": "source_id",
+              "text": "source_017",
+              "matched_source_id": "source_017"
+            },
+            {
+              "type": "source_id",
+              "text": "source_018",
+              "matched_source_id": "source_018"
+            },
+            {
+              "type": "source_id",
+              "text": "source_019",
+              "matched_source_id": "source_019"
+            },
+            {
+              "type": "source_id",
+              "text": "source_020",
+              "matched_source_id": "source_020"
+            },
+            {
+              "type": "source_id",
+              "text": "source_021",
+              "matched_source_id": "source_021"
+            },
+            {
+              "type": "source_id",
+              "text": "source_022",
+              "matched_source_id": "source_022"
+            },
+            {
+              "type": "source_id",
+              "text": "source_023",
+              "matched_source_id": "source_023"
+            },
+            {
+              "type": "source_id",
+              "text": "source_024",
+              "matched_source_id": "source_024"
+            },
+            {
+              "type": "source_id",
+              "text": "source_025",
+              "matched_source_id": "source_025"
+            },
+            {
+              "type": "source_id",
+              "text": "source_026",
+              "matched_source_id": "source_026"
+            },
+            {
+              "type": "source_id",
+              "text": "source_027",
+              "matched_source_id": "source_027"
+            },
+            {
+              "type": "source_id",
+              "text": "source_028",
+              "matched_source_id": "source_028"
+            },
+            {
+              "type": "source_id",
+              "text": "source_029",
+              "matched_source_id": "source_029"
+            },
+            {
+              "type": "source_id",
+              "text": "source_030",
+              "matched_source_id": "source_030"
+            },
+            {
+              "type": "source_id",
+              "text": "source_031",
+              "matched_source_id": "source_031"
+            },
+            {
+              "type": "source_id",
+              "text": "source_032",
+              "matched_source_id": "source_032"
+            },
+            {
+              "type": "source_id",
+              "text": "source_033",
+              "matched_source_id": "source_033"
+            },
+            {
+              "type": "source_id",
+              "text": "source_034",
+              "matched_source_id": "source_034"
+            },
+            {
+              "type": "source_id",
+              "text": "source_035",
+              "matched_source_id": "source_035"
+            },
+            {
+              "type": "source_id",
+              "text": "source_036",
+              "matched_source_id": "source_036"
+            },
+            {
+              "type": "source_id",
+              "text": "source_037",
+              "matched_source_id": "source_037"
+            },
+            {
+              "type": "source_id",
+              "text": "source_038",
+              "matched_source_id": "source_038"
+            },
+            {
+              "type": "source_id",
+              "text": "source_039",
+              "matched_source_id": "source_039"
+            },
+            {
+              "type": "source_id",
+              "text": "source_040",
+              "matched_source_id": "source_040"
+            },
+            {
+              "type": "source_id",
+              "text": "source_041",
+              "matched_source_id": "source_041"
+            },
+            {
+              "type": "source_id",
+              "text": "source_042",
+              "matched_source_id": "source_042"
+            },
+            {
+              "type": "source_id",
+              "text": "source_043",
+              "matched_source_id": "source_043"
+            },
+            {
+              "type": "source_id",
+              "text": "source_044",
+              "matched_source_id": "source_044"
+            },
+            {
+              "type": "source_id",
+              "text": "source_045",
+              "matched_source_id": "source_045"
+            },
+            {
+              "type": "source_id",
+              "text": "source_046",
+              "matched_source_id": "source_046"
+            },
+            {
+              "type": "source_id",
+              "text": "source_047",
+              "matched_source_id": "source_047"
+            },
+            {
+              "type": "source_id",
+              "text": "source_048",
+              "matched_source_id": "source_048"
+            },
+            {
+              "type": "source_id",
+              "text": "source_049",
+              "matched_source_id": "source_049"
+            },
+            {
+              "type": "source_id",
+              "text": "source_050",
+              "matched_source_id": "source_050"
+            },
+            {
+              "type": "source_id",
+              "text": "source_051",
+              "matched_source_id": "source_051"
+            },
+            {
+              "type": "source_id",
+              "text": "source_052",
+              "matched_source_id": "source_052"
+            },
+            {
+              "type": "source_id",
+              "text": "source_053",
+              "matched_source_id": "source_053"
+            },
+            {
+              "type": "source_id",
+              "text": "source_054",
+              "matched_source_id": "source_054"
+            },
+            {
+              "type": "source_id",
+              "text": "source_055",
+              "matched_source_id": "source_055"
+            },
+            {
+              "type": "source_id",
+              "text": "source_056",
+              "matched_source_id": "source_056"
+            },
+            {
+              "type": "source_id",
+              "text": "source_057",
+              "matched_source_id": "source_057"
+            },
+            {
+              "type": "source_id",
+              "text": "source_058",
+              "matched_source_id": "source_058"
+            },
+            {
+              "type": "source_id",
+              "text": "source_059",
+              "matched_source_id": "source_059"
+            },
+            {
+              "type": "source_id",
+              "text": "source_060",
+              "matched_source_id": "source_060"
+            },
+            {
+              "type": "source_id",
+              "text": "source_061",
+              "matched_source_id": "source_061"
+            },
+            {
+              "type": "source_id",
+              "text": "source_062",
+              "matched_source_id": "source_062"
+            },
+            {
+              "type": "source_id",
+              "text": "source_063",
+              "matched_source_id": "source_063"
+            },
+            {
+              "type": "source_id",
+              "text": "source_064",
+              "matched_source_id": "source_064"
+            },
+            {
+              "type": "source_id",
+              "text": "source_065",
+              "matched_source_id": "source_065"
+            },
+            {
+              "type": "source_id",
+              "text": "source_066",
+              "matched_source_id": "source_066"
+            },
+            {
+              "type": "source_id",
+              "text": "source_067",
+              "matched_source_id": "source_067"
+            },
+            {
+              "type": "source_id",
+              "text": "source_068",
+              "matched_source_id": "source_068"
+            },
+            {
+              "type": "source_id",
+              "text": "source_069",
+              "matched_source_id": "source_069"
+            },
+            {
+              "type": "source_id",
+              "text": "source_070",
+              "matched_source_id": "source_070"
+            },
+            {
+              "type": "source_id",
+              "text": "source_071",
+              "matched_source_id": "source_071"
+            },
+            {
+              "type": "source_id",
+              "text": "source_072",
+              "matched_source_id": "source_072"
+            },
+            {
+              "type": "source_id",
+              "text": "source_073",
+              "matched_source_id": "source_073"
+            },
+            {
+              "type": "source_id",
+              "text": "source_074",
+              "matched_source_id": "source_074"
+            },
+            {
+              "type": "source_id",
+              "text": "source_075",
+              "matched_source_id": "source_075"
+            },
+            {
+              "type": "source_id",
+              "text": "source_076",
+              "matched_source_id": "source_076"
+            },
+            {
+              "type": "source_id",
+              "text": "source_077",
+              "matched_source_id": "source_077"
+            },
+            {
+              "type": "source_id",
+              "text": "source_078",
+              "matched_source_id": "source_078"
+            },
+            {
+              "type": "source_id",
+              "text": "source_079",
+              "matched_source_id": "source_079"
+            },
+            {
+              "type": "source_id",
+              "text": "source_080",
+              "matched_source_id": "source_080"
+            },
+            {
+              "type": "source_id",
+              "text": "source_081",
+              "matched_source_id": "source_081"
+            },
+            {
+              "type": "source_id",
+              "text": "source_082",
+              "matched_source_id": "source_082"
+            },
+            {
+              "type": "source_id",
+              "text": "source_083",
+              "matched_source_id": "source_083"
+            },
+            {
+              "type": "source_id",
+              "text": "source_084",
+              "matched_source_id": "source_084"
+            },
+            {
+              "type": "source_id",
+              "text": "source_085",
+              "matched_source_id": "source_085"
+            },
+            {
+              "type": "source_id",
+              "text": "source_086",
+              "matched_source_id": "source_086"
+            },
+            {
+              "type": "source_id",
+              "text": "source_087",
+              "matched_source_id": "source_087"
+            },
+            {
+              "type": "source_id",
+              "text": "source_088",
+              "matched_source_id": "source_088"
+            },
+            {
+              "type": "law",
+              "text": "《著作权法》第二十四条",
+              "title": "著作权法",
+              "article_no": "二十四条",
+              "matched_source_id": "source_010"
+            },
+            {
+              "type": "law",
+              "text": "《生成式人工智能服务管理暂行办法》第七条",
+              "title": "生成式人工智能服务管理暂行办法",
+              "article_no": "七条",
+              "matched_source_id": "source_044"
+            }
+          ],
+          "source_id_citation_count": 88,
+          "warnings": [],
+          "source_type_coverage": 11,
+          "official_source_ratio": 0.435,
+          "authority_source_ratio": 0.435,
+          "low_quality_source_ratio": 0.065,
+          "unique_source_count": 200,
+          "legal_source_count": 48,
+          "case_source_count": 20,
+          "contract_source_count": 25,
+          "enforcement_source_count": 12,
+          "num_search_calls": 28,
+          "unique_queries": 6
+        }
+      },
+      "risk_consistency": {
+        "score": 5.0,
+        "comment": "按摘要、正文和 risk_items 的风险等级一致性估计。",
+        "metrics": {
+          "law_citation_match_rate": 1.0,
+          "case_number_match_rate": 1.0,
+          "critical_claim_citation_coverage": 0.0,
+          "pinpoint_citation_rate": 1.0,
+          "jurisdiction_match_rate": 1.0,
+          "effective_version_match_rate": 1.0,
+          "risk_with_evidence_ratio": 0.8333333333333334,
+          "risk_score_consistency_rate": 1.0
+        }
+      },
+      "legal_reasoning": {
+        "score": 3.5,
+        "comment": "mock judge 不作外部法律判断，仅按结构完整性保守估计。",
+        "metrics": {}
+      },
+      "legal_boundary_compliance": {
+        "score": 5.0,
+        "comment": "免责声明和结论边界检查。",
+        "metrics": {}
+      },
+      "planning_quality": {
+        "score": 5.0,
+        "comment": "规划阶段轨迹检查。",
+        "metrics": {}
+      },
+      "retrieval_process": {
+        "score": 4.8,
+        "comment": "检索调用数量和 query 去重情况。",
+        "metrics": {
+          "phase_coverage": 1.0,
+          "event_completeness_rate": 1.0,
+          "num_agent_steps": 39,
+          "num_search_calls": 28,
+          "unique_queries": 6,
+          "critic_loop_count": 12,
+          "re_research_count": 1,
+          "revision_count": 3,
+          "has_planning": true,
+          "has_researching": true,
+          "has_analyzing": true,
+          "has_writing": true,
+          "has_reviewing": true,
+          "has_completed": true
+        }
+      },
+      "authority_priority": {
+        "score": 2.17,
+        "comment": "权威来源占比。",
+        "metrics": {
+          "source_type_coverage": 11,
+          "official_source_ratio": 0.435,
+          "authority_source_ratio": 0.435,
+          "low_quality_source_ratio": 0.065,
+          "unique_source_count": 200,
+          "legal_source_count": 48,
+          "case_source_count": 20,
+          "contract_source_count": 25,
+          "enforcement_source_count": 12,
+          "num_search_calls": 28,
+          "unique_queries": 6
+        }
+      },
+      "self_correction": {
+        "score": 5.0,
+        "comment": "critic/research revision 轨迹。",
+        "metrics": {
+          "phase_coverage": 1.0,
+          "event_completeness_rate": 1.0,
+          "num_agent_steps": 39,
+          "num_search_calls": 28,
+          "unique_queries": 6,
+          "critic_loop_count": 12,
+          "re_research_count": 1,
+          "revision_count": 3,
+          "has_planning": true,
+          "has_researching": true,
+          "has_analyzing": true,
+          "has_writing": true,
+          "has_reviewing": true,
+          "has_completed": true
+        }
+      },
+      "trace_completeness": {
+        "score": 5.0,
+        "comment": "关键 phase 覆盖。",
+        "metrics": {
+          "phase_coverage": 1.0,
+          "event_completeness_rate": 1.0,
+          "num_agent_steps": 39,
+          "num_search_calls": 28,
+          "unique_queries": 6,
+          "critic_loop_count": 12,
+          "re_research_count": 1,
+          "revision_count": 3,
+          "has_planning": true,
+          "has_researching": true,
+          "has_analyzing": true,
+          "has_writing": true,
+          "has_reviewing": true,
+          "has_completed": true
+        }
+      },
+      "expert_acceptability": {
+        "score": 3.6,
+        "comment": "按 fatal、覆盖和证据链保守估计。",
+        "metrics": {}
+      },
+      "editing_cost": {
+        "score": 4.0,
+        "comment": "fatal 和遗漏越多，修订成本越高。",
+        "metrics": {}
+      },
+      "business_actionability": {
+        "score": 5.0,
+        "comment": "整改建议 owner/priority/deadline/action 检查。",
+        "metrics": {
+          "actionability_score": 1.0,
+          "action_item_count": 7,
+          "has_owner": true,
+          "has_priority": true,
+          "has_deadline": true,
+          "has_action_verbs": true,
+          "weaknesses": []
+        }
+      }
+    },
+    "fatal_errors": [],
+    "auto_checks": {
+      "disclaimer_present": true,
+      "has_deterministic_legal_advice": false,
+      "citation_validity": true,
+      "jurisdiction_match": true,
+      "law_version_match": true,
+      "evidence_chain_complete": false,
+      "risk_consistency_pass": true,
+      "human_review_required_correctly_flagged": true
+    },
+    "uncertainty": {
+      "judge_confidence": 0.78,
+      "human_review_recommended": true,
+      "reasons": [
+        "法律风控报告建议人工复核后使用"
+      ]
+    },
+    "notes": {
+      "strengths": [],
+      "weaknesses": [],
+      "missing_points": [],
+      "fix_recommendations": []
+    },
+    "decision": {
+      "pass_gate": "conditional_pass",
+      "release_ready": false
+    }
+  },
+  "post_check_result": {
+    "post_check_pass": true,
+    "errors": [],
+    "warnings": [],
+    "citation_validity": true
+  },
+  "eval_version": "legal_eval_v1",
+  "decision": {
+    "pass_gate": "revise",
+    "release_ready": false,
+    "requires_human_review": true,
+    "reason": "研究质量分不足",
+    "decision_source": "aggregator"
+  }
+}

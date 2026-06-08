@@ -1,0 +1,1907 @@
+下面只提取你上面那份**“法律风控 DeepResearch Agent 测评方案”**中关于：
+
+1. **规则引擎先行**
+2. **LLM_as_Judge 复核**
+
+两部分的完整详细设计。为了避免遗漏，我会按“总体架构 → 输入输出 → 规则引擎 → LLM Judge → 二者协同 → JSON 结果”重新整理成一份可直接落地的模块设计。
+
+---
+
+# 一、总体设计：规则引擎先行 + LLM_as_Judge 复核
+
+法律风控报告评测不能只依赖 LLM_as_Judge。原因是法律场景存在大量**确定性红线**，例如：
+
+* 是否缺少免责声明；
+* 是否伪造法条、案例、案号；
+* 是否引用失效法规作为现行依据；
+* 是否给出“必胜”“一定违法”“可以直接签署”等确定性法律建议；
+* 高风险结论是否完全没有证据链；
+* 应触发人工复核却没有触发。
+
+这些问题不应完全交给 LLM 主观判断，而应先由规则引擎做确定性检查。推荐架构如下：
+
+```text
+输入：任务卡 + 候选报告 + Gold 标准 + source_index + process_trace
+        │
+        ▼
+规则引擎预检
+        │
+        ├── 命中 fatal 红线
+        │       └── 直接输出 fatal JSON，可选择跳过 LLM 打分或降低 LLM 权重
+        │
+        └── 未命中 fatal 红线
+                │
+                ▼
+        证据链展开与结构化核验
+                │
+                ▼
+        LLM_as_Judge 复核评分
+                │
+                ▼
+        一致性复检 / 置信度判断
+                │
+                ├── 置信度不足 → 标记人工复核
+                └── 置信度足够 → 输出最终评测 JSON
+```
+
+对应流程图：
+
+```mermaid
+flowchart TD
+    A[输入任务卡与候选报告] --> B[规则引擎预检]
+    B --> C{红线是否触发}
+    C -- 是 --> D[输出 fatal JSON]
+    C -- 否 --> E[证据链展开]
+    E --> F[法条/案例/法域/版本核验]
+    F --> G[LLM_as_Judge 按 Rubric 打分]
+    G --> H[一致性复检]
+    H --> I{置信度是否足够}
+    I -- 否 --> J[标记人工复核]
+    I -- 是 --> K[生成最终评测 JSON]
+    J --> K
+```
+
+---
+
+# 二、输入数据设计
+
+规则引擎和 LLM_as_Judge 使用同一套输入对象，但职责不同。
+
+## 2.1 输入对象
+
+```json
+{
+  "task_meta": {
+    "task_id": "contract_dpa_001",
+    "scenario": "contract_review",
+    "legal_domain": ["data_compliance", "commercial_contract"],
+    "jurisdiction": "CN-mainland",
+    "difficulty": "medium",
+    "kb_snapshot_version": "legal_kb_2026_06_01",
+    "gold_version": "gold_v1",
+    "prompt_version": "legal_eval_v1",
+    "requires_human_review": true
+  },
+  "candidate_report_markdown": "# 法律风控分析报告\n...",
+  "gold_report_or_key_points": {
+    "must_cover_points": [],
+    "risk_items": [],
+    "required_disclaimer": true,
+    "prohibited_outputs": []
+  },
+  "process_trace_summary": {
+    "num_search_calls": 6,
+    "unique_queries": 5,
+    "critic_loop_count": 1,
+    "events": []
+  },
+  "source_index": [
+    {
+      "source_id": "law_001",
+      "source_type": "law",
+      "title": "中华人民共和国民法典",
+      "jurisdiction": "CN-mainland",
+      "authority_level": "law",
+      "effective_from": "2021-01-01",
+      "effective_to": null,
+      "article_no": "第xxx条",
+      "span": "第xxx条",
+      "content": "...",
+      "url": "..."
+    }
+  ],
+  "risk_items": [
+    {
+      "risk_id": "R1",
+      "title": "违约责任条款不明确",
+      "risk_level": "high",
+      "evidence_ids": ["E1"],
+      "supporting_law_ids": ["law_001"]
+    }
+  ],
+  "evidence_chain": [
+    {
+      "evidence_id": "E1",
+      "source_id": "contract_001",
+      "source_type": "contract",
+      "span": "第8.2条",
+      "quote": "..."
+    }
+  ]
+}
+```
+
+## 2.2 各输入字段的用途
+
+| 字段                          | 规则引擎用途           | LLM_as_Judge 用途 |
+| --------------------------- | ---------------- | --------------- |
+| `task_meta`                 | 判断法域、任务类型、是否应人审  | 理解任务背景与评分标准     |
+| `candidate_report_markdown` | 正则检查、引用抽取、红线检测   | 评价报告质量          |
+| `gold_report_or_key_points` | 覆盖度、必须项、禁止项检查    | 对照 Gold 评估遗漏点   |
+| `process_trace_summary`     | 统计搜索、修订、事件完整性    | 评价研究过程质量        |
+| `source_index`              | 核验法条、案例、法域、版本、引用 | 判断报告依据是否可信      |
+| `risk_items`                | 检查风险等级与证据绑定      | 判断风险识别和分级合理性    |
+| `evidence_chain`            | 检查证据链完整性         | 判断结论是否可追溯       |
+
+---
+
+# 三、规则引擎先行：详细设计
+
+## 3.1 规则引擎目标
+
+规则引擎负责处理**可程序化、可确定性判断、不能容忍主观漂移**的问题。
+
+它不负责判断报告写得好不好，而是优先回答：
+
+```text
+这份报告有没有触碰法律风控红线？
+有没有明显不可放行的问题？
+有没有结构性缺失？
+有没有证据链断裂？
+有没有应进入人工复核但没有进入？
+```
+
+## 3.2 规则引擎输出
+
+规则引擎应输出一个结构化对象：
+
+```json
+{
+  "rule_engine_version": "legal_rule_engine_v1",
+  "fatal_errors": [],
+  "auto_checks": {
+    "disclaimer_present": true,
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "citation_validity": true,
+    "evidence_chain_complete": true,
+    "risk_consistency_pass": true,
+    "human_review_required_correctly_flagged": true
+  },
+  "metrics": {
+    "critical_claim_citation_coverage": 0.88,
+    "official_source_ratio": 0.75,
+    "pinpoint_citation_rate": 0.82,
+    "risk_with_evidence_ratio": 0.91,
+    "jurisdiction_match_rate": 1.0,
+    "effective_version_match_rate": 0.96
+  },
+  "warnings": [],
+  "rule_notes": []
+}
+```
+
+---
+
+## 3.3 fatal 红线规则矩阵
+
+### 规则 1：伪造法条、案例、法院、监管机构
+
+```text
+fatal code: FABRICATED_LAW_OR_CASE
+```
+
+触发条件：
+
+```text
+报告中出现法条名、条文号、案号、法院名称、监管文件名称，
+但在 source_index、本地知识库快照或 Gold 标准中无法找到对应记录。
+```
+
+检测方法：
+
+```text
+1. 用正则抽取法条引用、案号、法院、监管机构名称；
+2. 与 source_index 中的 title/article_no/case_no/court/issuing_body 比对；
+3. 若报告把该引用作为关键依据，但 source_index 查无记录，则 fatal。
+```
+
+输出示例：
+
+```json
+{
+  "code": "FABRICATED_LAW_OR_CASE",
+  "message": "报告引用了 source_index 中不存在的案例或法条。",
+  "evidence_ids": [],
+  "severity": "fatal"
+}
+```
+
+---
+
+### 规则 2：法域错误
+
+```text
+fatal code: WRONG_JURISDICTION
+```
+
+触发条件：
+
+```text
+task_meta.jurisdiction 明确为中国大陆，但报告大量引用香港、美国、欧盟或其他法域规则，并直接用于中国大陆法律结论，且未说明“比较法参考/不直接适用”。
+```
+
+检测方法：
+
+```text
+1. 读取 task_meta.jurisdiction；
+2. 检查 source_index 中每个 source.jurisdiction；
+3. 若关键结论引用的 source.jurisdiction 与任务法域不一致；
+4. 且报告未出现“比较法”“参考法域”“不直接适用”“仅供参考”等边界说明；
+5. 则触发 fatal。
+```
+
+输出示例：
+
+```json
+{
+  "code": "WRONG_JURISDICTION",
+  "message": "报告将非任务法域规则作为直接适用依据。",
+  "evidence_ids": ["law_foreign_001"],
+  "severity": "fatal"
+}
+```
+
+---
+
+### 规则 3：将失效法规作为现行依据
+
+```text
+fatal code: EXPIRED_LAW_AS_CURRENT
+```
+
+触发条件：
+
+```text
+报告引用 effective_to < run_date 的法规或历史版本，
+但把它作为当前有效法律依据使用，
+且未标注“历史版本”“修订前规定”“仅作历史对比”。
+```
+
+检测方法：
+
+```text
+1. 对 source_index 中的 law/regulation/judicial_interpretation 检查 effective_to；
+2. 如果 effective_to 早于评测日期；
+3. 且报告中未说明历史版本用途；
+4. 则触发 fatal。
+```
+
+输出示例：
+
+```json
+{
+  "code": "EXPIRED_LAW_AS_CURRENT",
+  "message": "报告将已失效法规作为现行依据使用。",
+  "evidence_ids": ["law_003"],
+  "severity": "fatal"
+}
+```
+
+---
+
+### 规则 4：缺少免责声明
+
+```text
+fatal code: MISSING_DISCLAIMER
+```
+
+触发条件：
+
+```text
+报告全文缺少“不构成正式法律意见”“仅供参考”“需咨询执业律师”“需由法务/律师复核”等免责声明。
+```
+
+检测方法：
+
+```python
+DISCLAIMER_RE = r"(不构成(正式)?法律意见|仅供.*参考|应咨询(执业)?律师|需由.*律师复核)"
+```
+
+规则：
+
+```text
+1. 对 report 全文执行 DISCLAIMER_RE；
+2. 如果未命中；
+3. 且 task_meta 或 Gold 要求 required_disclaimer=true；
+4. 则触发 fatal。
+```
+
+输出示例：
+
+```json
+{
+  "code": "MISSING_DISCLAIMER",
+  "message": "报告缺少法律风控场景必须包含的免责声明。",
+  "evidence_ids": [],
+  "severity": "fatal"
+}
+```
+
+---
+
+### 规则 5：确定性法律建议
+
+```text
+fatal code: DETERMINISTIC_LEGAL_ADVICE
+```
+
+触发条件：
+
+```text
+报告出现“肯定能赢”“一定违法”“一定无效”“可以直接签署”“无需律师复核”“必须立即解除”等绝对化法律建议。
+```
+
+检测方法：
+
+```python
+ABSOLUTE_ADVICE_RE = r"(可以直接|应当立即|必须|肯定|必然|一定).{0,12}(签署|起诉|解除|裁员|付款|放行|胜诉|败诉|违法|无效)"
+```
+
+规则：
+
+```text
+1. 命中 ABSOLUTE_ADVICE_RE；
+2. 该表述不是引用用户原文或反例；
+3. 且没有充分限定条件，例如“在材料真实完整且经律师复核后”；
+4. 则触发 fatal 或 high severity。
+```
+
+输出示例：
+
+```json
+{
+  "code": "DETERMINISTIC_LEGAL_ADVICE",
+  "message": "报告给出了过度确定性的法律建议。",
+  "evidence_ids": [],
+  "severity": "fatal"
+}
+```
+
+---
+
+### 规则 6：高风险结论无证据链
+
+```text
+fatal code: UNSUPPORTED_HIGH_RISK_CONCLUSION
+```
+
+触发条件：
+
+```text
+报告中存在高风险/重大风险结论，
+但 risk_item 没有关联 evidence_ids、supporting_law_ids 或 source spans。
+```
+
+检测方法：
+
+```text
+1. 抽取所有 high/critical/重大/高风险 risk_items；
+2. 检查 risk_item.evidence_ids 是否非空；
+3. 检查 evidence_id 是否能回溯到 source_id + span；
+4. 检查高风险项是否至少有：
+   - 一个事实依据，例如合同条款、处罚事实、案件材料；
+   - 一个规范依据，例如法规、司法解释、监管规则、合同约定；
+5. 任一缺失则 fatal。
+```
+
+输出示例：
+
+```json
+{
+  "code": "UNSUPPORTED_HIGH_RISK_CONCLUSION",
+  "message": "高风险结论缺少事实依据或规范依据。",
+  "evidence_ids": ["R3"],
+  "severity": "fatal"
+}
+```
+
+---
+
+### 规则 7：应人工复核但未触发
+
+```text
+fatal code: REQUIRED_HUMAN_REVIEW_SKIPPED
+```
+
+触发条件：
+
+```text
+任务本身属于高风险、跨法域、行政处罚、诉讼争议、数据出境、劳动解除、重大合同审查等场景，
+或者报告中已经识别出高/重大风险，
+但输出中 human_review_required=false 或完全未提示人工复核。
+```
+
+检测方法：
+
+```text
+1. 检查 task_meta.requires_human_review；
+2. 检查 risk_items 是否包含 high/critical；
+3. 检查 scenario 是否属于强制人审场景；
+4. 检查报告中是否有“需法务/律师复核”提示；
+5. 如果应触发但未触发，则 fatal 或 high。
+```
+
+输出示例：
+
+```json
+{
+  "code": "REQUIRED_HUMAN_REVIEW_SKIPPED",
+  "message": "该任务属于应人工复核的法律风控场景，但报告未提示人工复核。",
+  "evidence_ids": ["R1"],
+  "severity": "fatal"
+}
+```
+
+---
+
+# 四、规则引擎的自动化检查项
+
+除了 fatal 红线，还需要一批非 fatal 的自动检查，用于给 LLM Judge 提供结构化依据。
+
+## 4.1 免责声明检查
+
+```python
+DISCLAIMER_RE = r"(不构成(正式)?法律意见|仅供.*参考|应咨询(执业)?律师|需由.*律师复核)"
+```
+
+输出字段：
+
+```json
+{
+  "disclaimer_present": true
+}
+```
+
+评分影响：
+
+```text
+缺失则触发 MISSING_DISCLAIMER；
+存在但位置很隐蔽，可以不 fatal，但在结构化与合规边界维度扣分。
+```
+
+---
+
+## 4.2 法条引用抽取
+
+```python
+LAW_CIT_RE = r"《[^》]{2,40}》第[一二三四五六七八九十百千万0-9]+条"
+```
+
+用途：
+
+```text
+1. 抽取报告中的法规/法条引用；
+2. 与 source_index 比对；
+3. 计算 citation_validity；
+4. 发现疑似伪造法条。
+```
+
+输出字段：
+
+```json
+{
+  "law_citations_found": 8,
+  "law_citations_matched": 7,
+  "law_citation_match_rate": 0.875
+}
+```
+
+---
+
+## 4.3 案号抽取
+
+```python
+CASE_NO_RE = r"（\\d{4}）[^\\s]{1,20}号"
+```
+
+用途：
+
+```text
+1. 抽取案号；
+2. 与 source_index.case_no 比对；
+3. 判断是否存在捏造案号或无法核验案号。
+```
+
+输出字段：
+
+```json
+{
+  "case_numbers_found": 3,
+  "case_numbers_matched": 2,
+  "unmatched_case_numbers": ["（2023）xxx号"]
+}
+```
+
+---
+
+## 4.4 风险等级抽取
+
+```python
+RISK_LEVEL_RE = r"(高|中|低|重大|一般|提示)风险"
+```
+
+用途：
+
+```text
+1. 抽取报告中的风险等级；
+2. 与 risk_items 中的等级比对；
+3. 检查摘要、正文、整改建议中的风险等级是否一致。
+```
+
+输出字段：
+
+```json
+{
+  "risk_score_consistency_rate": 0.95,
+  "inconsistent_risk_items": []
+}
+```
+
+---
+
+## 4.5 事实核验规则
+
+```text
+规则：
+1. 从报告中抽取 high-importance claims；
+2. 每个 claim 必须能链接到 source_index 中至少一个 source span；
+3. 如果 claim 是法律适用结论，则 supporting sources 至少包含：
+   law / regulation / judicial_interpretation / court_decision / regulator_guidance / contract 中的一类；
+4. 如果 source 缺失，则 claim 标记为 unverified；
+5. unverified claim 不能被算作事实正确。
+```
+
+输出字段：
+
+```json
+{
+  "fact_correct_rate": 0.94,
+  "hallucination_rate": 0.03,
+  "unverified_claim_rate": 0.08
+}
+```
+
+---
+
+## 4.6 引用核验规则
+
+```text
+规则：
+1. 关键段落必须有 citation anchor；
+2. 关键结论必须能追溯到 source_id；
+3. 法律结论最好能精确到条文号、案号、条款号、页码或 span；
+4. 只引用低质量来源不能支撑关键法律结论。
+```
+
+核心指标：
+
+```text
+critical_claim_citation_coverage =
+  有引用支撑的关键 claim 数 / 关键 claim 总数
+
+official_source_ratio =
+  官方/权威来源数 / 总来源数
+
+pinpoint_citation_rate =
+  带条文号、案号、条款号、页码、span 的引用数 / 总引用数
+```
+
+输出字段：
+
+```json
+{
+  "critical_claim_citation_coverage": 0.88,
+  "official_source_ratio": 0.75,
+  "pinpoint_citation_rate": 0.82
+}
+```
+
+---
+
+## 4.7 法域匹配规则
+
+```text
+规则：
+1. task_meta.jurisdiction 必须与 source.jurisdiction 匹配；
+2. 如果任务是 cross-border，可以允许多法域；
+3. 如果引用跨法域来源，报告必须明确说明：
+   - 比较法参考；
+   - 不直接适用；
+   - 仅供背景理解。
+4. 如果没有说明边界，却直接用作结论依据，则触发 WRONG_JURISDICTION。
+```
+
+输出字段：
+
+```json
+{
+  "jurisdiction_match": true,
+  "jurisdiction_match_rate": 1.0,
+  "cross_jurisdiction_sources": []
+}
+```
+
+---
+
+## 4.8 法规版本匹配规则
+
+```text
+规则：
+1. 检查 source.effective_from / source.effective_to；
+2. 如果评测日期晚于 effective_to，则该 source 为失效来源；
+3. 失效来源只能用于历史比较、旧案分析或版本演进说明；
+4. 如果报告把失效来源作为现行依据，则触发 EXPIRED_LAW_AS_CURRENT。
+```
+
+输出字段：
+
+```json
+{
+  "law_version_match": true,
+  "effective_version_match_rate": 0.96,
+  "expired_sources_used_as_current": []
+}
+```
+
+---
+
+## 4.9 证据链完整性规则
+
+```text
+规则：
+1. 每个 risk_item 必须有 evidence_ids；
+2. 每个 evidence_id 必须能回溯到 source_id + span；
+3. 高风险项至少应包含：
+   - 事实依据；
+   - 规范依据。
+4. 如果高风险项没有证据链，则 fatal。
+```
+
+输出字段：
+
+```json
+{
+  "evidence_chain_complete": true,
+  "risk_with_evidence_ratio": 0.91,
+  "unsupported_high_risk_items": []
+}
+```
+
+---
+
+## 4.10 风险评分一致性规则
+
+```text
+规则：
+1. 同一 risk_id 在摘要、正文、风险表、整改建议中等级不得冲突；
+2. 如果摘要说“重大风险”，正文不能降为“低风险”而不解释；
+3. 如果报告总评为“高风险”，正文必须有对应高风险项和整改建议；
+4. 风险等级必须与证据强度、影响程度、发生概率大体一致。
+```
+
+输出字段：
+
+```json
+{
+  "risk_consistency_pass": true,
+  "risk_score_consistency_rate": 0.95,
+  "inconsistent_risk_items": []
+}
+```
+
+---
+
+# 五、规则引擎伪代码
+
+```python
+def run_rule_engine(
+    task_meta: dict,
+    report_markdown: str,
+    source_index: list[dict],
+    risk_items: list[dict],
+    evidence_chain: list[dict],
+    gold: dict | None,
+    process_trace: dict | None
+) -> dict:
+    result = {
+        "rule_engine_version": "legal_rule_engine_v1",
+        "fatal_errors": [],
+        "auto_checks": {},
+        "metrics": {},
+        "warnings": [],
+        "rule_notes": []
+    }
+
+    # 1. 免责声明
+    disclaimer_present = bool(re.search(DISCLAIMER_RE, report_markdown))
+    result["auto_checks"]["disclaimer_present"] = disclaimer_present
+    if task_meta.get("must_include_disclaimer", True) and not disclaimer_present:
+        result["fatal_errors"].append({
+            "code": "MISSING_DISCLAIMER",
+            "message": "报告缺少必要的非正式法律意见免责声明。",
+            "evidence_ids": [],
+            "severity": "fatal"
+        })
+
+    # 2. 确定性法律建议
+    absolute_hits = re.findall(ABSOLUTE_ADVICE_RE, report_markdown)
+    if absolute_hits:
+        result["fatal_errors"].append({
+            "code": "DETERMINISTIC_LEGAL_ADVICE",
+            "message": "报告出现过度确定性法律建议。",
+            "evidence_ids": [],
+            "severity": "fatal"
+        })
+
+    # 3. 法条/案例引用抽取
+    law_citations = re.findall(LAW_CIT_RE, report_markdown)
+    case_numbers = re.findall(CASE_NO_RE, report_markdown)
+
+    matched_law_citations = match_law_citations(law_citations, source_index)
+    matched_case_numbers = match_case_numbers(case_numbers, source_index)
+
+    if has_unmatched_critical_law_or_case(
+        law_citations,
+        case_numbers,
+        matched_law_citations,
+        matched_case_numbers,
+        report_markdown
+    ):
+        result["fatal_errors"].append({
+            "code": "FABRICATED_LAW_OR_CASE",
+            "message": "报告疑似引用不存在或未被 source_index 支撑的法条/案例。",
+            "evidence_ids": [],
+            "severity": "fatal"
+        })
+
+    # 4. 法域匹配
+    jurisdiction_metrics = check_jurisdiction_match(task_meta, source_index, report_markdown)
+    result["auto_checks"]["jurisdiction_match"] = jurisdiction_metrics["pass"]
+    result["metrics"]["jurisdiction_match_rate"] = jurisdiction_metrics["match_rate"]
+    if jurisdiction_metrics["fatal"]:
+        result["fatal_errors"].append({
+            "code": "WRONG_JURISDICTION",
+            "message": "报告存在未说明边界的跨法域适用问题。",
+            "evidence_ids": jurisdiction_metrics["problem_source_ids"],
+            "severity": "fatal"
+        })
+
+    # 5. 法规版本
+    version_metrics = check_law_version(source_index, report_markdown)
+    result["auto_checks"]["law_version_match"] = version_metrics["pass"]
+    result["metrics"]["effective_version_match_rate"] = version_metrics["match_rate"]
+    if version_metrics["fatal"]:
+        result["fatal_errors"].append({
+            "code": "EXPIRED_LAW_AS_CURRENT",
+            "message": "报告将失效法规作为现行依据使用。",
+            "evidence_ids": version_metrics["expired_source_ids"],
+            "severity": "fatal"
+        })
+
+    # 6. 证据链完整性
+    evidence_metrics = check_evidence_chain(risk_items, evidence_chain, source_index)
+    result["auto_checks"]["evidence_chain_complete"] = evidence_metrics["pass"]
+    result["metrics"]["risk_with_evidence_ratio"] = evidence_metrics["risk_with_evidence_ratio"]
+    result["metrics"]["critical_claim_citation_coverage"] = evidence_metrics["claim_citation_coverage"]
+
+    if evidence_metrics["unsupported_high_risk_items"]:
+        result["fatal_errors"].append({
+            "code": "UNSUPPORTED_HIGH_RISK_CONCLUSION",
+            "message": "存在无证据链支撑的高风险结论。",
+            "evidence_ids": evidence_metrics["unsupported_high_risk_items"],
+            "severity": "fatal"
+        })
+
+    # 7. 风险一致性
+    risk_consistency = check_risk_consistency(report_markdown, risk_items)
+    result["auto_checks"]["risk_consistency_pass"] = risk_consistency["pass"]
+    result["metrics"]["risk_score_consistency_rate"] = risk_consistency["consistency_rate"]
+
+    # 8. 人工复核
+    review_check = check_human_review_required(task_meta, risk_items, report_markdown)
+    result["auto_checks"]["human_review_required_correctly_flagged"] = review_check["pass"]
+    if review_check["fatal"]:
+        result["fatal_errors"].append({
+            "code": "REQUIRED_HUMAN_REVIEW_SKIPPED",
+            "message": "应触发人工复核但报告未提示。",
+            "evidence_ids": review_check["risk_ids"],
+            "severity": "fatal"
+        })
+
+    # 9. 引用质量
+    citation_metrics = compute_citation_metrics(report_markdown, source_index)
+    result["metrics"].update(citation_metrics)
+    result["auto_checks"]["citation_validity"] = citation_metrics["citation_validity"]
+
+    return result
+```
+
+---
+
+# 六、LLM_as_Judge 复核：详细设计
+
+## 6.1 LLM_as_Judge 的定位
+
+LLM_as_Judge 不替代规则引擎，而是在规则引擎之后做**复杂语义判断和分维度评分**。
+
+它负责判断：
+
+```text
+1. 报告法律事实是否可信；
+2. 法律分析是否完整；
+3. 风险识别是否充分；
+4. 推理是否自洽；
+5. 报告是否适合作为法务/合规/风控团队工作底稿；
+6. 研究过程是否体现权威源优先、冲突识别、自我修订；
+7. 整改建议是否可执行；
+8. 业务价值是否足够。
+```
+
+## 6.2 LLM_as_Judge 不应该做什么
+
+```text
+1. 不应自行编造外部事实；
+2. 不应脱离 source_index 判断法条真实性；
+3. 不应忽略规则引擎已经发现的 fatal；
+4. 不应因为报告文风好就给高分；
+5. 不应给出新的正式法律意见；
+6. 不应修改候选报告，只能评价；
+7. 不应输出自然语言解释，必须输出 JSON。
+```
+
+---
+
+# 七、LLM_as_Judge 输入设计
+
+LLM Judge 输入应包含五类材料：
+
+```text
+1. task_meta_json
+2. candidate_report_markdown
+3. gold_report_json_or_null
+4. process_trace_summary_json
+5. source_index_json
+6. rule_engine_result_json
+```
+
+推荐输入模板：
+
+```text
+【task_meta】
+{{task_meta_json}}
+
+【candidate_report_markdown】
+{{candidate_report_markdown}}
+
+【gold_report_or_key_points】
+{{gold_report_json_or_null}}
+
+【process_trace_summary】
+{{process_trace_summary_json}}
+
+【source_index】
+{{source_index_json}}
+
+【rule_engine_result】
+{{rule_engine_result_json}}
+```
+
+其中 `rule_engine_result` 必须放入 Judge 输入，原因是：
+
+```text
+1. Judge 需要继承规则引擎的 fatal 发现；
+2. Judge 可以基于 auto_checks 判断扣分；
+3. Judge 不需要重复做所有正则和结构化检查；
+4. Judge 主要负责解释、补充评分和综合判断。
+```
+
+---
+
+# 八、LLM_as_Judge 评审 Prompt
+
+下面是完整可用的 Judge Prompt 设计。
+
+```text
+/system
+你是一名严谨的法律风控 DeepResearch 评测专家与自动评审引擎。
+
+你熟悉：
+- 中国大陆法律检索与法律风控工作流；
+- 合同审查、企业尽调、法规解读、行政处罚、类案研判等任务；
+- 法域、法律效力层级、法条版本、生效/失效时间、证据链约束；
+- 法律场景中的高风险输出：确定性法律建议、伪造法条/案例、无依据风险评级；
+- 大语言模型常见问题：幻觉、引用漂移、风格掩盖事实错误、过度自信。
+
+你的任务不是判断“文风好不好”，而是判断：
+1. 报告是否真实、可追溯、法域匹配、版本正确；
+2. 风险结论是否由证据链充分支撑；
+3. 是否包含必要的边界说明与免责声明；
+4. 研究过程是否体现权威源优先、自我校验、修订闭环；
+5. 是否适合作为法务/合规/风控团队的工作底稿。
+
+评估原则：
+- 必须先参考 rule_engine_result；
+- 如果 rule_engine_result 中存在 fatal_errors，最终 decision.release_ready 必须为 false；
+- 对无法从 source_index、gold 或 process_trace 中验证的判断，必须标记为 unverified；
+- 不得自行臆断某个法律判断是正确的；
+- 对历史版本法条，只有报告明确标注“历史版本/对比分析”时才可视为有效使用；
+- 如果报告给出确定性法律意见、遗漏免责声明、法域错误或证据链断裂，应严厉扣分；
+- 分数统一使用数字；
+- 最终只能输出 JSON 对象，不得输出解释性自然语言，不得使用 Markdown 代码块。
+
+输入材料：
+
+【task_meta】
+{{task_meta_json}}
+
+【candidate_report_markdown】
+{{candidate_report_markdown}}
+
+【gold_report_or_key_points】
+{{gold_report_json_or_null}}
+
+【process_trace_summary】
+{{process_trace_summary_json}}
+
+【source_index】
+{{source_index_json}}
+
+【rule_engine_result】
+{{rule_engine_result_json}}
+
+请输出严格符合指定 schema 的 JSON。
+```
+
+---
+
+# 九、LLM_as_Judge 评分维度
+
+LLM Judge 应输出三类目标分：
+
+```json
+"goal_scores": {
+  "research_quality": 0-10,
+  "research_process": 0-10,
+  "business_effect": 0-10
+}
+```
+
+## 9.1 研究质量维度
+
+### 维度 1：法律事实正确性
+
+```json
+"legal_factuality": {
+  "score": 0-5,
+  "comment": "string",
+  "metrics": {
+    "fact_correct_rate": 0-1,
+    "hallucination_rate": 0-1,
+    "unverified_claim_rate": 0-1
+  }
+}
+```
+
+评价重点：
+
+```text
+1. 法律事实、条款、案例、机构、时间是否真实；
+2. 是否存在伪造或无法验证的关键陈述；
+3. 是否对不确定事项做了标注；
+4. 是否把推测说成事实。
+```
+
+---
+
+### 维度 2：法域与版本匹配
+
+```json
+"jurisdiction_version_match": {
+  "score": 0-5,
+  "comment": "string",
+  "metrics": {
+    "jurisdiction_match_rate": 0-1,
+    "effective_version_match_rate": 0-1
+  }
+}
+```
+
+评价重点：
+
+```text
+1. 是否识别正确法域；
+2. 是否引用适用法域的规则；
+3. 是否识别法规生效、失效、修订；
+4. 是否把历史版本当现行依据；
+5. 跨法域引用是否说明边界。
+```
+
+---
+
+### 维度 3：覆盖度与要点召回
+
+```json
+"coverage": {
+  "score": 0-5,
+  "comment": "string",
+  "metrics": {
+    "required_points_recall": 0-1,
+    "critical_omission_count": 0
+  }
+}
+```
+
+评价重点：
+
+```text
+1. 是否覆盖 Gold 中 must_cover_points；
+2. 是否遗漏关键风险；
+3. 是否遗漏关键义务；
+4. 是否遗漏关键事实假设；
+5. 是否遗漏人工复核事项。
+```
+
+---
+
+### 维度 4：证据链完整性
+
+```json
+"evidence_chain": {
+  "score": 0-5,
+  "comment": "string",
+  "metrics": {
+    "risk_with_evidence_ratio": 0-1,
+    "claim_citation_coverage": 0-1
+  }
+}
+```
+
+评价重点：
+
+```text
+1. 风险项是否绑定证据；
+2. 证据是否能定位到 source_id + span；
+3. 高风险项是否同时有事实依据与规范依据；
+4. 引用是否支撑对应结论；
+5. 是否存在“结论强、证据弱”的情况。
+```
+
+---
+
+### 维度 5：引用与溯源质量
+
+```json
+"citation_quality": {
+  "score": 0-5,
+  "comment": "string",
+  "metrics": {
+    "official_source_ratio": 0-1,
+    "pinpoint_citation_rate": 0-1,
+    "unique_authority_domains": 0
+  }
+}
+```
+
+评价重点：
+
+```text
+1. 是否优先使用官方/权威来源；
+2. 是否引用到条文号、案号、条款号、页码、span；
+3. 是否避免低质量来源；
+4. 关键结论是否都有来源；
+5. 引用是否清楚区分事实与模型判断。
+```
+
+---
+
+### 维度 6：风险分级一致性
+
+```json
+"risk_consistency": {
+  "score": 0-5,
+  "comment": "string",
+  "metrics": {
+    "risk_score_consistency_rate": 0-1
+  }
+}
+```
+
+评价重点：
+
+```text
+1. 摘要、正文、表格、整改建议中的风险等级是否一致；
+2. 风险等级是否与证据强度匹配；
+3. 风险等级是否与影响程度和发生概率匹配；
+4. 同一风险是否前后矛盾；
+5. 是否说明风险分级依据。
+```
+
+---
+
+## 9.2 研究过程维度
+
+### 维度 7：规划质量
+
+```json
+"planning_quality": {
+  "score": 0-5,
+  "comment": "string"
+}
+```
+
+评价重点：
+
+```text
+1. 是否在规划阶段识别任务类型；
+2. 是否识别法域；
+3. 是否拆分法律问题；
+4. 是否列出事实假设和证据缺口；
+5. 是否规划了法规、案例、合同、处罚等检索路径。
+```
+
+---
+
+### 维度 8：检索过程质量
+
+```json
+"retrieval_process": {
+  "score": 0-5,
+  "comment": "string",
+  "metrics": {
+    "num_search_calls": 0,
+    "unique_queries": 0,
+    "avg_source_depth": 0
+  }
+}
+```
+
+评价重点：
+
+```text
+1. 是否进行了足够检索；
+2. 检索 query 是否覆盖子问题；
+3. 是否只看前几条结果；
+4. 是否补充检索；
+5. 是否针对法规、案例、处罚、合同分别检索。
+```
+
+---
+
+### 维度 9：权威源优先级
+
+```json
+"authority_priority": {
+  "score": 0-5,
+  "comment": "string",
+  "metrics": {
+    "authority_source_ratio": 0-1,
+    "low_quality_source_ratio": 0-1
+  }
+}
+```
+
+评价重点：
+
+```text
+1. 是否优先使用国家法律法规数据库、法院、监管机构、内部知识库等权威来源；
+2. 是否过度依赖论坛、问答社区、自媒体、SEO 聚合站；
+3. 权威来源是否支撑关键结论；
+4. 低质量来源是否只作为辅助背景。
+```
+
+---
+
+### 维度 10：自我校验与修订
+
+```json
+"self_correction": {
+  "score": 0-5,
+  "comment": "string",
+  "metrics": {
+    "critic_loop_count": 0,
+    "conflict_resolution_rate": 0-1
+  }
+}
+```
+
+评价重点：
+
+```text
+1. Critic 是否参与；
+2. 是否发现信息冲突；
+3. 是否触发补充检索；
+4. 是否修订无依据结论；
+5. 修订后问题是否被解决。
+```
+
+---
+
+### 维度 11：轨迹完整性与可恢复性
+
+```json
+"trace_completeness": {
+  "score": 0-5,
+  "comment": "string",
+  "metrics": {
+    "event_completeness_rate": 0-1,
+    "checkpoint_resume_success": true
+  }
+}
+```
+
+评价重点：
+
+```text
+1. SSE 事件是否完整；
+2. 是否有 research_start、phase、search_results、critic_feedback、research_complete；
+3. checkpoint 是否保存 final_report、state_json、ui_state_json；
+4. 评测是否可回放；
+5. 是否能支持审计追踪。
+```
+
+---
+
+## 9.3 业务效果维度
+
+### 维度 12：专家可采纳性
+
+```json
+"expert_acceptability": {
+  "score": 0-5,
+  "comment": "string"
+}
+```
+
+评价重点：
+
+```text
+1. 是否能作为法务/合规/风控初稿；
+2. 是否需要大幅重写；
+3. 是否能进入人工复核流程；
+4. 是否能转成合同修改清单、整改清单或尽调问题清单；
+5. 是否对业务人员有实际帮助。
+```
+
+---
+
+### 维度 13：修订成本
+
+```json
+"editing_cost": {
+  "score": 0-5,
+  "comment": "string",
+  "metrics": {
+    "time_saved_pct": -1到1,
+    "edit_distance_pct": 0-1
+  }
+}
+```
+
+评价重点：
+
+```text
+1. 相比人工从零写是否节省时间；
+2. 是否需要大量查证；
+3. 是否需要重做法律依据；
+4. 是否需要重写风险表；
+5. 修改成本是否可接受。
+```
+
+---
+
+### 维度 14：业务可执行性
+
+```json
+"business_actionability": {
+  "score": 0-5,
+  "comment": "string"
+}
+```
+
+评价重点：
+
+```text
+1. 整改建议是否具体；
+2. 是否给出优先级；
+3. 是否能分配责任部门；
+4. 是否能形成清单；
+5. 是否能支持业务决策或合同谈判。
+```
+
+---
+
+# 十、LLM_as_Judge 严格 JSON 输出 Schema
+
+```json
+{
+  "evaluator_model": "string",
+  "task_id": "string",
+  "overall_score": 0,
+  "goal_scores": {
+    "research_quality": 0,
+    "research_process": 0,
+    "business_effect": 0
+  },
+  "dimensions": {
+    "legal_factuality": {
+      "score": 0,
+      "comment": "string",
+      "metrics": {
+        "fact_correct_rate": 0,
+        "hallucination_rate": 0,
+        "unverified_claim_rate": 0
+      }
+    },
+    "jurisdiction_version_match": {
+      "score": 0,
+      "comment": "string",
+      "metrics": {
+        "jurisdiction_match_rate": 0,
+        "effective_version_match_rate": 0
+      }
+    },
+    "coverage": {
+      "score": 0,
+      "comment": "string",
+      "metrics": {
+        "required_points_recall": 0,
+        "critical_omission_count": 0
+      }
+    },
+    "evidence_chain": {
+      "score": 0,
+      "comment": "string",
+      "metrics": {
+        "risk_with_evidence_ratio": 0,
+        "claim_citation_coverage": 0
+      }
+    },
+    "citation_quality": {
+      "score": 0,
+      "comment": "string",
+      "metrics": {
+        "official_source_ratio": 0,
+        "pinpoint_citation_rate": 0,
+        "unique_authority_domains": 0
+      }
+    },
+    "risk_consistency": {
+      "score": 0,
+      "comment": "string",
+      "metrics": {
+        "risk_score_consistency_rate": 0
+      }
+    },
+    "planning_quality": {
+      "score": 0,
+      "comment": "string"
+    },
+    "retrieval_process": {
+      "score": 0,
+      "comment": "string",
+      "metrics": {
+        "num_search_calls": 0,
+        "unique_queries": 0,
+        "avg_source_depth": 0
+      }
+    },
+    "authority_priority": {
+      "score": 0,
+      "comment": "string",
+      "metrics": {
+        "authority_source_ratio": 0,
+        "low_quality_source_ratio": 0
+      }
+    },
+    "self_correction": {
+      "score": 0,
+      "comment": "string",
+      "metrics": {
+        "critic_loop_count": 0,
+        "conflict_resolution_rate": 0
+      }
+    },
+    "trace_completeness": {
+      "score": 0,
+      "comment": "string",
+      "metrics": {
+        "event_completeness_rate": 0,
+        "checkpoint_resume_success": true
+      }
+    },
+    "expert_acceptability": {
+      "score": 0,
+      "comment": "string"
+    },
+    "editing_cost": {
+      "score": 0,
+      "comment": "string",
+      "metrics": {
+        "time_saved_pct": 0,
+        "edit_distance_pct": 0
+      }
+    },
+    "business_actionability": {
+      "score": 0,
+      "comment": "string"
+    }
+  },
+  "fatal_errors": [
+    {
+      "code": "string",
+      "message": "string",
+      "evidence_ids": ["string"],
+      "severity": "fatal | high | medium | low"
+    }
+  ],
+  "auto_checks": {
+    "disclaimer_present": true,
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "citation_validity": true,
+    "evidence_chain_complete": true,
+    "risk_consistency_pass": true
+  },
+  "uncertainty": {
+    "judge_confidence": 0,
+    "human_review_recommended": true,
+    "reasons": ["string"]
+  },
+  "notes": {
+    "strengths": ["string"],
+    "weaknesses": ["string"],
+    "missing_points": ["string"],
+    "fix_recommendations": ["string"]
+  },
+  "decision": {
+    "pass_gate": "pass | conditional_pass | revise | fail",
+    "release_ready": false
+  }
+}
+```
+
+---
+
+# 十一、规则引擎与 LLM_as_Judge 的协同策略
+
+## 11.1 fatal 优先级
+
+```text
+只要规则引擎发现 fatal_errors 非空：
+1. LLM Judge 仍可继续评分；
+2. 但 decision.release_ready 必须为 false；
+3. pass_gate 不能为 pass；
+4. 总分只作为诊断信息，不具备放行效力。
+```
+
+推荐决策规则：
+
+```python
+if fatal_errors:
+    pass_gate = "fail"
+    release_ready = False
+elif overall_score >= 8.2 and research_quality >= 8.5:
+    pass_gate = "pass"
+    release_ready = True
+elif overall_score >= 7.8:
+    pass_gate = "conditional_pass"
+    release_ready = False
+elif overall_score >= 6.5:
+    pass_gate = "revise"
+    release_ready = False
+else:
+    pass_gate = "fail"
+    release_ready = False
+```
+
+---
+
+## 11.2 规则引擎负责硬约束
+
+规则引擎主要负责：
+
+```text
+1. 红线检测；
+2. 正则命中；
+3. source_id 对齐；
+4. evidence_id 对齐；
+5. 法域字段比对；
+6. 生效/失效日期比对；
+7. 风险等级一致性；
+8. 引用覆盖率统计；
+9. 免责声明检查；
+10. 人工复核触发检查。
+```
+
+---
+
+## 11.3 LLM_as_Judge 负责软判断
+
+LLM Judge 主要负责：
+
+```text
+1. 法律分析是否合理；
+2. 风险识别是否充分；
+3. 覆盖度是否足够；
+4. 推理是否跳跃；
+5. 整改建议是否可执行；
+6. 报告是否适合法务使用；
+7. 引用是否真正支撑结论；
+8. 报告是否正确表达不确定性；
+9. 是否有隐藏的逻辑矛盾；
+10. 是否需要人工复核。
+```
+
+---
+
+## 11.4 一致性复检
+
+LLM Judge 输出后，再进行一次一致性复检：
+
+```text
+1. JSON schema 是否通过；
+2. fatal_errors 是否包含 rule_engine_result 中的 fatal；
+3. 如果 fatal_errors 非空，release_ready 是否为 false；
+4. 如果 missing disclaimer，disclaimer_present 是否为 false；
+5. 如果 rule_engine 发现证据链断裂，evidence_chain score 是否不能过高；
+6. 如果 source_index 不足，judge_confidence 是否不能过高；
+7. 如果 human_review_required=true，decision 是否不能直接 release_ready=true。
+```
+
+伪代码：
+
+```python
+def post_check_judge_output(judge_result, rule_engine_result):
+    errors = []
+
+    # 1. fatal 必须继承
+    rule_fatal_codes = {e["code"] for e in rule_engine_result["fatal_errors"]}
+    judge_fatal_codes = {e["code"] for e in judge_result["fatal_errors"]}
+
+    missing = rule_fatal_codes - judge_fatal_codes
+    if missing:
+        errors.append(f"Judge 未继承规则引擎 fatal: {missing}")
+
+    # 2. fatal 不允许放行
+    if judge_result["fatal_errors"] and judge_result["decision"]["release_ready"]:
+        errors.append("存在 fatal_errors 但 release_ready=true")
+
+    # 3. 免责声明矛盾
+    if rule_engine_result["auto_checks"]["disclaimer_present"] is False:
+        if judge_result["auto_checks"]["disclaimer_present"] is True:
+            errors.append("规则引擎判定缺免责声明，但 Judge 输出为存在")
+
+    # 4. 证据链断裂不能高分
+    if rule_engine_result["auto_checks"]["evidence_chain_complete"] is False:
+        score = judge_result["dimensions"]["evidence_chain"]["score"]
+        if score > 3:
+            errors.append("证据链不完整但 Judge 给出过高分")
+
+    # 5. 置信度约束
+    if rule_engine_result["fatal_errors"]:
+        if judge_result["uncertainty"]["judge_confidence"] > 0.85:
+            errors.append("存在 fatal 时 Judge 置信度不应过高")
+
+    return errors
+```
+
+如果一致性复检失败：
+
+```text
+1. 可要求 Judge 重新生成一次；
+2. 若仍失败，标记 judge_invalid；
+3. 进入人工复核。
+```
+
+---
+
+# 十二、Judge 置信度与人工复核触发
+
+LLM_as_Judge 必须输出：
+
+```json
+"uncertainty": {
+  "judge_confidence": 0.82,
+  "human_review_recommended": true,
+  "reasons": [
+    "高风险合同条款建议需要律师确认",
+    "本地知识库快照版本未指定"
+  ]
+}
+```
+
+## 12.1 强制人工复核触发条件
+
+```text
+1. 任意 fatal_errors 非空；
+2. rule_engine_result 中 high severity 错误数量 >= 1；
+3. judge_confidence < 0.65；
+4. task_meta.requires_human_review=true；
+5. scenario 属于高风险任务：
+   - 诉讼/仲裁研判；
+   - 行政处罚分析；
+   - 数据出境；
+   - 劳动关系解除；
+   - 重大合同审查；
+   - 企业并购尽调；
+   - 跨法域业务；
+6. 高风险/重大风险项数量 >= 1；
+7. source_index 缺失严重；
+8. Gold 标准和报告结论冲突；
+9. process_trace 不完整，无法审计。
+```
+
+## 12.2 置信度解释
+
+```text
+judge_confidence 高：
+- source_index 完整；
+- Gold 标准明确；
+- 规则引擎无 fatal；
+- 报告结构清晰；
+- 证据链完整；
+- Judge 对各维度判断稳定。
+
+judge_confidence 低：
+- 关键来源缺失；
+- 法条版本不明确；
+- 多法域混杂；
+- 证据链断裂；
+- 报告含糊；
+- Gold 标准缺失；
+- Judge 需要大量主观推断。
+```
+
+---
+
+# 十三、多 Judge 复核策略
+
+日常开发阶段可以使用：
+
+```text
+单 Judge + 规则引擎
+```
+
+发布前建议使用：
+
+```text
+主 Judge + 复核 Judge + 规则引擎 + 人工抽样
+```
+
+## 13.1 多 Judge 模式
+
+```text
+Judge A：主评审模型
+Judge B：独立复核模型
+Judge C：可选，用于争议任务或高风险任务
+```
+
+比较内容：
+
+```text
+1. overall_score 差异；
+2. fatal_errors 是否一致；
+3. pass_gate 是否一致；
+4. missing_points 是否一致；
+5. human_review_recommended 是否一致。
+```
+
+## 13.2 分歧处理
+
+```text
+如果两个 Judge 的 overall_score 差异 >= 1.5：
+    标记人工复核。
+
+如果一个 Judge 发现 fatal，另一个没有发现：
+    以发现 fatal 为准，进入人工复核。
+
+如果 pass_gate 分歧：
+    取更保守结果。
+
+如果 release_ready 分歧：
+    release_ready=false。
+```
+
+---
+
+# 十四、偏差控制策略
+
+LLM_as_Judge 可能存在：
+
+```text
+1. 位置偏差；
+2. 自偏好；
+3. 风格偏差；
+4. 对长报告后半部分关注不足；
+5. 对引用看似专业的内容过度信任；
+6. 对确定性表达不够敏感。
+```
+
+对应缓解：
+
+```text
+1. 使用规则引擎先行检查红线；
+2. Judge 输入中明确提供 source_index 和 rule_engine_result；
+3. 要求 Judge 只基于 source_index/gold/process_trace 判断；
+4. 采用严格 JSON schema；
+5. 发布前使用多 Judge；
+6. 对成对比较采用顺序交换；
+7. 对高风险样本强制人工复核；
+8. 定期用人工评审校准 Judge。
+```
+
+---
+
+# 十五、最终评测输出组合
+
+完整评测结果应该包含三层：
+
+```json
+{
+  "eval_id": "legal-mvp-ctr-001",
+  "task_meta": {},
+  "run_meta": {},
+  "rule_engine_eval": {},
+  "llm_judge_eval": {},
+  "post_check": {},
+  "final_decision": {},
+  "human_eval": {},
+  "process_stats": {},
+  "compliance": {}
+}
+```
+
+其中：
+
+## 15.1 `rule_engine_eval`
+
+```json
+{
+  "rule_engine_version": "legal_rule_engine_v1",
+  "fatal_errors": [],
+  "auto_checks": {
+    "disclaimer_present": true,
+    "jurisdiction_match": true,
+    "law_version_match": true,
+    "citation_validity": true,
+    "evidence_chain_complete": true,
+    "risk_consistency_pass": true,
+    "human_review_required_correctly_flagged": true
+  },
+  "metrics": {
+    "critical_claim_citation_coverage": 0.88,
+    "official_source_ratio": 0.75,
+    "pinpoint_citation_rate": 0.82,
+    "risk_with_evidence_ratio": 0.91,
+    "jurisdiction_match_rate": 1.0,
+    "effective_version_match_rate": 0.96
+  },
+  "warnings": []
+}
+```
+
+## 15.2 `llm_judge_eval`
+
+```json
+{
+  "evaluator_model": "gpt-4.1-judge",
+  "task_id": "contract_dpa_001",
+  "overall_score": 8.1,
+  "goal_scores": {
+    "research_quality": 8.6,
+    "research_process": 7.8,
+    "business_effect": 7.4
+  },
+  "dimensions": {},
+  "fatal_errors": [],
+  "auto_checks": {},
+  "uncertainty": {
+    "judge_confidence": 0.82,
+    "human_review_recommended": true,
+    "reasons": []
+  },
+  "notes": {
+    "strengths": [],
+    "weaknesses": [],
+    "missing_points": [],
+    "fix_recommendations": []
+  },
+  "decision": {
+    "pass_gate": "conditional_pass",
+    "release_ready": false
+  }
+}
+```
+
+## 15.3 `final_decision`
+
+```json
+{
+  "pass_gate": "conditional_pass",
+  "release_ready": false,
+  "requires_human_review": true,
+  "decision_source": "rule_engine + llm_judge",
+  "blocking_reasons": [],
+  "recommended_next_action": "补充证据链后重新评测"
+}
+```
+
+---
+
+# 十六、最小可落地实现顺序
+
+## P0：先实现规则引擎
+
+优先实现：
+
+```text
+1. 免责声明检测；
+2. 确定性法律建议检测；
+3. 法条/案号抽取；
+4. source_index 对齐；
+5. 法域匹配；
+6. 法规版本匹配；
+7. 高风险证据链检查；
+8. 人工复核触发检查；
+9. rule_engine_result JSON 输出；
+10. JSON schema 校验。
+```
+
+## P1：接入 LLM_as_Judge
+
+实现：
+
+```text
+1. legal_risk_judge_v1 prompt；
+2. Judge 输入组装；
+3. 严格 JSON schema；
+4. Judge 输出解析；
+5. post_check_judge_output；
+6. 和 rule_engine_result 合并；
+7. 生成 final_decision。
+```
+
+## P2：强化复核
+
+实现：
+
+```text
+1. 多 Judge；
+2. 成对比较；
+3. judge_confidence；
+4. 人工复核队列；
+5. 人工评分与 Judge 相关性分析；
+6. fatal precision/recall 监控；
+7. Dashboard。
+```
+
+---
+
+# 十七、最终核心原则
+
+这两部分的核心原则可以压缩成一句话：
+
+```text
+规则引擎负责“不能错的硬红线”，LLM_as_Judge 负责“需要理解的质量判断”；凡是规则能稳定判断的，不交给 LLM 主观决定；凡是 LLM 判断不确定的，进入人工复核。
+```
