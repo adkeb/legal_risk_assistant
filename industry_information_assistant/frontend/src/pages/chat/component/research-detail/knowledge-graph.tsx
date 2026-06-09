@@ -35,12 +35,12 @@ interface KnowledgeGraphProps {
 }
 
 const typeConfig: Record<string, { color: string; label: string }> = {
-  core: { color: '#1677ff', label: '核心' },
-  tech: { color: '#722ed1', label: '技术' },
-  company: { color: '#52c41a', label: '企业' },
-  policy: { color: '#fa8c16', label: '政策' },
-  product: { color: '#eb2f96', label: '产品' },
-  person: { color: '#13c2c2', label: '人物' },
+  core: { color: '#0f766e', label: '核心' },
+  tech: { color: '#4f6f8f', label: '技术' },
+  company: { color: '#2f855a', label: '企业' },
+  policy: { color: '#b7791f', label: '政策' },
+  product: { color: '#9f5f2e', label: '产品' },
+  person: { color: '#456a64', label: '人物' },
 }
 
 export default function KnowledgeGraph({ data }: KnowledgeGraphProps) {
@@ -102,7 +102,7 @@ export default function KnowledgeGraph({ data }: KnowledgeGraphProps) {
         },
         categories: usedTypes.map(type => ({
           name: typeConfig[type]?.label || type,
-          itemStyle: { color: typeConfig[type]?.color || '#1677ff' },
+          itemStyle: { color: typeConfig[type]?.color || '#0f766e' },
         })),
         data: data.nodes.map(node => ({
           id: node.id,
@@ -111,7 +111,7 @@ export default function KnowledgeGraph({ data }: KnowledgeGraphProps) {
           category: usedTypes.indexOf(node.type),
           nodeType: node.type,
           itemStyle: {
-            color: typeConfig[node.type]?.color || '#1677ff',
+            color: typeConfig[node.type]?.color || '#0f766e',
             shadowBlur: 10,
             shadowColor: 'rgba(0, 0, 0, 0.1)',
           },

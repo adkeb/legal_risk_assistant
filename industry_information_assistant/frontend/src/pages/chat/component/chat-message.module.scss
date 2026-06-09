@@ -31,14 +31,14 @@
 }
 
 .chat-message-item--user {
-  color: #1a1a1a;
+  color: var(--app-accent-dark);
   font-size: 18px;
   background-color: transparent;
   border-radius: 0;
   padding: 0;
   font-weight: 600;
   position: relative;
-  letter-spacing: -0.3px;
+  letter-spacing: 0;
   line-height: 1.5;
 }
 
@@ -54,14 +54,14 @@
     left: 0;
     width: 40px;
     height: 1px;
-    background: linear-gradient(90deg, #e0e0e0 0%, transparent 100%);
+    background: linear-gradient(90deg, rgba(15, 118, 110, 0.22) 0%, transparent 100%);
   }
 }
 
 .chat-message-item--assistant {
   margin-top: 24px;
-  color: #444;
+  color: #3e4944;
   font-size: 15px;
   line-height: 1.8;
-  letter-spacing: -0.1px;
+  letter-spacing: 0;
 }

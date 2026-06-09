@@ -75,3 +75,82 @@ Tavily search integration:
 - Changed DeepResearch V2 `DeepScout` web search to use Tavily by default, with Bocha retained only as a fallback when Tavily is unavailable or returns no results.
 - Verified direct Tavily tool import/call, `internet_search.invoke`, and `DeepScout._execute_search`; returned results were marked with `search_provider=tavily`.
 - Verification passed: `.venv/bin/python -m compileall app`, `PYTHONPATH=app:. .venv/bin/python app/scripts/test_legal_research_components.py`, and `PYTHONPATH=app:. .venv/bin/python app/scripts/test_legal_agent_full_flow.py`.
+
+## 2026-06-08
+
+Model-led legal workflow cleanup:
+
+- Removed legacy topic detector functions and template branches from the five-agent legal workflow, including old privacy-AI, repair-privacy, animal injury, rental deposit, partnership accounting, training shutdown, and startup equity/IP/labor matchers.
+- Removed old topic-specific report enrichment, cleanup, risk template, and action-plan functions from `legal_workflow.py`.
+- Simplified missing-material deduplication so it no longer buckets by fixed industries such as training contracts, deposit disputes, or partnership ledgers.
+- Changed A1 normalization so `task_type` remains model-defined snake_case and `source_targets` are short keyword seeds; concrete article locators are stripped from source-target normalization.
+- Changed A2 query generation to use A1 `source_targets` and issue seeds only; it no longer injects fixed PIPL article queries or broad full-question searches.
+- Abstracted A1 prompt examples and schema hints to avoid fixed topic few-shot bias.
+- Kept A5 model-led scoring: deterministic gates only override the model for structural hard failures such as internal terms, invalid load-bearing sources, repeated actions, missing final note, or source/evidence IDs outside artifacts.
+- Capped review/rework loops at 3 through `ResearchConfig.max_iterations` and graph initialization.
+- Updated component and workflow tests to assert the removal of legacy matchers/templates and the new A1-A5 agent names.
+
+Verification:
+
+- `python3 -m compileall app`
+- `PYTHONPATH=. python3 app/scripts/test_legal_research_components.py`
+- `PYTHONPATH=. python3 app/scripts/test_legal_agent_workflow.py`
+- `PYTHONPATH=. python3 app/scripts/test_legal_agent_full_flow.py`
+
+Live AI face/voice flow:
+
+- Ran the full five-agent flow with the user-provided AI face-swap and AI voice imitation question.
+- Output directory: `batch_outputs/manual_user_runs/20260608_162722_ai_face_voice_model_led_0f9dd502`
+- Saved `events.jsonl`, `final_report.md`, and `summary.json`.
+- Result: `research_complete`, phases `planning/researching/analyzing/writing/reviewing`, 11 references, 8 facts, report length 2949, quality score 84.0, verdict `approved_with_human_review`, no hard failures, final note present, no internal workflow terms in the report.
+- QA remaining issues: action-plan ordering could be clearer, class/case discussion should bind concrete source IDs more tightly, and some missing-evidence effects should be explained with more precision.
+
+QA follow-up optimization:
+
+- Strengthened A4 prompt so reports target 4000+ Chinese characters, cite legal sources in human-readable `Sxx` form, bind case/court/penalty references to concrete source IDs, order action plans by execution sequence, and explain how each missing material affects conclusion strength.
+- Strengthened A5 prompt so model scoring explicitly deducts for thin reports, unbound case references, action-order confusion, and missing-evidence lists that do not explain legal impact.
+- Added A4 normalization to sanitize internal workflow terms instead of discarding otherwise useful model output.
+- Added A4 action-plan normalization: sorts generic actions by execution stage, clears confusing dependencies, maps Chinese priorities such as `紧急/高/中/低` to `P0/P1/P2/P3`, and renumbers `action_id`.
+- Tightened A4 source binding: issue and risk `source_ids` now prefer same-issue sources and no longer borrow unrelated issue sources merely to fill a field.
+- Improved fallback report quality: issue conclusions are de-questioned, rule excerpts are quoted from available sources, action advice is sequenced, and missing-material impact is matched to relevant issue questions/evidence needs.
+- Added coercion for nested A4 envelope/writes structures and strict-JSON prompt guidance to reduce loss of good model output caused by wrapper or quote-format errors.
+- Added tests covering the above normalization and prompt requirements.
+
+Verification after QA follow-up:
+
+- `python3 -m compileall app`
+- `PYTHONPATH=. python3 app/scripts/test_legal_research_components.py`
+- `PYTHONPATH=. python3 app/scripts/test_legal_agent_workflow.py`
+- `PYTHONPATH=. python3 app/scripts/test_legal_agent_full_flow.py`
+
+Final live AI face/voice verification:
+
+- Output directory: `batch_outputs/manual_user_runs/20260608_190855_ai_face_voice_final_verify_1e6032a5`
+- Result: `research_complete` without rework, phases `planning/researching/analyzing/writing/reviewing`, 16 references, 12 facts, report length 7191, quality score 88.0, verdict `approved_with_human_review`, no hard failures, final note present, no internal workflow terms, source IDs present in report, action-order text present, missing-evidence impact text present.
+- Remaining QA issues were minor only: note fallback-source uncertainty more explicitly, align Markdown action numbering with JSON action IDs if action IDs are mentioned, and add one more deletion/compensation-impact note for a missing evidence item.
+
+Legacy agent cleanup:
+
+- Removed obsolete DeepResearch V2 agent modules that are no longer used by the five-artifact legal workflow: `architect.py`, `scout.py`, `evidence_extractor.py`, `data_analyst.py`, `wizard.py`, `writer.py`, and `critic.py`.
+- Removed the old `/research/test-wizard` debug endpoint and the obsolete `test_deep_research_v2.py` script.
+- Updated the 30-question batch trace validation to expect the current A1-A5 agent names and the current final note.
+- Verification passed: `python3 -m compileall app`, `PYTHONPATH=. python3 app/scripts/test_legal_research_components.py`, `PYTHONPATH=. python3 app/scripts/test_legal_agent_workflow.py`, and `PYTHONPATH=. python3 app/scripts/test_legal_agent_full_flow.py`.
+
+Hardcoded matching removal:
+
+- Removed the remaining production keyword matchers and content-based topic inference from `legal_workflow.py`: no case/topic term expansion, no report keyword module gate, no over-disclaimer term list, no title/body keyword inference for case sources, no Chinese-priority term mapping, and no missing-material keyword scoring.
+- Reduced A1 fallback to a single user-query-derived issue and query-derived source target; it no longer injects generic legal issue buckets or fixed source-target phrases.
+- Simplified A2 query building so it only uses normalized `source_targets` and issue seeds from A1; it no longer appends fixed words such as official/case/judgment categories.
+- Removed few-shot and scenario-specific examples from `legal_prompts.py`; prompts now keep stage responsibilities, schema requirements, source quality rules, and report-quality requirements without fixed case templates.
+- Updated component tests away from keyword/template expectations and toward structural assertions.
+- Production scan passed with no matches for old hardcoded topic terms, few-shot markers, or removed matcher constants in `app/service/deep_research_v2/agents/legal_workflow.py` and `app/service/deep_research_v2/prompts/legal_prompts.py`.
+- Verification passed: `python3 -m compileall app`, `PYTHONPATH=. python3 app/scripts/test_legal_research_components.py`, `PYTHONPATH=. python3 app/scripts/test_legal_agent_workflow.py`, and `PYTHONPATH=. python3 app/scripts/test_legal_agent_full_flow.py`.
+
+A4 evidence-id normalization fix:
+
+- Fixed A4 normalization so `facts[].fact_id` values such as `F03` are not allowed to leak into `issue_analysis[].evidence_ids` or `risk_register[].evidence_ids`.
+- A4 now maps `Fxx` through `facts[].evidence_ids` to existing `evidence_items[].evidence_id` values, drops unknown IDs, and falls back to the first valid evidence ID when needed.
+- A5 `outside_evidence` hard gate remains strict; truly unknown evidence IDs are still blocked.
+- Added A4 prompt/schema guidance that JSON `evidence_ids` may only reference `E` IDs from `evidence_items`, while `F` IDs are fact IDs.
+- Verification passed: `python3 -m compileall app`, `PYTHONPATH=. python3 app/scripts/test_legal_research_components.py`, `PYTHONPATH=. python3 app/scripts/test_legal_agent_workflow.py`, and `PYTHONPATH=. python3 app/scripts/test_legal_agent_full_flow.py`.
+- Live community food group-buy regression output: `batch_outputs/manual_user_runs/20260609_132151_community_food_groupbuy_evidence_fix_ca825e9e`; result `approved_with_human_review`, quality score 85.0, hard failures empty, and no `evidence_matrix 外证据` failure.

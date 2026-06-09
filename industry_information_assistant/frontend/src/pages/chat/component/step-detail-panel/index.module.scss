@@ -11,8 +11,8 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #fff;
-  border-left: 1px solid rgba(0, 0, 0, 0.04);
+  background: var(--app-surface);
+  border-left: 1px solid rgba(31, 42, 38, 0.08);
 }
 
 .empty {
@@ -20,24 +20,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #c4c4c4;
+  color: var(--app-muted-soft);
   font-size: 13px;
 }
 
 .header {
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgba(31, 42, 38, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fff;
+  background: #fbfcf8;
 }
 
 .title {
   font-weight: 600;
   font-size: 13px;
-  color: #1a1a1a;
-  letter-spacing: -0.1px;
+  color: var(--app-text);
+  letter-spacing: 0;
 }
 
 .content {

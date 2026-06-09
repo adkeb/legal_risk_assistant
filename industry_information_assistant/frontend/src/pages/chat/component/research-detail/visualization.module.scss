@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: #c4c4c4;
+  color: var(--app-muted-soft);
   font-size: 13px;
   gap: 12px;
 }
@@ -34,15 +34,15 @@
 }
 
 .card {
-  background: #fff;
-  border-radius: 10px;
+  background: var(--app-surface-strong);
+  border-radius: 8px;
   padding: 18px;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(31, 42, 38, 0.08);
 
   &:hover {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    border-color: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 12px 28px rgba(31, 42, 38, 0.07);
+    border-color: rgba(15, 118, 110, 0.2);
   }
 }
 
@@ -53,20 +53,20 @@
 .cardTitle {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--app-text);
   margin: 0 0 4px;
-  letter-spacing: -0.2px;
+  letter-spacing: 0;
 }
 
 .cardSubtitle {
   font-size: 12px;
-  color: #999;
+  color: var(--app-muted);
   margin: 0;
 }
 
 .chartContainer {
   height: 360px;
-  background: linear-gradient(180deg, #fafbfc 0%, #f8f9fb 100%);
+  background: linear-gradient(180deg, #fbfcf8 0%, #f6f7f3 100%);
   border-radius: 8px;
   border: 1px solid rgba(0, 0, 0, 0.04);
   overflow: hidden;
@@ -97,7 +97,7 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #c4c4c4;
+  color: var(--app-muted-soft);
   font-size: 12px;
   gap: 8px;
 

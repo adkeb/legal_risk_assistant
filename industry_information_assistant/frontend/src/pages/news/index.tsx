@@ -211,7 +211,7 @@ export default function NewsPage() {
               <Statistic
                 title="政策"
                 value={newsStats?.by_category?.['政策'] || 0}
-                valueStyle={{ color: '#1890ff' }}
+                valueStyle={{ color: 'var(--app-accent)' }}
               />
             </Card>
           </Col>
@@ -220,7 +220,7 @@ export default function NewsPage() {
               <Statistic
                 title="研报"
                 value={newsStats?.by_category?.['研报'] || 0}
-                valueStyle={{ color: '#722ed1' }}
+                valueStyle={{ color: '#4f6f8f' }}
               />
             </Card>
           </Col>

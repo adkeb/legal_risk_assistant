@@ -13,8 +13,8 @@
   display: flex;
   gap: 8px;
   padding: 12px 16px;
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
+  background: #fbfcf8;
+  border-bottom: 1px solid rgba(31, 42, 38, 0.08);
   flex-shrink: 0;
 }
 
@@ -32,13 +32,13 @@
   gap: 6px;
 
   &:hover:not(:disabled) {
-    border-color: #1677ff;
-    color: #1677ff;
+    border-color: var(--app-accent);
+    color: var(--app-accent);
   }
 
   &.active {
-    background: #1677ff;
-    border-color: #1677ff;
+    background: var(--app-accent-dark);
+    border-color: var(--app-accent-dark);
     color: white;
   }
 
@@ -50,7 +50,7 @@
   .count {
     background: rgba(0, 0, 0, 0.1);
     padding: 1px 6px;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 11px;
   }
 
@@ -72,8 +72,8 @@
 }
 
 .sectionCard {
-  background: white;
-  border: 1px solid #f0f0f0;
+  background: var(--app-surface-strong);
+  border: 1px solid rgba(31, 42, 38, 0.08);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -83,15 +83,15 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
+  background: #fbfcf8;
+  border-bottom: 1px solid rgba(31, 42, 38, 0.08);
 }
 
 .sectionIndex {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #1677ff;
+  background: var(--app-accent-dark);
   color: white;
   font-size: 12px;
   font-weight: 600;
@@ -141,8 +141,8 @@
     blockquote {
       margin: 1em 0;
       padding: 8px 16px;
-      border-left: 3px solid #1677ff;
-      background: #f6f8fa;
+      border-left: 3px solid var(--app-accent);
+      background: #fbfcf8;
       color: #666;
     }
   }
@@ -159,7 +159,7 @@
       font-weight: 700;
       margin-bottom: 24px;
       padding-bottom: 12px;
-      border-bottom: 2px solid #1677ff;
+      border-bottom: 2px solid var(--app-accent);
     }
 
     h2 {
@@ -202,8 +202,8 @@
     blockquote {
       margin: 16px 0;
       padding: 12px 20px;
-      border-left: 4px solid #1677ff;
-      background: #f6f8fa;
+      border-left: 4px solid var(--app-accent);
+      background: #fbfcf8;
       color: #555;
       font-style: italic;
     }
@@ -226,7 +226,7 @@
     }
 
     a {
-      color: #1677ff;
+      color: var(--app-accent);
       text-decoration: none;
 
       &:hover {
@@ -237,7 +237,7 @@
     // 引用脚注样式
     sup {
       a {
-        color: #1677ff;
+        color: var(--app-accent);
         font-size: 11px;
         padding: 0 2px;
       }
@@ -283,8 +283,8 @@
 
 // 图表区域样式
 .chartCard {
-  background: #fafafa;
-  border: 1px solid #e8e8e8;
+  background: #fbfcf8;
+  border: 1px solid rgba(31, 42, 38, 0.08);
   border-radius: 8px;
   overflow: hidden;
   margin: 20px 0;
@@ -320,16 +320,16 @@
 .inlineGraph {
   margin: 24px 0;
   padding: 16px 20px;
-  background: linear-gradient(135deg, #f0f7ff 0%, #e6f4ff 100%);
-  border: 1px solid #91caff;
+  background: linear-gradient(135deg, #edf5f2 0%, #fbfcf8 100%);
+  border: 1px solid rgba(15, 118, 110, 0.18);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(22, 119, 255, 0.08);
+  box-shadow: 0 12px 26px rgba(31, 42, 38, 0.06);
 }
 
 .graphTitle {
   font-size: 15px;
   font-weight: 600;
-  color: #1677ff;
+  color: var(--app-accent-dark);
   margin-bottom: 12px;
 }
 
@@ -349,7 +349,7 @@
 
 .categoryLabel {
   flex-shrink: 0;
-  color: #1677ff;
+  color: var(--app-accent);
   font-weight: 500;
   min-width: 80px;
 }
@@ -361,7 +361,7 @@
 .graphStats {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px dashed #91caff;
+  border-top: 1px dashed rgba(15, 118, 110, 0.24);
   font-size: 12px;
   color: #666;
 }

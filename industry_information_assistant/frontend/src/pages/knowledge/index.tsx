@@ -389,7 +389,7 @@ export default function KnowledgePage() {
                   ]}
                 >
                   <List.Item.Meta
-                    avatar={<FileOutlined style={{ fontSize: 24, color: '#1890ff' }} />}
+                    avatar={<FileOutlined style={{ fontSize: 24, color: 'var(--app-accent)' }} />}
                     title={
                       <div className={styles['doc-title']}>
                         <Text ellipsis={{ tooltip: doc.filename }}>{doc.filename}</Text>

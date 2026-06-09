@@ -196,7 +196,7 @@ export default function BiddingPage() {
               <Statistic
                 title="招标"
                 value={biddingStats?.by_type?.['招标'] || 0}
-                valueStyle={{ color: '#1890ff' }}
+                valueStyle={{ color: 'var(--app-accent)' }}
               />
             </Card>
           </Col>

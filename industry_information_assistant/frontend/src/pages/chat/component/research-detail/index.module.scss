@@ -11,7 +11,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--app-surface);
   overflow: hidden;
 }
 
@@ -26,20 +26,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #c4c4c4;
+  color: var(--app-muted-soft);
 }
 
 .emptyIcon {
   font-size: 40px;
   margin-bottom: 16px;
   opacity: 0.3;
-  color: #d4d4d4;
+  color: var(--app-accent);
 }
 
 .emptyText {
   font-size: 13px;
-  color: #b0b0b0;
-  letter-spacing: 0.3px;
+  color: var(--app-muted);
+  letter-spacing: 0;
 }
 
 // 研究进度步骤条 - 极简设计
@@ -47,8 +47,8 @@
   display: flex;
   align-items: center;
   padding: 16px 24px;
-  background: #fff;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  background: #fbfcf8;
+  border-bottom: 1px solid rgba(31, 42, 38, 0.08);
   gap: 0;
   flex-shrink: 0;
 }
@@ -70,13 +70,13 @@
 
   &.active {
     .stepIcon {
-      background: #1a1a1a;
+      background: var(--app-accent-dark);
       color: #fff;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 18px rgba(16, 63, 57, 0.18);
     }
 
     .stepLabel {
-      color: #1a1a1a;
+      color: var(--app-accent-dark);
       font-weight: 600;
     }
   }
@@ -96,8 +96,8 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #e5e5e5;
-  color: #999;
+  background: #e2e8e2;
+  color: #75827a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -107,12 +107,12 @@
   flex-shrink: 0;
 
   .completed & {
-    background: #1a1a1a;
+    background: var(--app-accent-dark);
     color: #fff;
   }
 
   .running & {
-    background: #1a1a1a;
+    background: var(--app-accent-dark);
     color: #fff;
     animation: softPulse 2s ease-in-out infinite;
   }
@@ -120,39 +120,39 @@
 
 @keyframes softPulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(26, 26, 26, 0.2);
+    box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.24);
   }
   50% {
-    box-shadow: 0 0 0 6px rgba(26, 26, 26, 0);
+    box-shadow: 0 0 0 6px rgba(15, 118, 110, 0);
   }
 }
 
 .stepLabel {
   margin-left: 8px;
   font-size: 12px;
-  color: #666;
+  color: var(--app-muted);
   white-space: nowrap;
   transition: all 0.3s;
   font-weight: 500;
-  letter-spacing: 0.2px;
+  letter-spacing: 0;
 }
 
 .stepLine {
   width: 20px;
   height: 1px;
-  background: #e5e5e5;
+  background: #dfe5dc;
   margin: 0 10px;
   flex-shrink: 0;
   transition: background 0.3s;
 
   .completed + & {
-    background: #1a1a1a;
+    background: var(--app-accent);
   }
 }
 
 .header {
   padding: 24px 28px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgba(31, 42, 38, 0.08);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -164,21 +164,21 @@
 
 .stepType {
   font-size: 11px;
-  color: #999;
+  color: var(--app-warm);
   margin-bottom: 6px;
   display: block;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0;
   font-weight: 500;
 }
 
 .title {
   font-size: 18px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--app-text);
   margin: 0;
   line-height: 1.5;
-  letter-spacing: -0.3px;
+  letter-spacing: 0;
 }
 
 .closeBtn {
@@ -189,14 +189,14 @@
   justify-content: center;
   border: none;
   background: transparent;
-  color: #999;
+  color: var(--app-muted);
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.2s;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.04);
-    color: #1a1a1a;
+    background: #edf5f2;
+    color: var(--app-accent-dark);
   }
 }
 
@@ -204,9 +204,9 @@
   display: flex;
   padding: 0 24px;
   gap: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgba(31, 42, 38, 0.08);
   flex-shrink: 0;
-  background: #fff;
+  background: var(--app-surface);
 }
 
 .tab {
@@ -216,7 +216,7 @@
   padding: 14px 20px;
   border: none;
   background: transparent;
-  color: #888;
+  color: var(--app-muted);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -224,11 +224,11 @@
   transition: all 0.2s;
 
   &:hover {
-    color: #1a1a1a;
+    color: var(--app-accent-dark);
   }
 
   &.active {
-    color: #1a1a1a;
+    color: var(--app-accent-dark);
 
     &::after {
       content: '';
@@ -237,7 +237,7 @@
       left: 20px;
       right: 20px;
       height: 2px;
-      background: #1a1a1a;
+      background: var(--app-accent);
       border-radius: 1px;
     }
   }
@@ -250,14 +250,14 @@
   min-width: 18px;
   height: 18px;
   padding: 0 6px;
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(15, 118, 110, 0.08);
   border-radius: 9px;
   font-size: 11px;
   font-weight: 600;
-  color: #888;
+  color: var(--app-muted);
 
   .active & {
-    background: #1a1a1a;
+    background: var(--app-accent-dark);
     color: #fff;
   }
 }
@@ -279,11 +279,11 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.1);
+      background: rgba(15, 118, 110, 0.18);
     border-radius: 2px;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.2);
+        background: rgba(15, 118, 110, 0.32);
     }
   }
 }

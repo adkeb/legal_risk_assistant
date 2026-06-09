@@ -4,53 +4,67 @@
  */
 
 .newchat-page {
-  padding: 28px 40px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 76px 40px 40px;
   margin: 0 auto;
-  max-width: 862px;
+  max-width: 940px;
   min-width: 400px;
+  color: var(--app-text);
 
   .newchat-page__header {
     text-align: center;
-    font-weight: bold;
-    font-size: 28px;
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1.25;
+    color: var(--app-accent-dark);
   }
 
   .newchat-page__sender {
-    margin-top: 20px;
+    margin-top: 26px;
   }
 
-  // 推荐问题区域 - 标题和问题在同一行
   .newchat-page__questions-row {
-    margin-top: 28px;
+    margin-top: 24px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
+    padding: 0 2px;
 
     .questions-label {
       font-size: 13px;
-      color: #8c8c8c;
+      line-height: 34px;
+      color: var(--app-muted);
       flex-shrink: 0;
     }
 
     .questions-list {
       display: flex;
-      gap: 12px;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-width: 0;
     }
 
     .question-tag {
-      font-size: 12px;
-      color: #595959;
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      max-width: 100%;
+      padding: 0 12px;
+      border: 1px solid rgba(31, 42, 38, 0.09);
+      border-radius: 8px;
+      background: rgba(255, 253, 250, 0.84);
+      font-size: 13px;
+      color: #42514b;
+      line-height: 1.4;
       cursor: pointer;
-      transition: color 0.2s;
+      transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 
       &:hover {
-        color: #1890ff;
-      }
-
-      &::before {
-        content: '#';
-        color: #d9d9d9;
-        margin-right: 2px;
+        color: var(--app-accent-dark);
+        border-color: rgba(15, 118, 110, 0.24);
+        background: #edf5f2;
+        transform: translateY(-1px);
       }
     }
   }
@@ -98,13 +112,13 @@
     padding: 16px;
     background: #fff;
     border-radius: 8px;
-    border: 1px solid #f0f0f0;
+    border: 1px solid rgba(31, 42, 38, 0.08);
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover {
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      border-color: #d9d9d9;
+      box-shadow: 0 12px 28px rgba(31, 42, 38, 0.08);
+      border-color: rgba(15, 118, 110, 0.22);
     }
 
     .news-card__title {

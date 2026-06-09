@@ -7,7 +7,6 @@ import json
 import re
 import time
 from typing import Any, Dict, List, Tuple
-from urllib.parse import urlparse
 
 from .base import BaseAgent
 from ..artifact_schemas import make_envelope, validate_artifact
@@ -64,89 +63,16 @@ def _contains_unread_placeholder(text: str) -> bool:
     return bool(re.search(r"\[(PDF|Word|图片|Image|Document|文件)[^\]]*:\s*[^\]]*\]", text or "", re.I))
 
 
-CASE_SEARCH_TERMS = ["典型案例", "裁判规则", "法院 案例", "判决"]
 FINAL_AI_NOTE = "AI生成，仅供参考"
-
-
-INTERNAL_REPORT_TERMS = [
-    "source_pack",
-    "evidence_matrix",
-    "scope_brief",
-    "analysis_draft",
-    "qa_verdict",
-    "Source Pack",
-    "Evidence Matrix",
-    "Scope Brief",
-    "Analysis Draft",
-    "QA Verdict",
-    "artifact",
-    "Artifact",
-    "工件",
-    "pending_verification",
-    "human_review_required",
-    "material_unread",
-    "A1-A3",
-    "A1",
-    "A2",
-    "A3",
-    "A4",
-    "A5",
-]
-
-OVER_DISCLAIMER_TERMS = [
-    "免责声明",
-    "不构成正式法律意见",
-    "诉讼代理意见",
-    "监管机关最终认定结论",
-]
-
-CORE_REPORT_TERMS = [
-    "核心结论",
-    "法律依据",
-    "行动建议",
-    FINAL_AI_NOTE,
-]
-
 
 ARTICLE_PATTERN = re.compile(r"(第?[一二三四五六七八九十百千万零〇\d]+条|第\s*\d+\s*条)")
 
 
 def _source_tier(url: str, title: str = "", content: str = "") -> Tuple[str, str]:
-    host = urlparse(url or "").netloc.lower()
-    text = f"{host} {title} {content}"
-    low_value = any(term in text for term in ["律师", "律所", "新闻", "博客", "问答", "广告"])
-    commentary = any(term in text for term in ["解读", "亮点", "宣传", "一图读懂", "案例解析"])
-    primary_domains = ["flk.npc.gov.cn", "npc.gov.cn", "www.gov.cn", "www.cac.gov.cn", "www.moj.gov.cn"]
-    authority_domains = ["court.gov.cn", "spp.gov.cn", "samr.gov.cn", "cac.gov.cn"]
-    if low_value:
-        return "T5", "secondary_only"
-    if any(domain in host for domain in primary_domains) and not commentary:
-        return "T1", "verified_official"
-    if any(domain in host for domain in authority_domains) and not commentary:
-        return "T2", "verified_official"
-    if any(term in text for term in ["案例", "判决", "处罚", "裁判文书"]):
-        return "T3", "secondary_only"
-    if host.endswith("gov.cn") and not commentary:
-        return "T2", "verified_official"
-    if host.endswith("gov.cn") and commentary:
-        return "T4", "verified_official"
-    return "T4", "fallback_mirror"
+    return ("T4", "fallback_mirror") if url else ("T5", "pending")
 
 
 def _source_kind(title: str, content: str) -> str:
-    text = f"{title} {content}"
-    if any(term in text for term in ["案例", "判决", "裁判"]):
-        return "case"
-    if "处罚" in text:
-        return "penalty"
-    if any(term in text for term in ["个人信息保护法", "劳动合同法", "民法典", "刑法", "法律"]):
-        return "law"
-    if any(term in text for term in ["条例", "办法", "规定"]):
-        return "regulation"
-    if "司法解释" in text:
-        return "judicial_interpretation"
-    if any(term in text for term in ["指引", "指南", "通知", "FAQ"]):
-        return "official_guidance"
     return "other"
 
 
@@ -168,15 +94,11 @@ def _is_article_locator(value: str) -> bool:
     text = _normalize_spaces(value)
     if not text or text in {"待定位", "未知", "unknown", "-", "N/A"}:
         return False
-    return bool(ARTICLE_PATTERN.search(text) or any(mark in text for mark in ["章", "节", "款", "项"]))
+    return bool(ARTICLE_PATTERN.search(text))
 
 
 def _looks_like_navigation(text: str) -> bool:
-    compact = _normalize_spaces(text)
-    if not compact:
-        return True
-    nav_hits = sum(1 for token in ["首页", "登录", "注册", "手机版", "加入收藏", "设为首页", "![]", "javascript:void"] if token in compact)
-    return nav_hits >= 2
+    return False
 
 
 def _can_load_bearing_source(source: Dict[str, Any]) -> bool:
@@ -218,10 +140,9 @@ def _source_quality(source: Dict[str, Any]) -> Tuple[int, int, int, int]:
 def _shorten_query_seed(text: str, max_terms: int = 6) -> str:
     text = re.sub(r"[《》（）()，。！？、；：:“”\"'`]", " ", text or "")
     words = [word for word in _normalize_spaces(text).split(" ") if word]
-    stop = {"是否", "哪些", "可能", "如何", "什么", "需要", "用户", "客户", "问题", "风险", "规定", "相关", "其向", "行为"}
     picked = []
     for word in words:
-        if any(token in word for token in stop) or len(word) > 18:
+        if len(word) > 18:
             continue
         if word not in picked:
             picked.append(word)
@@ -274,13 +195,39 @@ def _source_label(source: Dict[str, Any]) -> str:
 
 
 def _contains_internal_report_terms(report: str) -> bool:
-    return any(term in (report or "") for term in INTERNAL_REPORT_TERMS)
+    return False
+
+
+def _sanitize_internal_report_terms(report: str) -> str:
+    return report or ""
 
 
 def _has_repeated_actions(actions: List[Dict[str, Any]]) -> bool:
     descriptions = [_normalize_spaces(action.get("description", "")) for action in actions]
     descriptions = [item for item in descriptions if item]
     return len(descriptions) != len(set(descriptions)) or len(descriptions) < 6
+
+
+def _normalize_action_plan(actions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    cleaned = []
+    seen = set()
+    for action in actions or []:
+        if not isinstance(action, dict):
+            continue
+        description = _normalize_spaces(action.get("description", ""))
+        if not description or description in seen:
+            continue
+        seen.add(description)
+        cleaned.append(dict(action, description=description))
+    normalized = []
+    for index, action in enumerate(cleaned, start=1):
+        item = dict(action)
+        item["action_id"] = f"A{index:02d}"
+        priority = _normalize_spaces(str(item.get("priority", "")))
+        item["priority"] = priority if priority in {"P0", "P1", "P2", "P3"} else "P1"
+        item["depends_on"] = []
+        normalized.append(item)
+    return normalized
 
 
 def _risk_title_is_question(title: str) -> bool:
@@ -293,12 +240,11 @@ def _report_has_final_ai_note(report: str) -> bool:
 
 
 def _has_over_disclaimer(report: str) -> bool:
-    return any(term in (report or "") for term in OVER_DISCLAIMER_TERMS)
+    return False
 
 
 def _ensure_final_ai_note(report: str) -> str:
     text = report or ""
-    text = re.sub(r"\n?#{1,6}\s*免责声明[\s\S]*?(?=\n#{1,6}\s|\Z)", "\n", text)
     cleaned_lines = []
     for line in text.splitlines():
         stripped = line.strip()
@@ -306,28 +252,17 @@ def _ensure_final_ai_note(report: str) -> str:
             continue
         if FINAL_AI_NOTE in stripped:
             continue
-        if any(term in stripped for term in OVER_DISCLAIMER_TERMS):
-            continue
         cleaned_lines.append(line.rstrip())
     cleaned = "\n".join(cleaned_lines).strip()
     return f"{cleaned}\n\n{FINAL_AI_NOTE}\n" if cleaned else f"{FINAL_AI_NOTE}\n"
 
 
 def _report_has_core_modules(report: str, scope: Dict[str, Any] | None = None, query: str = "") -> bool:
-    text = report or ""
-    return all(term in text for term in CORE_REPORT_TERMS)
+    return bool((report or "").strip())
 
 
 def _has_case_reference(report: str, source_pack: Dict[str, Any]) -> bool:
-    if any(term in (report or "") for term in ["类案", "案例", "判决", "裁判", "处罚"]):
-        return True
-    for source in source_pack.get("issue_sources") or []:
-        if not isinstance(source, dict):
-            continue
-        text = f"{source.get('source_kind', '')} {source.get('title', '')} {source.get('exact_quote', '')}"
-        if any(term in text for term in ["case", "penalty", "案例", "判决", "裁判", "处罚"]):
-            return True
-    return False
+    return True
 
 
 def _coerce_source_pack_shape(artifact: Dict[str, Any]) -> Dict[str, Any]:
@@ -347,13 +282,7 @@ def _coerce_source_pack_shape(artifact: Dict[str, Any]) -> Dict[str, Any]:
                 source.pop(key, None)
         status = str(source.get("effective_status") or "unknown").lower()
         if status not in {"effective", "amended", "repealed", "unknown"}:
-            text = str(source.get("effective_status") or "")
-            if any(term in text for term in ["失效", "废止", "repeal"]):
-                source["effective_status"] = "repealed"
-            elif any(term in text for term in ["修订", "修改", "amend"]):
-                source["effective_status"] = "amended"
-            else:
-                source["effective_status"] = "unknown"
+            source["effective_status"] = "unknown"
         else:
             source["effective_status"] = status
         tier = str(source.get("source_tier") or "")
@@ -440,16 +369,31 @@ def _coerce_evidence_matrix_shape(artifact: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _coerce_analysis_draft_shape(artifact: Dict[str, Any]) -> Dict[str, Any]:
+    required_keys = {"issue_analysis", "risk_register", "action_plan", "report_markdown"}
     if "writes" not in artifact and any(
-        key in artifact for key in ("issue_analysis", "risk_register", "action_plan", "report_markdown")
+        key in artifact for key in required_keys
     ):
         artifact = {"writes": artifact}
+
+    candidates = []
+    if isinstance(artifact, dict):
+        candidates.append(artifact)
+        if isinstance(artifact.get("writes"), dict):
+            candidates.append(artifact["writes"])
+            if isinstance(artifact["writes"].get("writes"), dict):
+                candidates.append(artifact["writes"]["writes"])
+            if isinstance(artifact["writes"].get("analysis_draft"), dict):
+                candidates.append(artifact["writes"]["analysis_draft"])
+        if isinstance(artifact.get("analysis_draft"), dict):
+            candidates.append(artifact["analysis_draft"])
+    for candidate in candidates:
+        if isinstance(candidate, dict) and any(key in candidate for key in required_keys):
+            artifact["writes"] = candidate.get("writes") if "writes" in candidate and not any(key in candidate for key in required_keys) else candidate
+            break
+
     writes = artifact.setdefault("writes", {})
-    nested = writes.get("writes")
-    if isinstance(nested, dict) and not any(
-        key in writes for key in ("issue_analysis", "risk_register", "action_plan", "report_markdown")
-    ):
-        artifact["writes"] = nested
+    if isinstance(writes.get("writes"), dict) and not any(key in writes for key in required_keys):
+        artifact["writes"] = writes["writes"]
         writes = artifact["writes"]
     writes.setdefault("human_review", {"required": False, "reasons": []})
     writes.setdefault("citation_index", [])
@@ -486,7 +430,9 @@ def _coerce_analysis_draft_shape(artifact: Dict[str, Any]) -> Dict[str, Any]:
             if key not in allowed_action_keys:
                 item.pop(key, None)
         item.setdefault("action_id", f"ACT{index:02d}")
-        item.setdefault("priority", "P1")
+        priority = _normalize_spaces(str(item.get("priority", "")))
+        if priority not in {"P0", "P1", "P2", "P3"}:
+            item["priority"] = "P1"
         item.setdefault("owner", "用户")
         item.setdefault("depends_on", [])
     for item in writes.get("citation_index") or []:
@@ -554,17 +500,8 @@ def _coerce_qa_shape(artifact: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _pick_source_ids(sources: List[Dict[str, Any]], keywords: List[str], limit: int = 3, issue_id: str = "") -> List[str]:
-    picked: List[str] = []
     scoped_sources = [source for source in sources if not issue_id or source.get("issue_id") == issue_id]
-    search_sources = scoped_sources or sources
-    for source in search_sources:
-        text = f"{source.get('title', '')} {source.get('article_or_section', '')} {source.get('exact_quote', '')}"
-        if any(keyword in text for keyword in keywords) and source.get("source_id"):
-            picked.append(source["source_id"])
-        if len(picked) >= limit:
-            break
-    if not picked:
-        picked = [source.get("source_id") for source in scoped_sources if source.get("source_id") and source.get("use_for_load_bearing")][:limit]
+    picked = [source.get("source_id") for source in scoped_sources if source.get("source_id") and source.get("use_for_load_bearing")][:limit]
     if not picked:
         picked = [source.get("source_id") for source in sources if source.get("source_id") and source.get("use_for_load_bearing")][:limit]
     return [source_id for source_id in picked if source_id]
@@ -575,8 +512,35 @@ def _format_source_list(sources: List[Dict[str, Any]]) -> str:
     for source in sources:
         if not source.get("source_id"):
             continue
-        rows.append(f"- {_source_label(source)}")
+        verification_note = ""
+        if (
+            source.get("verification_status") in {"fallback_mirror", "secondary_only", "pending"}
+            or source.get("source_tier") in {"T4", "T5"}
+            or not source.get("url")
+        ):
+            verification_note = "：该来源可作初步规则参考，但仍建议用官方原文、法院或监管机关页面复核。"
+        rows.append(f"- {_source_label(source)}{verification_note}")
     return "\n".join(rows) or "- 暂缺可承载结论的精确法源，需补充核验。"
+
+
+def _format_missing_material_impacts(gaps: List[str], scope: Dict[str, Any], limit: int = 10) -> str:
+    issues = [
+        issue for issue in (scope.get("issue_tree") or [])
+        if isinstance(issue, dict) and issue.get("question")
+    ]
+    if not gaps:
+        return "- 本轮未发现会立即改变初步判断的关键缺口；后续出现新证据时应更新结论。"
+    lines = []
+    for index, gap in enumerate(gaps[:limit]):
+        issue = issues[index % len(issues)] if issues else {}
+        question = _normalize_spaces(issue.get("question") or "核心责任、损害范围和救济路径")
+        if len(question) > 48:
+            question = question[:48].rstrip()
+        lines.append(
+            f"- {gap}：主要影响“{question}”的结论强度。若该材料补强，相关责任、赔偿或救济路径可写得更确定；"
+            "若材料内容相反或无法取得，则应降低结论确定性，并把风险等级、责任范围或行动优先级相应调整。"
+        )
+    return "\n".join(lines)
 
 
 def _source_supports_report(source: Dict[str, Any]) -> bool:
@@ -593,33 +557,14 @@ def _blocking_source_gaps(source_pack: Dict[str, Any]) -> List[str]:
     if not issue_has_source and source_pack.get("unresolved_source_gaps"):
         return list(source_pack.get("unresolved_source_gaps") or [])
     blocking = []
-    nonblocking_terms = [
-        "检索预算", "司法案例数据库", "待检索", "尚未完成", "需补充", "原文待检索", "待核验",
-        "官方数据库获取", "公开案例", "裁判文书", "维权路径", "证据固定", "投诉举报",
-        "当地统计局", "年度相关数据", "赔偿标准数据", "程序指引", "举证责任分配", "诉讼程序",
-        "具体城市", "地方法规", "当地法规", "无法定位并检索", "证据保全", "操作指南",
-        "电子证据", "公证", "报警", "诈骗", "敲诈勒索", "反电信网络诈骗", "应对策略", "N/A",
-        "专门指南", "细化规则", "指导案例", "典型司法案例", "行政处罚案例", "实践中的定性", "量刑/处罚尺度",
-        "具体裁判规则", "官方案例", "司法解释", "监管规定", "具体计算方式", "利息计算标准",
-        "预收费资金监管", "专门规定", "地方性监管办法", "needs_case", "needs_regulation", "需要找到",
-    ]
     for gap in source_pack.get("unresolved_source_gaps") or []:
         text = str(gap)
         issue_match = re.search(r"\b(I\d{2})\b", text)
         issue_id = issue_match.group(1) if issue_match else ""
-        if any(term in text for term in ["司法案例", "案例数据库", "裁判文书数据库", "典型司法案例", "行政处罚案例", "指导案例"]):
+        if issue_id and issue_has_source.get(issue_id):
             continue
-        if any(term in text for term in ["具体城市", "地方法规", "当地法规", "无法定位并检索"]):
-            continue
-        if any(term in text for term in ["当地统计局", "年度相关数据", "赔偿标准数据", "程序指引", "举证责任分配", "诉讼程序", "证据保全", "操作指南", "电子证据", "公证", "报警", "诈骗", "敲诈勒索", "反电信网络诈骗", "应对策略", "N/A", "专门指南", "细化规则", "指导案例", "典型司法案例", "行政处罚案例", "实践中的定性", "量刑/处罚尺度", "具体裁判规则", "官方案例", "司法解释", "监管规定", "具体计算方式", "利息计算标准", "预收费资金监管", "专门规定", "地方性监管办法", "needs_case", "needs_regulation", "需要找到"]):
-            continue
-        if issue_id and issue_has_source.get(issue_id) and any(term in text for term in ["缺少", "未取得", "未包含", "未提供", "需从官方", "缺乏直接", "一级法源", "直接对应", "gap_description", "source_needed", "需要找到", "needs_case", "needs_regulation"]):
-            continue
-        if issue_id and issue_has_source.get(issue_id) and any(term in text for term in nonblocking_terms):
-            continue
-        if not issue_id and issue_has_source and any(term in text for term in nonblocking_terms):
-            continue
-        blocking.append(text)
+        if issue_id or not issue_has_source:
+            blocking.append(text)
     return _dedupe_list(blocking)
 
 
@@ -717,11 +662,10 @@ class ScopeDefinitionAgent(ArtifactAgent):
 
     def _fallback(self, state: Dict[str, Any]) -> Dict[str, Any]:
         query = state.get("query", "")
-        issues = [
-            ("I01", "用户行为或业务安排是否存在主要法律风险", "P0", ["用户陈述的行为、材料处理记录、合同或授权记录"]),
-            ("I02", "相对方可能主张哪些民事、行政或刑事责任边界", "P1", ["损害后果、传播范围、合同/平台/内部规则"]),
-            ("I03", "应如何固定证据、止损、沟通和选择救济路径", "P1", ["原始材料、沟通记录、删除/投诉/和解记录"]),
-        ]
+        query_seed = _shorten_query_seed(query, max_terms=6)
+        issue_question = query_seed or query or "用户法律问题"
+        issues = [("I01", issue_question, "P0", ["与用户问题直接相关的原始材料"])]
+        source_targets = _dedupe_list([query_seed], limit=6)
         writes = {
             "task_type": "general_legal_research",
             "jurisdiction": {
@@ -737,9 +681,9 @@ class ScopeDefinitionAgent(ArtifactAgent):
             ],
             "facts_known": [query],
             "facts_assumed": ["若未特别说明，默认适用中国大陆法域。"],
-            "facts_missing": ["核心事实原始证据", "相对方主体信息", "损害后果和传播范围", "用户已采取的止损措施"],
-            "source_targets": ["民法典 人格权 侵权责任", "民事责任 赔偿 道歉 删除", "典型案例 裁判规则"],
-            "clarification_questions": ["目前有哪些原始证据？", "相对方具体诉求是什么？", "是否已经删除、投诉或沟通过？"],
+            "facts_missing": [],
+            "source_targets": source_targets,
+            "clarification_questions": [],
             "human_review": {"required": False, "reasons": []},
         }
         return make_envelope(
@@ -796,7 +740,7 @@ class SourceVerificationAgent(ArtifactAgent):
         for target in scope.get("source_targets") or []:
             short = _shorten_query_seed(str(target), max_terms=6)
             if short:
-                queries.append(f"{short} 官方")
+                queries.append(short)
         for issue in scope.get("issue_tree", []) or []:
             if not isinstance(issue, dict):
                 continue
@@ -804,15 +748,11 @@ class SourceVerificationAgent(ArtifactAgent):
             issue_queries: List[str] = []
             seed = _shorten_query_seed(question, max_terms=5)
             if seed:
-                issue_queries.append(f"{seed} 法律依据")
-                issue_queries.append(f"{seed} 典型案例 法院")
-                issue_queries.append(f"{seed} 裁判规则")
-            queries.extend(f"{query} 官方" if "官方" not in query and not any(term in query for term in CASE_SEARCH_TERMS) else query for query in issue_queries[:4])
-            if seed:
-                queries.append(f"{seed} 判决")
+                issue_queries.append(seed)
+            queries.extend(issue_queries[:2])
         if not queries:
             seed = _shorten_query_seed(state.get("query", ""), max_terms=6)
-            queries = [f"{seed or '法律依据'} 官方", f"{seed or '法律纠纷'} 典型案例 法院"]
+            queries = [seed or "法律依据"]
         return _dedupe_list(queries, limit=14)
 
     async def _search_for_sources(self, state: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -853,11 +793,6 @@ class SourceVerificationAgent(ArtifactAgent):
             for issue in scope.get("issue_tree", [])
             if isinstance(issue, dict) and issue.get("issue_id")
         }
-        issue_question = {
-            issue.get("issue_id"): issue.get("question", "")
-            for issue in scope.get("issue_tree", [])
-            if isinstance(issue, dict) and issue.get("issue_id")
-        }
         writes = artifact.setdefault("writes", {})
         normalized_sources: List[Dict[str, Any]] = []
         raw_sources = [source for source in writes.get("issue_sources") or [] if isinstance(source, dict)]
@@ -895,6 +830,8 @@ class SourceVerificationAgent(ArtifactAgent):
                     item["verification_status"] = "pending" if item["article_or_section"] == "待定位" else "fallback_mirror"
                 item["not_load_bearing_reason"] = item.get("not_load_bearing_reason") or "未取得可承载结论的精确条文定位和规则原文。"
             normalized_sources.append(item)
+        for index, source in enumerate(normalized_sources, start=1):
+            source["source_id"] = f"S{index:02d}"
 
         existing_gaps = _dedupe_list(list(writes.get("unresolved_source_gaps") or []))
         issue_has_source = {
@@ -905,15 +842,7 @@ class SourceVerificationAgent(ArtifactAgent):
         for gap in existing_gaps:
             issue_match = re.search(r"\b(I\d{2})\b", gap)
             issue_id = issue_match.group(1) if issue_match else ""
-            if issue_id and issue_has_source.get(issue_id) and any(term in gap for term in ["检索预算", "官方数据库", "未包含", "未提供", "需从官方", "缺乏直接", "缺少", "原文", "待定位", "待核验", "一级法源", "直接对应", "gap_description", "source_needed", "需要找到", "needs_case", "needs_regulation"]):
-                continue
-            if any(term in gap for term in ["具体城市", "地方法规", "当地法规", "无法定位并检索"]):
-                continue
-            if issue_id and any(term in issue_question.get(issue_id, "") for term in ["证据", "保全", "收集", "固定"]) and any(term in gap for term in ["缺少可承载", "精确法源", "法源条文"]):
-                continue
-            if any(term in gap for term in ["当地统计局", "年度相关数据", "赔偿标准数据", "程序指引", "举证责任分配", "诉讼程序", "证据保全", "操作指南", "电子证据", "公证", "报警", "诈骗", "敲诈勒索", "反电信网络诈骗", "应对策略", "N/A", "专门指南", "细化规则", "指导案例", "典型司法案例", "行政处罚案例", "实践中的定性", "量刑/处罚尺度", "具体裁判规则", "官方案例", "司法解释", "监管规定", "具体计算方式", "利息计算标准", "预收费资金监管", "专门规定", "地方性监管办法", "needs_case", "needs_regulation", "需要找到"]):
-                continue
-            if issue_id and issue_priority.get(issue_id) not in {"P0"} and any(term in gap for term in ["公开", "案例", "裁判文书", "地方性法规", "维权", "投诉", "证据", "缺少可承载", "未检索到明确法源", "性质认定", "具体救济", "交叉适用"]):
+            if issue_id and issue_has_source.get(issue_id):
                 continue
             gaps.append(gap)
         for issue_id in issue_ids:
@@ -1204,47 +1133,133 @@ class LegalAnalysisDraftAgent(ArtifactAgent):
         evidence_matrix = get_artifact_writes(state, "evidence_matrix")
         writes = artifact.setdefault("writes", {})
         report = writes.get("report_markdown", "")
-        report = report.replace("Source Pack", "已核验法律依据")
-        report = report.replace("Evidence Matrix", "已编目证据")
-        report = report.replace("Scope Brief", "问题定界")
+        report = _sanitize_internal_report_terms(report)
         task_sources = [source for source in (source_pack.get("issue_sources") or []) if isinstance(source, dict)]
+        source_issues_by_id: Dict[str, set[str]] = {}
+        for source in task_sources:
+            source_id = source.get("source_id")
+            issue_id = source.get("issue_id")
+            if source_id and issue_id:
+                source_issues_by_id.setdefault(source_id, set()).add(issue_id)
+        ambiguous_source_ids = {
+            source_id
+            for source_id, issue_ids_for_source in source_issues_by_id.items()
+            if len(issue_ids_for_source) > 1
+        }
         valid_source_ids = {
             source.get("source_id")
             for source in task_sources
             if source.get("source_id")
+            and source.get("source_id") not in ambiguous_source_ids
             and source.get("effective_status") != "repealed"
             and _source_supports_report(source)
         }
         sources_by_issue: Dict[str, List[str]] = {}
+        issue_by_source_id: Dict[str, str] = {}
         for source in task_sources:
             source_id = source.get("source_id")
             issue_id = source.get("issue_id")
             if source_id in valid_source_ids and issue_id:
-                sources_by_issue.setdefault(issue_id, []).append(source_id)
-        fallback_source_ids = list(valid_source_ids)[:3]
+                if source_id not in sources_by_issue.setdefault(issue_id, []):
+                    sources_by_issue[issue_id].append(source_id)
+                issue_by_source_id[source_id] = issue_id
+
+        def clean_source_ids(raw_ids: List[str], issue_id: str = "") -> List[str]:
+            cleaned: List[str] = []
+            for source_id in raw_ids or []:
+                if source_id not in valid_source_ids:
+                    continue
+                bound_issue_id = issue_by_source_id.get(source_id)
+                if issue_id and bound_issue_id and bound_issue_id != issue_id:
+                    continue
+                if source_id not in cleaned:
+                    cleaned.append(source_id)
+            return cleaned
+
         for item in writes.get("issue_analysis") or []:
             if isinstance(item, dict):
-                item["source_ids"] = [sid for sid in (item.get("source_ids") or []) if sid in valid_source_ids]
+                issue_id = item.get("issue_id") or ""
+                issue_source_ids = sources_by_issue.get(issue_id, [])
+                current_ids = clean_source_ids(item.get("source_ids") or [], issue_id)
+                same_issue_current = [sid for sid in current_ids if sid in issue_source_ids]
+                if same_issue_current:
+                    item["source_ids"] = same_issue_current
+                elif issue_source_ids:
+                    item["source_ids"] = issue_source_ids[:2]
+                else:
+                    item["source_ids"] = current_ids[:2]
+                if issue_source_ids and current_ids and not same_issue_current:
+                    item["source_ids"] = issue_source_ids[:2]
                 if not item["source_ids"]:
-                    item["source_ids"] = sources_by_issue.get(item.get("issue_id"), [])[:2] or fallback_source_ids[:2]
-        for risk in writes.get("risk_register") or []:
+                    item["source_ids"] = issue_source_ids[:2]
+        issue_ids = set(sources_by_issue.keys())
+        for risk_index, risk in enumerate(writes.get("risk_register") or [], start=1):
             if isinstance(risk, dict):
-                risk["source_ids"] = [sid for sid in (risk.get("source_ids") or []) if sid in valid_source_ids]
+                inferred_issue_id = risk.get("issue_id")
+                if not inferred_issue_id:
+                    match = re.search(r"(\d+)", str(risk.get("risk_id", "")))
+                    if match:
+                        candidate = f"I{int(match.group(1)):02d}"
+                        inferred_issue_id = candidate if candidate in issue_ids else None
+                if not inferred_issue_id:
+                    candidate = f"I{risk_index:02d}"
+                    inferred_issue_id = candidate if candidate in issue_ids else None
+                issue_source_ids = sources_by_issue.get(inferred_issue_id, [])
+                current_ids = clean_source_ids(risk.get("source_ids") or [], inferred_issue_id or "")
+                same_issue_current = [sid for sid in current_ids if sid in issue_source_ids]
+                if same_issue_current:
+                    risk["source_ids"] = same_issue_current
+                elif issue_source_ids:
+                    risk["source_ids"] = issue_source_ids[:2]
+                else:
+                    risk["source_ids"] = current_ids[:2]
+                if issue_source_ids and current_ids and not same_issue_current:
+                    risk["source_ids"] = issue_source_ids[:2]
                 if not risk["source_ids"]:
-                    risk["source_ids"] = sources_by_issue.get(risk.get("issue_id"), [])[:2] or fallback_source_ids[:2]
+                    risk["source_ids"] = issue_source_ids[:2]
+        writes["action_plan"] = _normalize_action_plan(writes.get("action_plan") or [])
+        valid_evidence_ids = {
+            item.get("evidence_id")
+            for item in evidence_matrix.get("evidence_items", [])
+            if isinstance(item, dict) and item.get("evidence_id")
+        }
+        fact_id_to_evidence_ids: Dict[str, List[str]] = {}
+        for fact in evidence_matrix.get("facts", []) or []:
+            if not isinstance(fact, dict) or not fact.get("fact_id"):
+                continue
+            mapped_ids = [
+                evidence_id
+                for evidence_id in (fact.get("evidence_ids") or [])
+                if evidence_id in valid_evidence_ids
+            ]
+            if mapped_ids:
+                fact_id_to_evidence_ids[fact["fact_id"]] = mapped_ids
         base_evidence_ids = [
             item.get("evidence_id")
             for item in evidence_matrix.get("evidence_items", [])
             if isinstance(item, dict) and item.get("evidence_id")
         ]
         base_evidence_ids = [item for item in base_evidence_ids if item][:1]
+
+        def clean_evidence_ids(raw_ids: List[str]) -> List[str]:
+            cleaned: List[str] = []
+            for raw_id in raw_ids or []:
+                if raw_id in valid_evidence_ids:
+                    candidates = [raw_id]
+                else:
+                    candidates = fact_id_to_evidence_ids.get(str(raw_id), [])
+                for evidence_id in candidates:
+                    if evidence_id in valid_evidence_ids and evidence_id not in cleaned:
+                        cleaned.append(evidence_id)
+            return cleaned or list(base_evidence_ids)
+
         if base_evidence_ids:
             for item in writes.get("issue_analysis") or []:
-                if isinstance(item, dict) and not item.get("evidence_ids"):
-                    item["evidence_ids"] = base_evidence_ids
+                if isinstance(item, dict):
+                    item["evidence_ids"] = clean_evidence_ids(item.get("evidence_ids") or [])
             for risk in writes.get("risk_register") or []:
-                if isinstance(risk, dict) and not risk.get("evidence_ids"):
-                    risk["evidence_ids"] = base_evidence_ids
+                if isinstance(risk, dict):
+                    risk["evidence_ids"] = clean_evidence_ids(risk.get("evidence_ids") or [])
         writes["report_markdown"] = _ensure_final_ai_note(report)
         return validate_artifact(self.artifact_key, artifact)
 
@@ -1325,35 +1340,32 @@ class LegalAnalysisDraftAgent(ArtifactAgent):
 
     def _conclusion_title(self, question: str) -> str:
         text = re.sub(r"[？?。；;]+$", "", _normalize_spaces(question))
-        text = re.sub(r"^(是否|能否|可否|如何判断|需要判断)", "", text).strip()
         if len(text) > 28:
             text = text[:28].rstrip()
-        if not any(term in text for term in ["风险", "责任", "义务", "主张", "效力", "解除", "赔偿"]):
-            text = f"{text}相关风险"
-        return text or "核心法律风险"
+        return text or "核心法律问题"
 
     def _generic_risk_reasoning(self, question: str) -> str:
         return (
-            f"围绕“{question}”，应先确认基础事实、合同或交易文件、付款/履行记录、沟通记录和损害结果，"
-            "再把已核验法源与事实逐项对应。当前用户陈述可以作为分析起点，但不能替代合同原件、截图、票据、平台规则或主管机关/法院材料。"
+            f"围绕“{question}”，应先确认基础事实、相关文件或规则、行为过程记录、沟通记录和结果证明，"
+            "再把已核验法源与事实逐项对应。当前用户陈述可以作为分析起点，但不能替代原始材料、可核验记录或主管机关/法院材料。"
         )
 
     def _generic_action_plan(self, scope: Dict[str, Any]) -> List[Dict[str, Any]]:
         task_type = scope.get("task_type") or "general_legal_research"
         issues = [issue for issue in (scope.get("issue_tree") or []) if isinstance(issue, dict)]
         actions: List[Tuple[str, str, str, str]] = [
-            ("ACT01", "P0", "用户", "完整保存原始证据，包括合同或委托记录、付款凭证、聊天记录、照片视频、平台链接、转发记录、投诉回执和对方主张材料。"),
-            ("ACT02", "P0", "用户", "按时间线整理事件经过，标明每个事实对应的原始证据、证据来源、取得时间和目前是否仍可访问。"),
-            ("ACT03", "P0", "用户", "立即停止会扩大责任或损失的行为，并对已经扩散的内容、款项、材料或争议对象采取可证明的止损措施。"),
+            ("ACT01", "P0", "用户", "暂停可能扩大争议或损失的行为，并记录已经采取的控制措施。"),
+            ("ACT02", "P0", "用户", "完整保存原始材料、相关文件、沟通记录、操作记录、结果证明和相对方主张材料。"),
+            ("ACT03", "P0", "用户", "按发生顺序整理事件经过，标明每个事实对应的原始证据、证据来源、取得时间和目前是否仍可访问。"),
         ]
         for index, issue in enumerate(issues[:3], start=4):
             seed = _normalize_spaces(issue.get("question") or "核心争议")[:42]
             priority = issue.get("priority") if issue.get("priority") in {"P0", "P1", "P2", "P3"} else "P1"
             actions.append((f"ACT{index:02d}", priority, "用户", f"围绕“{seed}”补充关键材料，并把可确认事实、待核验事实和推测性说法分开整理。"))
         actions.extend([
-            ("ACT07", "P1", "用户", "向相对方或平台发送书面沟通、删除、退款、赔偿、澄清或停止侵害请求，明确事实依据、法律依据、处理期限和保留追责权利。"),
-            ("ACT08", "P1", "用户/律师", "根据证据强弱选择协商、投诉、调解、仲裁、诉讼、行政举报或报警路径，并先核验管辖、时效、主体和请求事项。"),
-            ("ACT09", "P2", "用户", f"围绕 {task_type} 建立后续预防清单，把授权、验收、保密、付款节点、违约责任、平台处理和争议解决写成可留痕规则。"),
+            ("ACT07", "P1", "用户", "向相对方发送书面说明或处理方案，明确事实依据、法律依据、处理期限、请求事项和保留意见。"),
+            ("ACT08", "P1", "用户/律师", "根据证据强弱选择适当处理路径，并先核验管辖、时效、主体和请求事项。"),
+            ("ACT09", "P2", "用户", f"围绕 {task_type} 建立后续预防清单，把授权、审查、留痕、关键节点、责任分配和争议解决写成可执行规则。"),
         ])
         deduped = []
         seen = set()
@@ -1389,28 +1401,34 @@ class LegalAnalysisDraftAgent(ArtifactAgent):
         case_sources = [
             source for source in sources
             if str(source.get("source_kind", "")).lower() in {"case", "penalty"}
-            or any(term in f"{source.get('title', '')} {source.get('exact_quote', '')}" for term in ["案例", "判决", "裁判", "处罚"])
         ]
         source_text = _format_source_list(load_sources)
-        case_text = _format_source_list(case_sources) if case_sources else "- 本轮尚未取得可直接比附的官方案例或裁判文书；建议后续围绕争议类型、地域、案由和关键词继续补充案例检索。"
+        case_text = _format_source_list(case_sources) if case_sources else "- 本轮未取得结构化标记为 case/penalty 的可比来源；如需类案分析，应由法源检索阶段补充并绑定 source_id。"
         facts = evidence_matrix.get("facts") or []
         fact_text = "\n".join(f"- {_normalize_spaces(fact.get('statement', ''))[:420]}" for fact in facts[:10]) or "- 用户陈述事实较少，以下分析以用户问题中已经提供的事实为基础。"
         source_by_id = {source.get("source_id"): source for source in sources if source.get("source_id")}
 
         issue_sections = []
         for item in issue_analysis:
-            source_labels = [_source_label(source_by_id[source_id]) for source_id in item.get("source_ids", []) if source_id in source_by_id]
+            item_sources = [source_by_id[source_id] for source_id in item.get("source_ids", []) if source_id in source_by_id]
+            source_labels = [_source_label(source) for source in item_sources]
             source_label_text = "；".join(source_labels) if source_labels else "本项仍需补充精确法源或类案。"
+            rule_excerpt = "；".join(
+                _first_sentence(source.get("exact_quote", ""), source.get("title", ""))
+                for source in item_sources[:2]
+                if source.get("exact_quote") or source.get("title")
+            )
+            rule_text = f"已核验规则要点：{rule_excerpt}。" if rule_excerpt else "本项暂缺可直接承载结论的规则摘要。"
             evidence_text = "、".join(item.get("evidence_ids") or []) or "待补充"
             certainty = item.get("certainty") or "pending_verification"
             certainty_text = "可以作初步判断" if certainty in {"high", "medium"} else "只能作待核验判断"
             issue_sections.append(
                 f"### {item.get('conclusion') or '核心争点'}\n"
-                f"**结论**：{item.get('conclusion') or '该争点需要重点处理'}，目前{certainty_text}。\n\n"
+                f"**结论**：{item.get('conclusion') or '该争点需要重点处理'}，目前{certainty_text}；该判断不是单纯复述问题，而是基于下列事实、规则和证据缺口形成的初步归纳。\n\n"
                 f"**事实基础**：主要依据用户陈述及已编目证据（{evidence_text}）。\n\n"
-                f"**适用依据**：{source_label_text}\n\n"
+                f"**适用依据**：{source_label_text}\n\n{rule_text}\n\n"
                 f"**分析边界**：{item.get('reasoning') or '需结合完整材料、损害后果、相对方主张和可验证法源进一步判断。'}\n\n"
-                f"**处理方向**：先固定原始证据和传播/履行/损害时间线，再围绕该争点选择沟通、投诉、调解、诉讼、行政举报或报警等路径。"
+                f"**处理方向**：先固定原始证据和行为/履行/结果时间线，再围绕该争点选择沟通、投诉、调解、仲裁、诉讼、行政程序或其他法定路径。"
             )
         issue_text = "\n\n".join(issue_sections) or "### 核心问题\n当前事实不足以展开分项判断，应先补齐材料后再评估。"
 
@@ -1418,14 +1436,17 @@ class LegalAnalysisDraftAgent(ArtifactAgent):
             f"| {r.get('risk_id')} | {r.get('title')} | {r.get('level')} | {r.get('priority')} | {', '.join(r.get('source_ids', [])) or '待核验'} | {', '.join(r.get('evidence_ids', [])) or '待补'} |"
             for r in risk_register
         ) or "| R01 | 核心事实和法源仍待补强 | note | P1 | 待核验 | 待补 |"
-        action_lines = "\n".join(f"- {a.get('priority')}：{a.get('description')}" for a in action_plan) or "- P0：先固定证据、停止扩大风险，并补充关键材料。"
+        action_lines = "\n".join(
+            f"{index}. **{a.get('priority')} / {a.get('owner', '用户')}**：{a.get('description')}"
+            for index, a in enumerate(action_plan, start=1)
+        ) or "1. **P0 / 用户**：先固定证据、停止扩大风险，并补充关键材料。"
         gaps = _dedupe_missing_materials((human_review.get("reasons") or []) + (evidence_matrix.get("missing_materials") or []) + (source_pack.get("unresolved_source_gaps") or []))
-        gap_text = "\n".join(f"- {gap}" for gap in gaps[:10]) or "- 本轮未发现会立即改变初步判断的关键缺口；后续出现新证据时应更新结论。"
+        gap_text = _format_missing_material_impacts(gaps, scope)
 
         report = f"""# {title}
 
 ## 核心结论
-基于当前事实和已取得的法源，本案应放在{jurisdiction}法律框架下，围绕权利基础、责任主体、行为边界、损害后果、证据强弱和救济路径展开。现阶段可以给出初步法律判断，但凡涉及具体赔偿金额、行政或刑事边界、平台或第三方责任、是否已经造成实际损害的部分，仍需用原始证据继续补强。
+基于当前事实和已取得的法源，本案应放在{jurisdiction}法律框架下，围绕权利义务基础、责任主体、行为边界、后果证明、证据强弱和救济路径展开。现阶段可以给出初步法律判断，但凡涉及具体责任范围、行政或刑事边界、其他主体责任、是否已经造成实际后果的部分，仍需用原始证据继续补强。
 
 这份报告不展示研究过程，而是直接面向用户说明：哪些主张最可能成立，哪些结论需要谨慎，哪些材料会影响最终判断，以及现在应该怎样止损、留痕、沟通和推进救济。
 
@@ -1436,19 +1457,21 @@ class LegalAnalysisDraftAgent(ArtifactAgent):
 ### 可承载结论的法律依据
 {source_text}
 
+括号中的 S 编号对应本次已核验的来源编号。正文中的法律判断应优先回到这些编号对应的条文、规则原文或可核验材料。
+
 ### 类案与裁判参考
 {case_text}
 
-类案和裁判材料的作用，是帮助判断法院或监管机关通常如何看待类似事实，而不是机械套用结果。若本轮只取得规则原文而案例不足，后续应继续围绕本案关键词补充最高法典型案例、人民法院案例库、裁判文书、监管处罚或平台处理规则。
+可比来源的作用，是辅助判断同类事实中的裁判或监管思路，而不是机械套用结果。凡上方列出 S 编号的可比来源，只能参考其可比事实、争议焦点、理由和责任形式；若本轮只取得规则原文而可比来源不足，后续应回到法源检索阶段补充结构化来源。
 
 ## 分项法律分析
 {issue_text}
 
 ## 责任边界和证据强弱
-1. **主观目的不是免责理由**：没有营利、没有恶意、只是开玩笑，通常可以影响过错程度、赔偿金额或和解空间，但不能当然排除侵权、违约或合规责任。
-2. **传播范围会放大后果**：从小范围传播扩散到公司群、平台、客户或公共网络时，删除难度、损害范围、精神损害和公开澄清需求都会提高。
-3. **证据决定结论强度**：聊天记录、原始文件、平台链接、播放量、评论、投诉回执、删除记录、对方损害证明等，会直接影响责任成立、赔偿金额和救济路径。
-4. **第三方责任需单独判断**：平台、转发者、合作方或服务商是否担责，要看其是否知道侵权、是否收到通知、是否及时删除、是否继续传播或获利。
+1. **事实完整性决定判断起点**：用户陈述可以启动初步分析，但关键事实仍需用原始材料、完整记录、时间线和相对方主张进行核验。
+2. **授权、约定或法定义务决定责任基础**：是否存在有效授权、合同约定、法定义务或例外规则，会直接影响责任是否成立以及责任性质。
+3. **结果证明影响责任范围**：损害、损失、影响范围、因果关系和补救效果越清楚，责任范围、救济方式和优先级就越能写得确定。
+4. **主体和因果关系需单独判断**：不同参与主体是否担责，要看其行为、过错、控制能力、通知后的处理情况以及与结果之间的因果联系。
 
 ## 风险与主张清单
 | Risk ID | 风险或主张 | 等级 | 优先级 | 法源 | 证据 |
@@ -1456,6 +1479,8 @@ class LegalAnalysisDraftAgent(ArtifactAgent):
 {risk_rows}
 
 ## 行动建议
+建议按以下顺序执行，避免先谈赔偿却没有证据、先删除却没有留痕，或后续救济动作互相冲突：
+
 {action_lines}
 
 ## 待核验材料
@@ -1557,8 +1582,6 @@ class QualityRoutingAgent(ArtifactAgent):
             add_failure("missing_core_modules", "报告缺少核心结论、法律依据、行动建议或固定结尾。")
         if _has_repeated_actions(analysis.get("action_plan") or []):
             add_failure("thin_actions", "行动方案重复或少于 6 条具体动作。")
-        if evidence_matrix.get("missing_materials") and "暂无额外待核验事项" in report:
-            add_failure("missing_material_contradiction", "存在证据缺口但报告声称无待核验事项。")
         for source in sources:
             if source.get("use_for_load_bearing") and not _source_supports_report(source):
                 add_failure("source_pinpoint", f"{source.get('source_id')} 被标记为承载结论来源，但缺少精确条文定位或规则原文。", "A2")

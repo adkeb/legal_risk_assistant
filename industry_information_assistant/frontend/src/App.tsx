@@ -14,8 +14,19 @@ function App() {
       theme={{
         cssVar: true,
         token: {
-          colorPrimary: '#2861E7',
-          borderRadius: 6
+          colorPrimary: '#0f766e',
+          colorInfo: '#0f766e',
+          colorSuccess: '#2f855a',
+          colorWarning: '#b7791f',
+          colorError: '#c2410c',
+          colorText: '#1f2a26',
+          colorTextSecondary: '#66746d',
+          colorBgLayout: '#f6f7f3',
+          colorBgContainer: '#fffdfa',
+          colorBorder: '#dfe5dc',
+          borderRadius: 8,
+          fontFamily:
+            'PingFang SC, Microsoft YaHei, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
         },
       }}
       locale={zhCN}

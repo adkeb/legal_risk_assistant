@@ -9,6 +9,7 @@
 
 .com-page-layout {
   display: flex;
+  min-height: 100vh;
 
   .com-page-layout__main {
     flex-grow: 1;
@@ -16,7 +17,7 @@
     flex-direction: column;
     min-height: 100vh;
     min-width: 600px;
-    background: #fff;
+    background: transparent;
 
     .com-page-layout__main-content {
       flex-grow: 1;
@@ -32,13 +33,16 @@
     bottom: 0;
     z-index: 900;
     padding: 18px 40px;
-    background: #fff;
+    background: rgba(246, 247, 243, 0.92);
+    border-top: 1px solid rgba(31, 42, 38, 0.08);
+    backdrop-filter: blur(16px);
   }
 
   .com-page-layout__right {
     flex-shrink: 0;
     width: 408px;
-    background: #fff;
+    background: var(--app-surface);
+    border-left: 1px solid rgba(31, 42, 38, 0.08);
   }
 
   // 宽右侧面板模式：左35% + 右65%
@@ -54,7 +58,7 @@
       height: 100vh;
       overflow-y: auto;
       overflow-x: hidden;
-      background: #fff;
+      background: transparent;
       // 隐藏滚动条但保持滚动功能
       scrollbar-width: none; // Firefox
       -ms-overflow-style: none; // IE/Edge
@@ -67,18 +71,18 @@
       flex: 1;
       width: auto;
       min-width: 400px;
-      border-left: 1px solid rgba(0, 0, 0, 0.04);
+      border-left: 1px solid rgba(31, 42, 38, 0.08);
       height: 100vh;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      background: #fafafa;
+      background: var(--app-surface);
     }
 
     .com-page-layout__sender {
       padding: 12px 20px;
-      background: #fff;
-      border-top: 1px solid rgba(0, 0, 0, 0.04);
+      background: rgba(246, 247, 243, 0.94);
+      border-top: 1px solid rgba(31, 42, 38, 0.08);
     }
   }
 }

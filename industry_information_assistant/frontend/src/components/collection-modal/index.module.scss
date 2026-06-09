@@ -11,7 +11,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #1890ff;
+  color: var(--app-accent);
 
   span {
     font-size: 13px;
@@ -20,7 +20,7 @@
 
 .result {
   margin-top: 24px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid rgba(31, 42, 38, 0.08);
   padding-top: 16px;
 
   :global(.ant-result) {
@@ -44,7 +44,7 @@
     margin: 4px 0;
 
     strong {
-      color: #1890ff;
+      color: var(--app-accent);
       font-size: 16px;
     }
   }
@@ -75,7 +75,7 @@
 
 .closeBtn {
   padding: 8px 24px;
-  background: #1890ff;
+  background: var(--app-accent-dark);
   color: white;
   border: none;
   border-radius: 6px;
@@ -83,6 +83,6 @@
   font-size: 14px;
 
   &:hover {
-    background: #40a9ff;
+    background: var(--app-accent);
   }
 }

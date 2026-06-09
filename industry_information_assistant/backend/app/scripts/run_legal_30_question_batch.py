@@ -31,13 +31,11 @@ from app.service.deep_research_v2.graph import DeepResearchGraph  # noqa: E402
 
 
 REQUIRED_AGENTS = {
-    "ChiefArchitect",
-    "DeepScout",
-    "EvidenceExtractor",
-    "DataAnalyst",
-    "CodeWizard",
-    "LeadWriter",
-    "CriticMaster",
+    "ScopeDefinitionAgent",
+    "SourceVerificationAgent",
+    "EvidenceCatalogAgent",
+    "LegalAnalysisDraftAgent",
+    "QualityRoutingAgent",
 }
 
 
@@ -188,7 +186,7 @@ async def run_one(
         checks = {
             "has_complete_event": complete is not None,
             "has_report": len(report) >= args.min_report_chars,
-            "has_disclaimer": "不构成正式法律意见" in report,
+            "has_final_ai_note": report.strip().endswith("AI生成，仅供参考"),
             "trace_ok": trace_validation.get("agent_input_output_ok", False),
         }
         status = "passed" if all(checks.values()) and not error else "failed"

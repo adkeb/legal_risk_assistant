@@ -5,11 +5,12 @@
 
 .knowledge-page {
   margin: 0 auto;
-  min-height: 100%;
+  min-height: 100vh;
   padding: 40px;
   box-sizing: border-box;
   max-width: 1200px;
   min-width: 600px;
+  color: var(--app-text);
 
   .empty-state {
     display: flex;
@@ -30,6 +31,7 @@
       margin: 0;
       font-size: 24px;
       font-weight: 600;
+      color: var(--app-accent-dark);
     }
 
     .header-left {
@@ -52,6 +54,7 @@
     margin-bottom: 24px;
     padding: 12px 16px;
     background-color: #f5f5f5;
+    border: 1px solid rgba(31, 42, 38, 0.08);
     border-radius: 8px;
   }
 }
@@ -66,12 +69,14 @@
 
 .kb-card {
   position: relative;
-  border-radius: 12px;
+  border-radius: 8px;
+  border-color: rgba(31, 42, 38, 0.08);
   transition: box-shadow 0.3s, transform 0.2s;
 
   &:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 14px 32px rgba(31, 42, 38, 0.08);
     transform: translateY(-2px);
+    border-color: rgba(15, 118, 110, 0.22);
   }
 
   :global {
@@ -83,8 +88,8 @@
   .card-icon {
     width: 48px;
     height: 48px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    background: linear-gradient(135deg, #0f766e 0%, #103f39 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -129,8 +134,9 @@
 
 .kb-detail {
   .doc-list {
-    background: white;
-    border-radius: 12px;
+    background: var(--app-surface-strong);
+    border-radius: 8px;
+    border: 1px solid rgba(31, 42, 38, 0.08);
     padding: 8px;
 
     :global {
@@ -140,7 +146,7 @@
         transition: background-color 0.2s;
 
         &:hover {
-          background-color: #f5f5f5;
+          background-color: #edf5f2;
         }
       }
     }
@@ -163,12 +169,12 @@
     }
 
     .chunk-link {
-      color: #1890ff;
+      color: var(--app-accent);
       cursor: pointer;
       transition: color 0.2s;
 
       &:hover {
-        color: #40a9ff;
+        color: var(--app-accent-dark);
         text-decoration: underline;
       }
     }

@@ -99,8 +99,8 @@ def test_legacy_task_matchers_removed():
 def test_source_tier_normalize():
     from app.service.deep_research_v2.agents.legal_workflow import _source_tier
 
-    assert _source_tier("https://www.cac.gov.cn/test", "中华人民共和国个人信息保护法", "法律原文")[0] == "T1"
-    assert _source_tier("https://www.cqck.gov.cn/test", "民法典解读", "亮点梳理")[0] == "T4"
+    assert _source_tier("https://example.test/source")[0] == "T4"
+    assert _source_tier("")[0] == "T5"
 
 
 def test_preliminary_source_supports_mirror_rule_text():
@@ -143,7 +143,7 @@ def test_critic_allows_model_when_no_structural_failure():
             "source_pack": {"writes": {"issue_sources": [], "unresolved_source_gaps": []}},
             "evidence_matrix": {"writes": {"evidence_items": [], "missing_materials": [], "material_read_status": []}},
             "analysis_draft": {"writes": {
-                "report_markdown": "## 核心结论\n个人信息 敏感个人信息 第三方 转委托 保密义务 违约 侵权 补救\n\n## 法律依据与类案参考\n案例\n\n## 行动建议\n行动\n\nAI生成，仅供参考",
+                "report_markdown": "## 核心结论\n测试结论。\n\n## 法律依据与类案参考\n测试来源。\n\n## 行动建议\n测试行动。\n\nAI生成，仅供参考",
                 "risk_register": [{"risk_id": "R01", "title": "无证据重大风险", "level": "high", "priority": "P0", "source_ids": [], "evidence_ids": []}],
                 "issue_analysis": [],
                 "action_plan": [{"action_id": f"A{i}", "priority": "P0", "owner": "用户", "description": f"具体动作 {i}", "depends_on": []} for i in range(6)],
@@ -167,19 +167,19 @@ def test_a1_model_defined_task_type_and_short_source_targets():
     from app.service.deep_research_v2.agents.legal_workflow import ScopeDefinitionAgent
     from app.service.deep_research_v2.artifact_schemas import make_envelope
 
-    query = "我把客户身份证照片、聊天记录和合同上传到第三方 AI 工具，未取得明确同意，有什么风险？"
+    query = "用户提供一组材料，要求判断某项业务安排的法律风险。"
     agent = ScopeDefinitionAgent("", "")
     artifact = make_envelope(
         agent="A1",
         artifact_id="scope_brief",
         writes={
-            "task_type": "AI Deepfake / Personal Information Compliance",
+            "task_type": "Custom Legal Risk / Source Review",
             "jurisdiction": {"primary": "中国大陆", "others": [], "status": "assumed", "jurisdiction_candidates": [], "why_unknown": ""},
             "issue_tree": [{"issue_id": "I01", "question": query, "priority": "P0", "evidence_needed": []}],
             "facts_known": [query],
             "facts_assumed": [],
             "facts_missing": [],
-            "source_targets": ["《个人信息保护法》第二十三条：向其他个人信息处理者提供个人信息时需要告知并取得单独同意"],
+            "source_targets": ["《示例法》第十条：这是一个很长的法条说明，不应当作为检索关键词直接输出"],
             "clarification_questions": [],
             "human_review": {"required": False, "reasons": []},
         },
@@ -189,8 +189,8 @@ def test_a1_model_defined_task_type_and_short_source_targets():
     normalized = agent._normalize_scope_artifact(artifact, {"query": query, "session_id": "s1"})
     targets = normalized["writes"]["source_targets"]
 
-    assert normalized["writes"]["task_type"] == "ai_deepfake_personal_information_compliance"
-    assert all("《" not in target and "第二十三条" not in target for target in targets)
+    assert normalized["writes"]["task_type"] == "custom_legal_risk_source_review"
+    assert all("《" not in target and "第十条" not in target for target in targets)
     assert all(len(target) <= 36 for target in targets)
 
 
@@ -204,18 +204,18 @@ def test_a2_short_query_builder():
         agent="A1",
         artifact_id="scope_brief",
         writes={
-            "task_type": "model_defined_privacy_ai_upload",
+            "task_type": "model_defined_task",
             "jurisdiction": {"primary": "中国大陆", "others": [], "status": "assumed", "jurisdiction_candidates": [], "why_unknown": ""},
             "issue_tree": [{
                 "issue_id": "I01",
-                "question": "用户作为数据处理者（受托处理个人信息），其向第三方AI工具提供客户个人信息的行为，是否构成《个人信息保护法》下的委托处理或向其他个人信息处理者提供？是否需要单独同意？",
+                "question": "用户陈述的一项复杂安排需要判断法律依据和责任边界。",
                 "priority": "P0",
                 "evidence_needed": [],
             }],
             "facts_known": ["用户陈述"],
             "facts_assumed": [],
             "facts_missing": [],
-            "source_targets": ["第三方提供 个人信息"],
+            "source_targets": ["复杂安排 法律依据"],
             "clarification_questions": [],
             "human_review": {"required": False, "reasons": []},
         },
@@ -225,10 +225,9 @@ def test_a2_short_query_builder():
     put_artifact(state, "scope_brief", scope)
 
     queries = SourceVerificationAgent("", "")._build_search_queries(state)
-    assert any("第三方提供 个人信息 官方" in query for query in queries)
-    assert any("典型案例" in query or "裁判规则" in query or "判决" in query for query in queries)
-    assert not any("用户作为数据处理者" in query for query in queries)
-    assert not any("第二十三条" in query for query in queries)
+    assert "复杂安排 法律依据" in queries
+    assert all("官方" not in query for query in queries)
+    assert all("典型案例" not in query and "裁判规则" not in query and "判决" not in query for query in queries)
 
 
 def test_a2_source_gap_shape_coercion():
@@ -265,13 +264,13 @@ def test_a2_downgrades_unpinpointed_load_bearing_source():
                 "proposition": "测试命题",
                 "source_id": "S01",
                 "jurisdiction": "中国大陆",
-                "title": "中华人民共和国个人信息保护法",
+                "title": "测试法源",
                 "issuing_body": "官方",
                 "source_kind": "law",
                 "source_tier": "T1",
                 "article_or_section": "待定位",
                 "effective_status": "effective",
-                "exact_quote": "个人信息处理者处理个人信息应当遵循合法、正当、必要和诚信原则。",
+                "exact_quote": "测试规则原文足够长，但本条缺少精确定位，不能承载结论。",
                 "pinpoint": "待定位",
                 "language": "zh-CN",
                 "verification_status": "verified_official",
@@ -292,6 +291,129 @@ def test_a2_downgrades_unpinpointed_load_bearing_source():
     assert normalized["writes"]["unresolved_source_gaps"]
 
 
+def test_a2_source_gaps_are_structural_not_topic_keyword_based():
+    from app.service.deep_research_v2.agents.legal_workflow import SourceVerificationAgent
+    from app.service.deep_research_v2.artifact_schemas import make_envelope
+
+    state = {
+        "query": "测试",
+        "session_id": "s1",
+        "artifacts": {
+            "scope_brief": {
+                "writes": {
+                    "issue_tree": [
+                        {"issue_id": "I01", "priority": "P0"},
+                        {"issue_id": "I02", "priority": "P1"},
+                    ]
+                }
+            }
+        },
+    }
+    artifact = make_envelope(
+        agent="A2",
+        artifact_id="source_pack",
+        writes={
+            "issue_sources": [{
+                "issue_id": "I02",
+                "proposition": "已有来源的争点",
+                "source_id": "S01",
+                "jurisdiction": "中国大陆",
+                "title": "测试法源",
+                "issuing_body": "机关",
+                "source_kind": "law",
+                "source_tier": "T1",
+                "article_or_section": "第一条",
+                "effective_status": "effective",
+                "exact_quote": "第一条 测试法源规则原文足够长，可以支撑第二个争点的初步判断。",
+                "pinpoint": "第一条",
+                "language": "zh-CN",
+                "verification_status": "verified_official",
+                "use_for_load_bearing": True,
+                "not_load_bearing_reason": "",
+                "url": "https://example.test/law",
+            }],
+            "unresolved_source_gaps": [
+                "I01 仍缺少可承载法源",
+                "I02 仍需补充来源",
+                "未绑定 issue 的辅助检索缺口",
+            ],
+        },
+        next_agent="A3",
+        reason="test",
+    )
+    normalized = SourceVerificationAgent("", "")._normalize_source_pack(state, artifact)
+    gaps = normalized["writes"]["unresolved_source_gaps"]
+
+    assert "I01 仍缺少可承载法源" in gaps
+    assert "I02 仍需补充来源" not in gaps
+    assert any("未绑定 issue" in gap for gap in gaps)
+
+
+def test_a2_normalizes_duplicate_source_ids():
+    from app.service.deep_research_v2.agents.legal_workflow import SourceVerificationAgent
+    from app.service.deep_research_v2.artifact_schemas import make_envelope
+
+    state = {
+        "query": "测试",
+        "session_id": "s1",
+        "artifacts": {"scope_brief": {"writes": {"issue_tree": [{"issue_id": "I01"}, {"issue_id": "I02"}]}}},
+    }
+    artifact = make_envelope(
+        agent="A2",
+        artifact_id="source_pack",
+        writes={
+            "issue_sources": [
+                {
+                    "issue_id": "I01",
+                    "proposition": "争点一",
+                    "source_id": "S08",
+                    "jurisdiction": "中国大陆",
+                    "title": "测试法律",
+                    "issuing_body": "机关",
+                    "source_kind": "law",
+                    "source_tier": "T1",
+                    "article_or_section": "第一条",
+                    "effective_status": "effective",
+                    "exact_quote": "第一条 测试法律规则原文足够长，可以支撑争点一的初步判断。",
+                    "pinpoint": "第一条",
+                    "language": "zh-CN",
+                    "verification_status": "verified_official",
+                    "use_for_load_bearing": True,
+                    "not_load_bearing_reason": "",
+                    "url": "https://example.test/1",
+                },
+                {
+                    "issue_id": "I02",
+                    "proposition": "争点二",
+                    "source_id": "S08",
+                    "jurisdiction": "中国大陆",
+                    "title": "测试法律",
+                    "issuing_body": "机关",
+                    "source_kind": "law",
+                    "source_tier": "T1",
+                    "article_or_section": "第二条",
+                    "effective_status": "effective",
+                    "exact_quote": "第二条 测试法律规则原文足够长，可以支撑争点二的初步判断。",
+                    "pinpoint": "第二条",
+                    "language": "zh-CN",
+                    "verification_status": "verified_official",
+                    "use_for_load_bearing": True,
+                    "not_load_bearing_reason": "",
+                    "url": "https://example.test/2",
+                },
+            ],
+            "unresolved_source_gaps": [],
+        },
+        next_agent="A3",
+        reason="test",
+    )
+    normalized = SourceVerificationAgent("", "")._normalize_source_pack(state, artifact)
+    source_ids = [source["source_id"] for source in normalized["writes"]["issue_sources"]]
+
+    assert source_ids == ["S01", "S02"]
+    assert len(source_ids) == len(set(source_ids))
+
+
 def test_a2_merge_preserves_better_previous_source():
     from app.service.deep_research_v2.agents.legal_workflow import SourceVerificationAgent
     from app.service.deep_research_v2.artifact_schemas import make_envelope
@@ -300,17 +422,17 @@ def test_a2_merge_preserves_better_previous_source():
     previous = {
         "issue_sources": [{
             "issue_id": "I01",
-            "proposition": "第三方提供",
+            "proposition": "测试命题",
             "source_id": "S09",
             "jurisdiction": "中国大陆",
-            "title": "中华人民共和国个人信息保护法",
-            "issuing_body": "全国人大",
+            "title": "测试法律",
+            "issuing_body": "测试机关",
             "source_kind": "law",
             "source_tier": "T1",
-            "article_or_section": "第二十三条",
+            "article_or_section": "第二条",
             "effective_status": "effective",
-            "exact_quote": "个人信息处理者向其他个人信息处理者提供其处理的个人信息的，应当向个人告知接收方的名称或者姓名、联系方式、处理目的、处理方式和个人信息的种类，并取得个人的单独同意。",
-            "pinpoint": "第二十三条",
+            "exact_quote": "第二条 测试法律规则原文足够长，可以支撑当前命题的初步判断，并用于比较来源质量。",
+            "pinpoint": "第二条",
             "language": "zh-CN",
             "verification_status": "verified_official",
             "use_for_load_bearing": True,
@@ -325,16 +447,16 @@ def test_a2_merge_preserves_better_previous_source():
         writes={
             "issue_sources": [{
                 "issue_id": "I01",
-                "proposition": "第三方提供",
+                "proposition": "测试命题",
                 "source_id": "S01",
                 "jurisdiction": "中国大陆",
-                "title": "个人信息保护法解读",
+                "title": "测试法律解读",
                 "issuing_body": "地方政府",
                 "source_kind": "law",
                 "source_tier": "T1",
                 "article_or_section": "待定位",
                 "effective_status": "unknown",
-                "exact_quote": "首页 登录 注册 个人信息保护法解读",
+                "exact_quote": "首页 登录 注册 测试法律解读",
                 "pinpoint": "待定位",
                 "language": "zh-CN",
                 "verification_status": "verified_official",
@@ -349,7 +471,7 @@ def test_a2_merge_preserves_better_previous_source():
     )
     merged = SourceVerificationAgent("", "")._merge_with_previous_sources(state, weak, previous)
 
-    assert any(source["article_or_section"] == "第二十三条" and source["use_for_load_bearing"] for source in merged["writes"]["issue_sources"])
+    assert any(source["article_or_section"] == "第二条" and source["use_for_load_bearing"] for source in merged["writes"]["issue_sources"])
 
 
 def test_a3_user_statement_is_partially_verified():
@@ -362,13 +484,13 @@ def test_a3_user_statement_is_partially_verified():
         agent="A1",
         artifact_id="scope_brief",
         writes={
-            "task_type": "model_defined_privacy_ai_upload",
+            "task_type": "model_defined_task",
             "jurisdiction": {"primary": "中国大陆", "others": [], "status": "assumed", "jurisdiction_candidates": [], "why_unknown": ""},
-            "issue_tree": [{"issue_id": "I01", "question": "测试", "priority": "P0", "evidence_needed": ["平台条款"]}],
+            "issue_tree": [{"issue_id": "I01", "question": "测试", "priority": "P0", "evidence_needed": ["关键材料二"]}],
             "facts_known": ["用户说自己上传了材料"],
             "facts_assumed": [],
-            "facts_missing": ["AI 工具名称"],
-            "source_targets": ["个人信息保护法"],
+            "facts_missing": ["关键材料一"],
+            "source_targets": ["测试依据"],
             "clarification_questions": [],
             "human_review": {"required": False, "reasons": []},
         },
@@ -379,8 +501,8 @@ def test_a3_user_statement_is_partially_verified():
     artifact = EvidenceCatalogAgent("", "")._fallback(state)
 
     assert artifact["writes"]["facts"][0]["status"] == "partially_verified"
-    assert "AI 工具名称" in artifact["writes"]["missing_materials"]
-    assert "平台条款" in artifact["writes"]["missing_materials"]
+    assert "关键材料一" in artifact["writes"]["missing_materials"]
+    assert "关键材料二" in artifact["writes"]["missing_materials"]
 
 
 def test_a3_missing_materials_object_coercion():
@@ -425,10 +547,32 @@ def test_a4_analysis_nested_writes_coercion():
     assert "writes" not in coerced["writes"]
 
 
+def test_a4_analysis_nested_envelope_coercion():
+    from app.service.deep_research_v2.agents.legal_workflow import _coerce_analysis_draft_shape
+
+    artifact = {
+        "writes": {
+            "meta": {"agent": "A4"},
+            "writes": {
+                "issue_analysis": [],
+                "risk_register": [],
+                "action_plan": [],
+                "report_markdown": "## 核心结论\n\n## 法律依据\n\n## 行动建议\n\nAI生成，仅供参考",
+                "citation_index": [],
+                "human_review": {"required": False, "reasons": []},
+            },
+        }
+    }
+    coerced = _coerce_analysis_draft_shape(artifact)
+
+    assert "report_markdown" in coerced["writes"]
+    assert "meta" not in coerced["writes"]
+
+
 def test_a4_fallback_is_user_facing_and_not_template_bound():
     from app.service.deep_research_v2.agents.legal_workflow import LegalAnalysisDraftAgent
 
-    state = {"query": "未经同事同意用 AI 换脸和配音制作搞笑视频并被转发", "session_id": "s1"}
+    state = {"query": "用户陈述某项行为引发争议，需要判断法律责任。", "session_id": "s1"}
     artifact = LegalAnalysisDraftAgent("", "")._fallback(state)
     report = artifact["writes"]["report_markdown"]
     actions = artifact["writes"]["action_plan"]
@@ -438,9 +582,7 @@ def test_a4_fallback_is_user_facing_and_not_template_bound():
     assert "免责声明" not in report
     assert "source_pack" not in report and "evidence_matrix" not in report and "工件" not in report
     assert "核心结论" in report and "法律依据" in report and "行动建议" in report
-    assert "不能直接等同于“已经发生泄露”" not in report
     assert len({action["description"] for action in actions}) >= 6
-    assert not any(action["description"] == "补齐事实材料、保留处理记录，并在取得明确授权或完成法源复核后再对外作确定性表述。" for action in actions)
 
 
 def test_a4_fallback_does_not_inject_legacy_topic_templates():
@@ -482,6 +624,435 @@ def test_a4_fallback_does_not_inject_legacy_topic_templates():
     assert "pending_verification" not in report
 
 
+def test_a4_fallback_addresses_qa_quality_findings():
+    from app.service.deep_research_v2.agents.legal_workflow import LegalAnalysisDraftAgent
+    from app.service.deep_research_v2.state import put_artifact
+    from app.service.deep_research_v2.artifact_schemas import make_envelope
+
+    state = {"query": "用户陈述某项行为引发争议并产生后续影响。", "session_id": "s1"}
+    scope = make_envelope(
+        agent="A1",
+        artifact_id="scope_brief",
+        writes={
+            "task_type": "model_defined_dispute",
+            "jurisdiction": {"primary": "中国大陆", "others": [], "status": "assumed", "jurisdiction_candidates": [], "why_unknown": ""},
+            "issue_tree": [
+                {"issue_id": "I01", "question": "争点一的法律判断", "priority": "P0", "evidence_needed": ["关键材料一"]},
+                {"issue_id": "I02", "question": "争点二的责任范围", "priority": "P1", "evidence_needed": ["关键材料二"]},
+            ],
+            "facts_known": ["用户陈述某项行为引发争议"],
+            "facts_assumed": [],
+            "facts_missing": ["关键材料一", "关键材料二"],
+            "source_targets": ["争点一 依据", "争点二 责任"],
+            "clarification_questions": [],
+            "human_review": {"required": True, "reasons": ["需要核验关键材料"]},
+        },
+        next_agent="A2",
+        reason="test",
+    )
+    source_pack = make_envelope(
+        agent="A2",
+        artifact_id="source_pack",
+        writes={
+            "issue_sources": [{
+                "issue_id": "I01",
+                "proposition": "争点一可参考的可比来源",
+                "source_id": "S01",
+                "jurisdiction": "中国大陆",
+                "title": "可比来源一",
+                "issuing_body": "人民法院",
+                "source_kind": "case",
+                "source_tier": "T3",
+                "article_or_section": "第一条",
+                "effective_status": "effective",
+                "exact_quote": "第一条 该可比来源规则原文足够长，可以支撑争点一的初步判断。",
+                "pinpoint": "第一条",
+                "language": "zh-CN",
+                "verification_status": "verified_official",
+                "use_for_load_bearing": True,
+                "not_load_bearing_reason": "",
+                "url": "https://example.test/case",
+            }],
+            "unresolved_source_gaps": [],
+        },
+        next_agent="A3",
+        reason="test",
+    )
+    evidence_matrix = make_envelope(
+        agent="A3",
+        artifact_id="evidence_matrix",
+        writes={
+            "facts": [{"fact_id": "F01", "statement": "用户陈述某项行为引发争议", "evidence_ids": ["E01"], "status": "partially_verified"}],
+            "evidence_items": [{"evidence_id": "E01", "source_type": "user_material", "locator": "用户问题", "excerpt": "用户陈述", "read_status": "read"}],
+            "issue_evidence_matrix": [
+                {"issue_id": "I01", "supporting_evidence": ["E01"], "conflicting_evidence": [], "missing_evidence": ["关键材料一"]},
+                {"issue_id": "I02", "supporting_evidence": ["E01"], "conflicting_evidence": [], "missing_evidence": ["关键材料二"]},
+            ],
+            "material_read_status": [],
+            "missing_materials": ["关键材料一", "关键材料二"],
+        },
+        next_agent="A4",
+        reason="test",
+    )
+    put_artifact(state, "scope_brief", scope)
+    put_artifact(state, "source_pack", source_pack)
+    put_artifact(state, "evidence_matrix", evidence_matrix)
+    artifact = LegalAnalysisDraftAgent("", "")._fallback(state)
+    report = artifact["writes"]["report_markdown"]
+    actions = [action["description"] for action in artifact["writes"]["action_plan"]]
+
+    assert "可比来源一 第一条（S01）" in report
+    assert "建议按以下顺序执行" in report
+    assert actions[0].startswith("暂停")
+    assert actions[1].startswith("完整保存")
+    assert "关键材料一：主要影响" in report
+    assert "争点二的责任范围" in report
+
+
+def test_a4_normalizes_action_order_and_issue_source_binding():
+    from app.service.deep_research_v2.agents.legal_workflow import LegalAnalysisDraftAgent
+    from app.service.deep_research_v2.state import put_artifact
+    from app.service.deep_research_v2.artifact_schemas import make_envelope
+
+    state = {"query": "测试", "session_id": "s1"}
+    scope = make_envelope(
+        agent="A1",
+        artifact_id="scope_brief",
+        writes={
+            "task_type": "model_defined_test",
+            "jurisdiction": {"primary": "中国大陆", "others": [], "status": "assumed", "jurisdiction_candidates": [], "why_unknown": ""},
+            "issue_tree": [
+                {"issue_id": "I01", "question": "第一个争点", "priority": "P0", "evidence_needed": []},
+                {"issue_id": "I02", "question": "第二个争点", "priority": "P0", "evidence_needed": []},
+            ],
+            "facts_known": ["测试事实"],
+            "facts_assumed": [],
+            "facts_missing": [],
+            "source_targets": ["测试"],
+            "clarification_questions": [],
+            "human_review": {"required": False, "reasons": []},
+        },
+        next_agent="A2",
+        reason="test",
+    )
+    source_pack = make_envelope(
+        agent="A2",
+        artifact_id="source_pack",
+        writes={
+            "issue_sources": [
+                {
+                    "issue_id": "I01",
+                    "proposition": "第一个争点依据",
+                    "source_id": "S01",
+                    "jurisdiction": "中国大陆",
+                    "title": "测试法源一",
+                    "issuing_body": "机关",
+                    "source_kind": "law",
+                    "source_tier": "T1",
+                    "article_or_section": "第一条",
+                    "effective_status": "effective",
+                    "exact_quote": "第一条 测试法源一用于支撑第一个争点，文本足够长以满足规则原文要求。",
+                    "pinpoint": "第一条",
+                    "language": "zh-CN",
+                    "verification_status": "verified_official",
+                    "use_for_load_bearing": True,
+                    "not_load_bearing_reason": "",
+                    "url": "https://example.test/1",
+                },
+                {
+                    "issue_id": "I02",
+                    "proposition": "第二个争点依据",
+                    "source_id": "S02",
+                    "jurisdiction": "中国大陆",
+                    "title": "测试法源二",
+                    "issuing_body": "机关",
+                    "source_kind": "law",
+                    "source_tier": "T1",
+                    "article_or_section": "第二条",
+                    "effective_status": "effective",
+                    "exact_quote": "第二条 测试法源二用于支撑第二个争点，文本足够长以满足规则原文要求。",
+                    "pinpoint": "第二条",
+                    "language": "zh-CN",
+                    "verification_status": "verified_official",
+                    "use_for_load_bearing": True,
+                    "not_load_bearing_reason": "",
+                    "url": "https://example.test/2",
+                },
+                {
+                    "issue_id": "I01",
+                    "proposition": "歧义编号争点一",
+                    "source_id": "S03",
+                    "jurisdiction": "中国大陆",
+                    "title": "歧义法源一",
+                    "issuing_body": "机关",
+                    "source_kind": "law",
+                    "source_tier": "T1",
+                    "article_or_section": "第三条",
+                    "effective_status": "effective",
+                    "exact_quote": "第三条 歧义法源一用于支撑第一个争点，文本足够长以满足规则原文要求。",
+                    "pinpoint": "第三条",
+                    "language": "zh-CN",
+                    "verification_status": "verified_official",
+                    "use_for_load_bearing": True,
+                    "not_load_bearing_reason": "",
+                    "url": "https://example.test/3",
+                },
+                {
+                    "issue_id": "I02",
+                    "proposition": "歧义编号争点二",
+                    "source_id": "S03",
+                    "jurisdiction": "中国大陆",
+                    "title": "歧义法源二",
+                    "issuing_body": "机关",
+                    "source_kind": "law",
+                    "source_tier": "T1",
+                    "article_or_section": "第四条",
+                    "effective_status": "effective",
+                    "exact_quote": "第四条 歧义法源二用于支撑第二个争点，文本足够长以满足规则原文要求。",
+                    "pinpoint": "第四条",
+                    "language": "zh-CN",
+                    "verification_status": "verified_official",
+                    "use_for_load_bearing": True,
+                    "not_load_bearing_reason": "",
+                    "url": "https://example.test/4",
+                },
+            ],
+            "unresolved_source_gaps": [],
+        },
+        next_agent="A3",
+        reason="test",
+    )
+    evidence_matrix = make_envelope(
+        agent="A3",
+        artifact_id="evidence_matrix",
+        writes={
+            "facts": [{"fact_id": "F01", "statement": "测试事实", "evidence_ids": ["E01"], "status": "partially_verified"}],
+            "evidence_items": [{"evidence_id": "E01", "source_type": "user_material", "locator": "用户问题", "excerpt": "测试事实", "read_status": "read"}],
+            "issue_evidence_matrix": [],
+            "material_read_status": [],
+            "missing_materials": [],
+        },
+        next_agent="A4",
+        reason="test",
+    )
+    put_artifact(state, "scope_brief", scope)
+    put_artifact(state, "source_pack", source_pack)
+    put_artifact(state, "evidence_matrix", evidence_matrix)
+
+    artifact = make_envelope(
+        agent="A4",
+        artifact_id="analysis_draft",
+        writes={
+            "issue_analysis": [
+                {"issue_id": "I01", "conclusion": "第一个争点", "reasoning": "推理", "source_ids": ["S03", "S01"], "evidence_ids": ["E01"], "certainty": "medium"},
+                {"issue_id": "I02", "conclusion": "第二个争点", "reasoning": "推理", "source_ids": ["S03", "S01"], "evidence_ids": ["E01"], "certainty": "medium"},
+            ],
+            "risk_register": [
+                {"risk_id": "R01", "title": "第一个风险", "level": "high", "priority": "P0", "source_ids": ["S03", "S01"], "evidence_ids": ["E01"]},
+                {"risk_id": "R02", "title": "第二个风险", "level": "high", "priority": "P0", "source_ids": ["S03", "S01"], "evidence_ids": ["E01"]},
+            ],
+            "action_plan": [
+                {"action_id": "A01", "priority": "P0", "owner": "用户", "description": "向平台提交投诉并请求删除。", "depends_on": ["A04"]},
+                {"action_id": "A02", "priority": "P0", "owner": "用户", "description": "证据保全：先截图录屏保存传播页面。", "depends_on": []},
+                {"action_id": "A03", "priority": "紧急", "owner": "用户", "description": "立即止损：停止继续传播。", "depends_on": []},
+                {"action_id": "A04", "priority": "P1", "owner": "用户", "description": "主动沟通并书面说明情况。", "depends_on": []},
+                {"action_id": "A05", "priority": "P1", "owner": "用户", "description": "协商赔偿和解方案。", "depends_on": []},
+                {"action_id": "A06", "priority": "P2", "owner": "用户", "description": "长期预防：建立授权审查机制。", "depends_on": []},
+            ],
+            "report_markdown": "## 核心结论\n本段误写 source_pack、A1 和 artifact，但应被清洗。\n\n## 法律依据与类案参考\n测试\n\n## 行动建议\n测试\n\n## 待核验材料\n测试\n\nAI生成，仅供参考",
+            "citation_index": [{"citation_tag": "〔S01,第一条〕", "source_id": "S01"}],
+            "human_review": {"required": False, "reasons": []},
+        },
+        next_agent="A5",
+        reason="test",
+    )
+    normalized = LegalAnalysisDraftAgent("", "")._normalize_analysis_artifact(state, artifact)["writes"]
+
+    assert normalized["issue_analysis"][1]["source_ids"] == ["S02"]
+    assert normalized["risk_register"][1]["source_ids"] == ["S02"]
+    assert "S03" not in normalized["issue_analysis"][0]["source_ids"]
+    assert "S03" not in normalized["issue_analysis"][1]["source_ids"]
+    descriptions = [action["description"] for action in normalized["action_plan"]]
+    assert descriptions == [
+        "向平台提交投诉并请求删除。",
+        "证据保全：先截图录屏保存传播页面。",
+        "立即止损：停止继续传播。",
+        "主动沟通并书面说明情况。",
+        "协商赔偿和解方案。",
+        "长期预防：建立授权审查机制。",
+    ]
+    assert normalized["action_plan"][2]["priority"] == "P1"
+    assert all(action["depends_on"] == [] for action in normalized["action_plan"])
+
+
+def test_a4_maps_fact_ids_to_valid_evidence_ids_and_drops_unknowns():
+    from app.service.deep_research_v2.agents.legal_workflow import LegalAnalysisDraftAgent, QualityRoutingAgent
+    from app.service.deep_research_v2.state import put_artifact
+    from app.service.deep_research_v2.artifact_schemas import make_envelope
+
+    state = {"query": "测试", "session_id": "s1"}
+    scope = make_envelope(
+        agent="A1",
+        artifact_id="scope_brief",
+        writes={
+            "task_type": "model_defined_test",
+            "jurisdiction": {"primary": "中国大陆", "others": [], "status": "assumed", "jurisdiction_candidates": [], "why_unknown": ""},
+            "issue_tree": [
+                {"issue_id": "I01", "question": "第一个争点", "priority": "P0", "evidence_needed": []},
+                {"issue_id": "I02", "question": "第二个争点", "priority": "P1", "evidence_needed": []},
+                {"issue_id": "I03", "question": "第三个争点", "priority": "P1", "evidence_needed": []},
+            ],
+            "facts_known": ["测试事实"],
+            "facts_assumed": [],
+            "facts_missing": [],
+            "source_targets": ["测试"],
+            "clarification_questions": [],
+            "human_review": {"required": False, "reasons": []},
+        },
+        next_agent="A2",
+        reason="test",
+    )
+    source_pack = make_envelope(
+        agent="A2",
+        artifact_id="source_pack",
+        writes={
+            "issue_sources": [
+                {
+                    "issue_id": f"I{index:02d}",
+                    "proposition": f"争点 {index} 依据",
+                    "source_id": f"S{index:02d}",
+                    "jurisdiction": "中国大陆",
+                    "title": f"测试法源 {index}",
+                    "issuing_body": "机关",
+                    "source_kind": "law",
+                    "source_tier": "T1",
+                    "article_or_section": f"第{index}条",
+                    "effective_status": "effective",
+                    "exact_quote": f"第{index}条 测试法源规则原文足够长，可以支撑争点 {index} 的初步判断。",
+                    "pinpoint": f"第{index}条",
+                    "language": "zh-CN",
+                    "verification_status": "verified_official",
+                    "use_for_load_bearing": True,
+                    "not_load_bearing_reason": "",
+                    "url": f"https://example.test/{index}",
+                }
+                for index in range(1, 4)
+            ],
+            "unresolved_source_gaps": [],
+        },
+        next_agent="A3",
+        reason="test",
+    )
+    evidence_matrix = make_envelope(
+        agent="A3",
+        artifact_id="evidence_matrix",
+        writes={
+            "facts": [
+                {"fact_id": "F03", "statement": "事实三", "evidence_ids": ["E01"], "status": "partially_verified"},
+                {"fact_id": "F04", "statement": "事实四", "evidence_ids": ["E02"], "status": "partially_verified"},
+                {"fact_id": "F07", "statement": "事实七", "evidence_ids": ["E01"], "status": "partially_verified"},
+            ],
+            "evidence_items": [
+                {"evidence_id": "E01", "source_type": "user_material", "locator": "用户问题", "excerpt": "材料一", "read_status": "read"},
+                {"evidence_id": "E02", "source_type": "user_material", "locator": "用户问题", "excerpt": "材料二", "read_status": "read"},
+            ],
+            "issue_evidence_matrix": [],
+            "material_read_status": [],
+            "missing_materials": [],
+        },
+        next_agent="A4",
+        reason="test",
+    )
+    put_artifact(state, "scope_brief", scope)
+    put_artifact(state, "source_pack", source_pack)
+    put_artifact(state, "evidence_matrix", evidence_matrix)
+
+    analysis = make_envelope(
+        agent="A4",
+        artifact_id="analysis_draft",
+        writes={
+            "issue_analysis": [
+                {"issue_id": "I01", "conclusion": "结论一", "reasoning": "推理一", "source_ids": ["S01"], "evidence_ids": ["E01", "F03", "F07", "BAD01"], "certainty": "medium"},
+                {"issue_id": "I02", "conclusion": "结论二", "reasoning": "推理二", "source_ids": ["S02"], "evidence_ids": ["F04"], "certainty": "medium"},
+                {"issue_id": "I03", "conclusion": "结论三", "reasoning": "推理三", "source_ids": ["S03"], "evidence_ids": ["F99", "BAD01"], "certainty": "low"},
+            ],
+            "risk_register": [
+                {"risk_id": "R01", "title": "风险一", "level": "high", "priority": "P0", "source_ids": ["S01"], "evidence_ids": ["F03", "UNKNOWN"]},
+                {"risk_id": "R02", "title": "风险二", "level": "medium", "priority": "P1", "source_ids": ["S02"], "evidence_ids": ["F04"]},
+            ],
+            "action_plan": [
+                {"action_id": f"A{index}", "priority": "P1", "owner": "用户", "description": f"具体动作 {index}", "depends_on": []}
+                for index in range(6)
+            ],
+            "report_markdown": "## 核心结论\n测试结论。\n\n## 法律依据与类案参考\n测试来源。\n\n## 行动建议\n测试行动。\n\nAI生成，仅供参考",
+            "citation_index": [],
+            "human_review": {"required": False, "reasons": []},
+        },
+        next_agent="A5",
+        reason="test",
+    )
+    normalized_artifact = LegalAnalysisDraftAgent("", "")._normalize_analysis_artifact(state, analysis)
+    normalized = normalized_artifact["writes"]
+
+    assert normalized["issue_analysis"][0]["evidence_ids"] == ["E01"]
+    assert normalized["issue_analysis"][1]["evidence_ids"] == ["E02"]
+    assert normalized["issue_analysis"][2]["evidence_ids"] == ["E01"]
+    assert normalized["risk_register"][0]["evidence_ids"] == ["E01"]
+    assert normalized["risk_register"][1]["evidence_ids"] == ["E02"]
+
+    put_artifact(state, "analysis_draft", normalized_artifact)
+    verdict = QualityRoutingAgent("", "")._deterministic_verdict(state)["writes"]
+    assert not any("evidence_matrix 外证据" in failure for failure in verdict["hard_failures"])
+
+
+def test_prompts_cover_qa_quality_findings():
+    from app.service.deep_research_v2.prompts.legal_prompts import A4_ANALYSIS_SYSTEM_PROMPT, A5_QA_SYSTEM_PROMPT
+
+    assert "绑定具体 source_id" in A4_ANALYSIS_SYSTEM_PROMPT
+    assert "F 编号只是 facts 的事实编号" in A4_ANALYSIS_SYSTEM_PROMPT
+    assert "行动建议必须按执行顺序组织" in A4_ANALYSIS_SYSTEM_PROMPT
+    assert "每项必须说明：缺什么材料、影响哪个结论" in A4_ANALYSIS_SYSTEM_PROMPT
+    assert "可比来源没有绑定 source_id" in A5_QA_SYSTEM_PROMPT
+    assert "行动建议执行顺序混乱" in A5_QA_SYSTEM_PROMPT
+    assert "待核验材料没有说明对结论强弱的影响" in A5_QA_SYSTEM_PROMPT
+
+
+def test_a5_still_blocks_unknown_evidence_ids():
+    from app.service.deep_research_v2.agents.legal_workflow import QualityRoutingAgent
+
+    state = {
+        "query": "测试",
+        "session_id": "s1",
+        "artifacts": {
+            "scope_brief": {"writes": {"jurisdiction": {"primary": "中国大陆"}, "human_review": {"required": False, "reasons": []}}},
+            "source_pack": {"writes": {"issue_sources": [{
+                "source_id": "S01",
+                "issue_id": "I01",
+                "title": "测试法源",
+                "source_kind": "law",
+                "article_or_section": "第一条",
+                "pinpoint": "第一条",
+                "source_tier": "T1",
+                "exact_quote": "第一条 测试法源规则原文足够长，可以承载当前结构性测试结论。",
+                "use_for_load_bearing": True,
+                "url": "https://example.test/law",
+            }], "unresolved_source_gaps": []}},
+            "evidence_matrix": {"writes": {"evidence_items": [{"evidence_id": "E01"}], "missing_materials": [], "material_read_status": []}},
+            "analysis_draft": {"writes": {
+                "report_markdown": "# 报告\n\n## 核心结论\n测试结论。\n\n## 法律依据与类案参考\n测试来源。\n\n## 行动建议\n行动\n\nAI生成，仅供参考",
+                "risk_register": [{"risk_id": "R01", "title": "测试风险", "level": "high", "priority": "P0", "source_ids": ["S01"], "evidence_ids": ["E99"]}],
+                "issue_analysis": [{"issue_id": "I01", "source_ids": ["S01"], "evidence_ids": ["E99"]}],
+                "action_plan": [{"action_id": f"A{i}", "priority": "P1", "owner": "用户", "description": f"具体动作 {i}", "depends_on": []} for i in range(6)],
+                "human_review": {"required": False, "reasons": []},
+            }},
+        },
+    }
+    verdict = QualityRoutingAgent("", "")._deterministic_verdict(state)["writes"]
+
+    assert verdict["verdict"] == "needs_evidence_rebuild"
+    assert any("E99" in failure and "evidence_matrix 外证据" in failure for failure in verdict["hard_failures"])
+
+
 def test_a5_blocks_bad_report_and_llm_approval_override():
     from app.service.deep_research_v2.agents.legal_workflow import QualityRoutingAgent
     from app.service.deep_research_v2.artifact_schemas import make_envelope
@@ -503,12 +1074,12 @@ def test_a5_blocks_bad_report_and_llm_approval_override():
                 "use_for_load_bearing": True,
                 "url": "https://www.cac.gov.cn/test",
             }], "unresolved_source_gaps": []}},
-            "evidence_matrix": {"writes": {"evidence_items": [{"evidence_id": "E01"}], "missing_materials": ["平台条款"], "material_read_status": []}},
+            "evidence_matrix": {"writes": {"evidence_items": [{"evidence_id": "E01"}], "missing_materials": ["关键材料"], "material_read_status": []}},
             "analysis_draft": {"writes": {
-                "report_markdown": "# 报告\n\n## 核心结论\n本报告基于 source_pack 和 evidence_matrix。暂无额外待核验事项。\n\n## 法律依据与类案参考\n案例\n\n## 行动建议\n行动\n\nAI生成，仅供参考",
+                "report_markdown": "# 报告\n\n## 核心结论\n测试结论。\n\n## 法律依据与类案参考\n测试来源。\n\n## 行动建议\n行动\n\nAI生成，仅供参考",
                 "risk_register": [{"risk_id": "R01", "title": "是否有风险？", "level": "high", "priority": "P0", "source_ids": ["S01"], "evidence_ids": ["E01"]}],
                 "issue_analysis": [{"issue_id": "I01", "source_ids": ["S01"]}],
-                "action_plan": [{"action_id": f"A{i}", "priority": "P0", "owner": "用户", "description": "补齐事实材料、保留处理记录，并在取得明确授权或完成法源复核后再对外作确定性表述。", "depends_on": []} for i in range(6)],
+                "action_plan": [{"action_id": f"A{i}", "priority": "P0", "owner": "用户", "description": "重复动作", "depends_on": []} for i in range(6)],
                 "human_review": {"required": False, "reasons": []},
             }},
         },
@@ -568,12 +1139,20 @@ def main():
     test_a2_short_query_builder()
     test_a2_source_gap_shape_coercion()
     test_a2_downgrades_unpinpointed_load_bearing_source()
+    test_a2_source_gaps_are_structural_not_topic_keyword_based()
+    test_a2_normalizes_duplicate_source_ids()
     test_a2_merge_preserves_better_previous_source()
     test_a3_user_statement_is_partially_verified()
     test_a3_missing_materials_object_coercion()
     test_a4_analysis_nested_writes_coercion()
+    test_a4_analysis_nested_envelope_coercion()
     test_a4_fallback_is_user_facing_and_not_template_bound()
     test_a4_fallback_does_not_inject_legacy_topic_templates()
+    test_a4_fallback_addresses_qa_quality_findings()
+    test_a4_normalizes_action_order_and_issue_source_binding()
+    test_a4_maps_fact_ids_to_valid_evidence_ids_and_drops_unknowns()
+    test_prompts_cover_qa_quality_findings()
+    test_a5_still_blocks_unknown_evidence_ids()
     test_a5_blocks_bad_report_and_llm_approval_override()
     test_a5_qa_shape_coercion()
     print("All legal research component tests passed.")

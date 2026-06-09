@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: #c4c4c4;
+  color: var(--app-muted-soft);
   font-size: 13px;
   gap: 12px;
 }
@@ -34,15 +34,15 @@
   align-items: flex-start;
   gap: 14px;
   padding: 16px 18px;
-  background: #fff;
+  background: var(--app-surface-strong);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid transparent;
 
   &:hover {
-    background: #fafafa;
-    border-color: rgba(0, 0, 0, 0.04);
+    background: #fbfcf8;
+    border-color: rgba(15, 118, 110, 0.18);
 
     .arrow {
       opacity: 1;
@@ -50,7 +50,7 @@
     }
 
     .title {
-      color: #1a1a1a;
+      color: var(--app-accent-dark);
     }
   }
 }
@@ -59,18 +59,18 @@
   flex-shrink: 0;
   width: 36px;
   height: 36px;
-  background: #fafafa;
+  background: #edf5f2;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #999;
+  color: var(--app-muted);
   font-size: 15px;
   transition: all 0.2s;
 
   .item:hover & {
-    background: #f0f0f0;
-    color: #666;
+    background: var(--app-accent-soft);
+    color: var(--app-accent-dark);
   }
 }
 
@@ -82,7 +82,7 @@
 .title {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--app-text);
   line-height: 1.5;
   margin-bottom: 6px;
   transition: color 0.2s;
@@ -90,7 +90,7 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  letter-spacing: -0.1px;
+  letter-spacing: 0;
 }
 
 .meta {
