@@ -73,8 +73,8 @@ def doc_to_response(doc: Document) -> DocumentResponse:
 
 
 async def process_document(document_id: str, file_path: str, kb_name: str, db_session_factory):
-    """后台处理文档（使用 DocMind 解析、向量化、存储到ES）"""
-    from service.docmind_service import process_document_with_docmind
+    """后台处理文档（本地解析/OCR、向量化、存储到 Milvus）"""
+    from service.local_document_ingestion import process_document_with_local_parser
 
     # 创建新的数据库会话
     db = db_session_factory()
@@ -92,8 +92,8 @@ async def process_document(document_id: str, file_path: str, kb_name: str, db_se
             # 使用知识库名称作为ES索引名
             index_name = f"kb_{kb_name}".lower().replace(" ", "_")
 
-            # 使用 DocMind 处理文档
-            result = process_document_with_docmind(
+            # 使用本地解析器处理文档
+            result = process_document_with_local_parser(
                 file_path=file_path,
                 file_name=doc.filename,
                 index_name=index_name,

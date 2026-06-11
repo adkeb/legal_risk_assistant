@@ -261,6 +261,16 @@ def process_document_with_docmind(
     Returns:
         处理结果
     """
+    if os.getenv("DOCUMENT_PARSER_BACKEND", "local").lower() != "docmind":
+        from service.local_document_ingestion import process_document_with_local_parser
+
+        return process_document_with_local_parser(
+            file_path=file_path,
+            file_name=file_name,
+            index_name=index_name,
+            chunk_size=chunk_size,
+        )
+
     result = {
         "success": False,
         "message": "",

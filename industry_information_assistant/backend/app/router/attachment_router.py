@@ -67,26 +67,16 @@ async def process_attachment(attachment_id: str, file_path: str, db_session_fact
         db.commit()
 
         try:
-            content_text = ""
-            ext = get_file_extension(att.filename)
+            from service.local_document_parser import parse_document
 
-            # 简单的文本提取（可以扩展为使用 DocMind）
-            if ext in {'.txt', '.md', '.py', '.js', '.ts', '.json', '.yaml', '.yml', '.xml', '.csv', '.html'}:
-                # 直接读取文本文件
-                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                    content_text = f.read()
-            elif ext == '.pdf':
-                # PDF 需要特殊处理，这里暂时跳过
-                # 可以后续集成 DocMind 或 PyPDF2
-                content_text = f"[PDF 文件: {att.filename}]"
-            elif ext in {'.docx', '.doc'}:
-                # Word 文档需要特殊处理
-                content_text = f"[Word 文档: {att.filename}]"
-            elif ext in {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'}:
-                # 图片文件
-                content_text = f"[图片: {att.filename}]"
-            else:
-                content_text = f"[文件: {att.filename}]"
+            parse_result = parse_document(file_path, att.filename)
+            content_text = parse_result.text
+            if parse_result.warnings:
+                logger.warning(
+                    "附件解析警告 %s: %s",
+                    att.filename,
+                    "; ".join(parse_result.warnings),
+                )
 
             # 限制内容长度
             if len(content_text) > 50000:

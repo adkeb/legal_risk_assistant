@@ -9,7 +9,7 @@ from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Query
 from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 
 from service import DocumentService, ServiceConfig
-from service.docmind_service import process_document_with_docmind
+from service.local_document_ingestion import process_document_with_local_parser
 from schemas.document import (
     DeleteDocumentsRequest,
     RetrieveDocumentsRequest,
@@ -31,7 +31,8 @@ def get_document_service():
 
 # 支持的文件类型
 SUPPORTED_FILE_TYPES = {
-    '.pdf', '.docx', '.xlsx', '.xls', '.txt'
+    '.pdf', '.docx', '.xlsx', '.txt', '.md', '.html', '.csv', '.json',
+    '.jpg', '.jpeg', '.png', '.webp', '.bmp'
 }
 
 @router.post("/upload", status_code=HTTP_200_OK, response_model=UploadDocumentResponse)
@@ -68,8 +69,8 @@ async def upload_document(
             content = await file.read()
             temp_file.write(content)
         
-        # 使用 DocMind 处理文档并存储到 Milvus
-        processing_result = process_document_with_docmind(
+        # 使用本地解析/OCR处理文档并存储到 Milvus
+        processing_result = process_document_with_local_parser(
             file_path=temp_file_path,
             file_name=file.filename,
             index_name=index_name,
@@ -256,4 +257,4 @@ async def retrieve_documents(
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error retrieving documents: {str(e)}"
-        ) 
+        )
