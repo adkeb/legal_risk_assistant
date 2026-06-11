@@ -97,6 +97,8 @@ class IssueSource(StrictModel):
 class SourcePackWrites(StrictModel):
     issue_sources: List[IssueSource]
     unresolved_source_gaps: List[str]
+    search_summary: Dict[str, Any] = Field(default_factory=dict)
+    source_health: str = "unknown"
 
 
 class FactItem(StrictModel):
@@ -188,11 +190,11 @@ class QAIssue(StrictModel):
     severity: str = Field(pattern="^(critical|major|minor)$")
     type: str
     message: str
-    route_to: str = Field(pattern="^(A1|A2|A3|A4)$")
+    route_to: str = Field(pattern="^(scope_definition|source_verification|evidence_catalog|legal_analysis_draft)$")
 
 
 class QARoute(StrictModel):
-    next_agent: str = Field(pattern="^(A1|A2|A3|A4|END)$")
+    next_agent: str = Field(pattern="^(scope_definition|source_verification|evidence_catalog|legal_analysis_draft|END)$")
     instruction: str
 
 

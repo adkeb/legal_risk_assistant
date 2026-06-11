@@ -40,6 +40,14 @@ from .agents import (
     LegalAnalysisDraftAgent,
     QualityRoutingAgent,
 )
+from .agents.workflow_utils import (
+    END,
+    EVIDENCE_CATALOG,
+    LEGAL_ANALYSIS_DRAFT,
+    QUALITY_ROUTING,
+    SCOPE_DEFINITION,
+    SOURCE_VERIFICATION,
+)
 from .trace_recorder import (
     CURRENT_AGENT_RUN_ID,
     CURRENT_TRACE,
@@ -75,30 +83,30 @@ logger = logging.getLogger("DeepResearchGraph")
 
 
 class DeepResearchGraph:
-    """Legal-risk workflow: A1 scope -> A2 sources -> A3 evidence -> A4 report -> A5 QA."""
+    """Legal-risk workflow: scope -> sources -> evidence -> report -> QA."""
 
     PHASE_RUNS = [
-        ("planning", ResearchPhase.PLANNING, "开始立项定界...", "A1"),
-        ("researching", ResearchPhase.RESEARCHING, "开始法源检索与引注核验...", "A2"),
-        ("analyzing", ResearchPhase.ANALYZING, "开始事实证据编目...", "A3"),
-        ("writing", ResearchPhase.WRITING, "开始法律分析与报告起草...", "A4"),
-        ("reviewing", ResearchPhase.REVIEWING, "开始质量评估与路由...", "A5"),
+        ("planning", ResearchPhase.PLANNING, "开始立项定界...", SCOPE_DEFINITION),
+        ("researching", ResearchPhase.RESEARCHING, "开始法源检索与引注核验...", SOURCE_VERIFICATION),
+        ("analyzing", ResearchPhase.ANALYZING, "开始事实证据编目...", EVIDENCE_CATALOG),
+        ("writing", ResearchPhase.WRITING, "开始法律分析与报告起草...", LEGAL_ANALYSIS_DRAFT),
+        ("reviewing", ResearchPhase.REVIEWING, "开始质量评估与路由...", QUALITY_ROUTING),
     ]
 
     DOWNSTREAM = {
-        "A1": ["A1", "A2", "A3", "A4", "A5"],
-        "A2": ["A2", "A3", "A4", "A5"],
-        "A3": ["A3", "A4", "A5"],
-        "A4": ["A4", "A5"],
-        "A5": ["A5"],
+        SCOPE_DEFINITION: [SCOPE_DEFINITION, SOURCE_VERIFICATION, EVIDENCE_CATALOG, LEGAL_ANALYSIS_DRAFT, QUALITY_ROUTING],
+        SOURCE_VERIFICATION: [SOURCE_VERIFICATION, EVIDENCE_CATALOG, LEGAL_ANALYSIS_DRAFT, QUALITY_ROUTING],
+        EVIDENCE_CATALOG: [EVIDENCE_CATALOG, LEGAL_ANALYSIS_DRAFT, QUALITY_ROUTING],
+        LEGAL_ANALYSIS_DRAFT: [LEGAL_ANALYSIS_DRAFT, QUALITY_ROUTING],
+        QUALITY_ROUTING: [QUALITY_ROUTING],
     }
 
     AGENT_PHASE = {
-        "A1": ("planning", ResearchPhase.PLANNING, "重新立项定界..."),
-        "A2": ("re_researching", ResearchPhase.RE_RESEARCHING, "根据审查反馈补充法源核验..."),
-        "A3": ("analyzing", ResearchPhase.ANALYZING, "根据审查反馈重建证据矩阵..."),
-        "A4": ("revising", ResearchPhase.REVISING, "根据审查反馈修订分析报告..."),
-        "A5": ("reviewing", ResearchPhase.REVIEWING, "重新质量评估..."),
+        SCOPE_DEFINITION: ("planning", ResearchPhase.PLANNING, "重新立项定界..."),
+        SOURCE_VERIFICATION: ("re_researching", ResearchPhase.RE_RESEARCHING, "根据审查反馈补充法源核验..."),
+        EVIDENCE_CATALOG: ("analyzing", ResearchPhase.ANALYZING, "根据审查反馈重建证据矩阵..."),
+        LEGAL_ANALYSIS_DRAFT: ("revising", ResearchPhase.REVISING, "根据审查反馈修订分析报告..."),
+        QUALITY_ROUTING: ("reviewing", ResearchPhase.REVIEWING, "重新质量评估..."),
     }
 
     def __init__(
@@ -145,18 +153,18 @@ class DeepResearchGraph:
             config.agents.quality_routing.model,
         )
         self.agents_by_code = {
-            "A1": self.scope_definition,
-            "A2": self.source_verification,
-            "A3": self.evidence_catalog,
-            "A4": self.legal_analysis_draft,
-            "A5": self.quality_routing,
+            SCOPE_DEFINITION: self.scope_definition,
+            SOURCE_VERIFICATION: self.source_verification,
+            EVIDENCE_CATALOG: self.evidence_catalog,
+            LEGAL_ANALYSIS_DRAFT: self.legal_analysis_draft,
+            QUALITY_ROUTING: self.quality_routing,
         }
         logger.info("DeepResearchGraph initialized with five legal workflow agents.")
-        logger.info("  - A1 ScopeDefinitionAgent: %s", config.agents.scope_definition.model)
-        logger.info("  - A2 SourceVerificationAgent: %s", config.agents.source_verification.model)
-        logger.info("  - A3 EvidenceCatalogAgent: %s", config.agents.evidence_catalog.model)
-        logger.info("  - A4 LegalAnalysisDraftAgent: %s", config.agents.legal_analysis_draft.model)
-        logger.info("  - A5 QualityRoutingAgent: %s", config.agents.quality_routing.model)
+        logger.info("  - scope_definition ScopeDefinitionAgent: %s", config.agents.scope_definition.model)
+        logger.info("  - source_verification SourceVerificationAgent: %s", config.agents.source_verification.model)
+        logger.info("  - evidence_catalog EvidenceCatalogAgent: %s", config.agents.evidence_catalog.model)
+        logger.info("  - legal_analysis_draft LegalAnalysisDraftAgent: %s", config.agents.legal_analysis_draft.model)
+        logger.info("  - quality_routing QualityRoutingAgent: %s", config.agents.quality_routing.model)
 
         self.checkpoint_service = get_checkpoint_service()
         self.graph = None
@@ -417,38 +425,38 @@ class DeepResearchGraph:
                 return {"type": "checkpoint_saved", "phase": state.get("phase", ""), "session_id": session_id}
             return None
 
-        async def run_agent_code(agent_code: str) -> None:
-            phase_name, phase_enum, content = self.AGENT_PHASE[agent_code]
+        async def run_agent_id(agent_id: str) -> None:
+            phase_name, phase_enum, content = self.AGENT_PHASE[agent_id]
             yield_phase = {"type": "phase", "phase": phase_name, "content": content}
             state["phase"] = phase_enum.value
             yield graph_event(yield_phase)
-            async for msg in run_agent_with_streaming(self.agents_by_code[agent_code]):
+            async for msg in run_agent_with_streaming(self.agents_by_code[agent_id]):
                 yield msg
             state["messages"] = []
             cp_event = await save_checkpoint_async({
                 "type": phase_name,
                 "status": "completed",
-                "agent": agent_code,
-                "artifact": self.agents_by_code[agent_code].artifact_key,
+                "agent": agent_id,
+                "artifact": self.agents_by_code[agent_id].artifact_key,
             })
             if cp_event:
                 yield cp_event
 
         try:
-            for step_type, phase_enum, content, agent_code in self.PHASE_RUNS:
+            for step_type, phase_enum, content, agent_id in self.PHASE_RUNS:
                 if await check_cancelled():
                     yield graph_event({"type": "research_cancelled", "message": "研究已取消"})
                     return
                 yield graph_event({"type": "phase", "phase": step_type, "content": content})
                 state["phase"] = phase_enum.value
-                async for msg in run_agent_with_streaming(self.agents_by_code[agent_code]):
+                async for msg in run_agent_with_streaming(self.agents_by_code[agent_id]):
                     yield msg
                 state["messages"] = []
                 cp_event = await save_checkpoint_async({
                     "type": step_type,
                     "status": "completed",
-                    "agent": agent_code,
-                    "artifact": self.agents_by_code[agent_code].artifact_key,
+                    "agent": agent_id,
+                    "artifact": self.agents_by_code[agent_id].artifact_key,
                 })
                 if cp_event:
                     yield cp_event
@@ -456,14 +464,14 @@ class DeepResearchGraph:
             while state.get("iteration", 0) < state.get("max_iterations", 1):
                 route = get_artifact_writes(state, "qa_verdict").get("route") or {}
                 next_agent = route.get("next_agent")
-                if not next_agent or next_agent == "END":
+                if not next_agent or next_agent == END:
                     break
                 state["iteration"] = int(state.get("iteration", 0)) + 1
-                for agent_code in self.DOWNSTREAM.get(next_agent, []):
+                for agent_id in self.DOWNSTREAM.get(next_agent, []):
                     if await check_cancelled():
                         yield graph_event({"type": "research_cancelled", "message": "研究已取消"})
                         return
-                    async for event in run_agent_code(agent_code):
+                    async for event in run_agent_id(agent_id):
                         yield event
 
             state["phase"] = ResearchPhase.COMPLETED.value
@@ -501,9 +509,9 @@ class DeepResearchGraph:
     async def run_sync(self, query: str, session_id: str) -> ResearchState:
         state = create_initial_state(query, session_id)
         state["max_iterations"] = self.max_iterations
-        for _, phase_enum, _, agent_code in self.PHASE_RUNS:
+        for _, phase_enum, _, agent_id in self.PHASE_RUNS:
             state["phase"] = phase_enum.value
-            await self.agents_by_code[agent_code].process(state)
+            await self.agents_by_code[agent_id].process(state)
         state["phase"] = ResearchPhase.COMPLETED.value
         return state
 

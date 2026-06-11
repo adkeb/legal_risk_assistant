@@ -15,6 +15,12 @@ import uuid
 from pathlib import Path
 
 from app.service.deep_research_v2.artifact_schemas import make_envelope
+from app.service.deep_research_v2.agents.workflow_utils import (
+    EVIDENCE_CATALOG,
+    LEGAL_ANALYSIS_DRAFT,
+    SCOPE_DEFINITION,
+    SOURCE_VERIFICATION,
+)
 from app.service.deep_research_v2.graph import DeepResearchGraph
 
 
@@ -25,12 +31,33 @@ QUERY = (
 
 
 async def run_full_flow() -> dict:
+    import app.service.deep_research_v2.agents.source_verification as source_module
+
+    def _fake_legal_search(query, max_results=5, include_raw_content=True, bocha_api_key=None):
+        return {
+            "query": query,
+            "attempts": [{"provider": "tavily", "query": query, "status": "ok", "result_count": 1, "error": ""}],
+            "providers_used": ["tavily"],
+            "tool_errors": 0,
+            "results": [{
+                "provider": "tavily",
+                "query": query,
+                "title": "中华人民共和国民法典",
+                "url": "https://example.test/civil-code",
+                "content": "民法典合同编相关条文。",
+                "raw_content": "民法典合同编相关条文。",
+                "published_date": "",
+                "error": "",
+            }],
+        }
+
+    source_module.perform_legal_search = _fake_legal_search
     graph = DeepResearchGraph(max_iterations=1)
 
     async def _mock_llm(self, *args, **kwargs):
-        if getattr(self, "agent_code", "") == "A1":
+        if getattr(self, "agent_id", "") == SCOPE_DEFINITION:
             return make_envelope(
-                agent="A1",
+                agent=SCOPE_DEFINITION,
                 artifact_id="scope_brief",
                 writes={
                     "task_type": "procurement_contract_delivery_default_risk",
@@ -48,10 +75,10 @@ async def run_full_flow() -> dict:
                     "clarification_questions": ["标的金额是多少？", "交付逾期会造成哪些业务损失？", "合同是否有催告和验收条款？"],
                     "human_review": {"required": False, "reasons": []},
                 },
-                next_agent="A2",
+                next_agent=SOURCE_VERIFICATION,
                 reason="mock procurement scope",
             )
-        if getattr(self, "agent_code", "") == "A2":
+        if getattr(self, "agent_id", "") == SOURCE_VERIFICATION:
             sources = [
                 ("I01", "S01", "中华人民共和国民法典", "第五百七十七条", "当事人一方不履行合同义务或者履行合同义务不符合约定的，应当承担继续履行、采取补救措施或者赔偿损失等违约责任。"),
                 ("I02", "S02", "中华人民共和国民法典", "第五百八十五条", "当事人可以约定一方违约时应当根据违约情况向对方支付一定数额的违约金，也可以约定因违约产生的损失赔偿额的计算方法。"),
@@ -59,7 +86,7 @@ async def run_full_flow() -> dict:
                 ("I04", "S04", "中华人民共和国民法典", "第五百零九条", "当事人应当按照约定全面履行自己的义务。当事人应当遵循诚信原则，根据合同的性质、目的和交易习惯履行通知、协助、保密等义务。"),
             ]
             return make_envelope(
-                agent="A2",
+                agent=SOURCE_VERIFICATION,
                 artifact_id="source_pack",
                 writes={
                     "issue_sources": [{
@@ -83,7 +110,7 @@ async def run_full_flow() -> dict:
                     } for issue_id, source_id, title, article, quote in sources],
                     "unresolved_source_gaps": [],
                 },
-                next_agent="A3",
+                next_agent=EVIDENCE_CATALOG,
                 reason="mock source pack",
             )
         raise RuntimeError("External LLM disabled for deterministic full-flow test.")

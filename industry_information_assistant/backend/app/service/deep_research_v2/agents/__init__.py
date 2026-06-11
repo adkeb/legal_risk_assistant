@@ -4,13 +4,11 @@
 """Five-agent legal-risk workflow exports."""
 
 from .base import BaseAgent, AgentRegistry
-from .legal_workflow import (
-    ScopeDefinitionAgent,
-    SourceVerificationAgent,
-    EvidenceCatalogAgent,
-    LegalAnalysisDraftAgent,
-    QualityRoutingAgent,
-)
+from .scope_definition import ScopeDefinitionAgent
+from .source_verification import SourceVerificationAgent
+from .evidence_catalog import EvidenceCatalogAgent
+from .legal_analysis_draft import LegalAnalysisDraftAgent
+from .quality_routing import QualityRoutingAgent
 
 __all__ = [
     "BaseAgent",

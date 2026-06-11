@@ -1,10 +1,10 @@
 """Live API full-flow test for the legal-risk DeepResearch agent.
 
 Required environment variables:
-- DASHSCOPE_API_KEY: OpenAI-compatible LLM API key
+- LLM_API_KEY or DASHSCOPE_API_KEY: OpenAI-compatible LLM API key
 - LLM_BASE_URL: OpenAI-compatible base URL
 - LLM_MODEL: model name used by every DeepResearch agent
-- BOCHA_API_KEY: Bocha web-search API key
+- TAVILY_API_KEY: Tavily web-search API key
 """
 
 from __future__ import annotations
@@ -51,10 +51,11 @@ def write_json(path: Path, data: dict) -> None:
 
 
 async def main() -> None:
-    require_env("DASHSCOPE_API_KEY")
+    if not (os.getenv("LLM_API_KEY") or os.getenv("DASHSCOPE_API_KEY")):
+        raise RuntimeError("Missing required environment variable: LLM_API_KEY or DASHSCOPE_API_KEY")
     require_env("LLM_BASE_URL")
     require_env("LLM_MODEL")
-    require_env("BOCHA_API_KEY")
+    require_env("TAVILY_API_KEY")
 
     config = reload_config()
     session_id = f"legal-live-api-{uuid.uuid4().hex[:8]}"
@@ -89,7 +90,7 @@ async def main() -> None:
     references = complete.get("references", [])
 
     checks = {
-        "has_disclaimer": "不构成正式法律意见" in report,
+        "has_final_note": report.strip().endswith("AI生成，仅供参考"),
         "has_overdue_delivery": "逾期交付" in report,
         "has_liquidated_damages": "违约金" in report,
         "has_loss_compensation": "损失赔偿" in report or "赔偿" in report,
@@ -121,8 +122,8 @@ async def main() -> None:
 
     if len(report) < 1000:
         raise AssertionError(f"Report is too short: {len(report)} chars")
-    if not checks["has_disclaimer"]:
-        raise AssertionError("Report is missing mandatory legal disclaimer")
+    if not checks["has_final_note"]:
+        raise AssertionError("Report is missing mandatory final AI note")
     if complete.get("facts_count", 0) <= 0 and len(references) <= 0:
         raise AssertionError("Report completed without facts or references")
 

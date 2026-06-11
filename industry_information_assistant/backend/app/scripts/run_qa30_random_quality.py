@@ -33,7 +33,8 @@ from app.service.deep_research_v2.graph import DeepResearchGraph  # noqa: E402
 INTERNAL_TERMS = [
     "source_pack", "evidence_matrix", "scope_brief", "analysis_draft", "qa_verdict",
     "Source Pack", "Evidence Matrix", "Scope Brief", "Analysis Draft", "QA Verdict",
-    "artifact", "Artifact", "工件", "A1", "A2", "A3", "A4", "A5",
+    "artifact", "Artifact", "工件",
+    "scope_definition", "source_verification", "evidence_catalog", "legal_analysis_draft", "quality_routing",
 ]
 FINAL_AI_NOTE = "AI生成，仅供参考"
 OVER_DISCLAIMER_TERMS = ["免责声明", "不构成正式法律意见", "诉讼代理意见", "监管机关最终认定结论"]
