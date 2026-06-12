@@ -2,15 +2,6 @@
 # 未经授权，禁止转售或仿制。
 
 from .database import get_db, SessionLocal, engine, Base
-from .security import (
-    verify_password,
-    get_password_hash,
-    create_access_token,
-    decode_token,
-    Token,
-    TokenData,
-)
-from .redis_client import cache, get_redis_client, RedisCache
 
 __all__ = [
     "get_db",
@@ -27,3 +18,22 @@ __all__ = [
     "get_redis_client",
     "RedisCache",
 ]
+
+
+def __getattr__(name: str):
+    if name in {
+        "verify_password",
+        "get_password_hash",
+        "create_access_token",
+        "decode_token",
+        "Token",
+        "TokenData",
+    }:
+        from . import security
+
+        return getattr(security, name)
+    if name in {"cache", "get_redis_client", "RedisCache"}:
+        from . import redis_client
+
+        return getattr(redis_client, name)
+    raise AttributeError(f"module 'core' has no attribute {name!r}")

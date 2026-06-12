@@ -20,11 +20,65 @@ export interface KBDocument {
   filename: string
   file_type?: string
   file_size?: number
-  status: 'pending' | 'processing' | 'completed' | 'failed'
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'review_required'
   chunk_count: number
   error_message?: string
   created_at: string
   updated_at: string
+}
+
+export interface DocumentStatusPage {
+  page_no: number
+  status: string
+  parser_method?: string
+  quality_score?: number
+  text_layer_chars?: number
+  ocr_chars?: number
+}
+
+export interface DocumentJobStatus {
+  id: string
+  status: string
+  current_stage?: string
+  retry_count: number
+  error_message?: string
+  parser_version?: string
+  file_hash?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface DocumentStatusResponse {
+  document: KBDocument
+  job?: DocumentJobStatus
+  progress: {
+    total_pages: number
+    processed_pages: number
+    chunk_count: number
+  }
+  pages: DocumentStatusPage[]
+}
+
+export interface DocumentArtifactPage {
+  page_no: number
+  status: string
+  parser_method?: string
+  quality_score?: number
+  image_path?: string
+  ocr_json_path?: string
+  ocr_text_path?: string
+  ocr_text?: string
+  spotting_json_path?: string
+  box_image_path?: string
+  quality_json_path?: string
+  quality_report?: Record<string, unknown>
+}
+
+export interface DocumentArtifactsResponse {
+  document_id: string
+  filename: string
+  artifact_root: string
+  pages: DocumentArtifactPage[]
 }
 
 export interface KnowledgeBaseWithDocuments extends KnowledgeBase {
@@ -111,6 +165,26 @@ export function getDocuments(kbId: string) {
  */
 export function deleteDocument(kbId: string, docId: string) {
   return request.delete(`/knowledge-bases/${kbId}/documents/${docId}`)
+}
+
+export function getDocumentStatus(kbId: string, docId: string) {
+  return request.get<DocumentStatusResponse>(`/knowledge-bases/${kbId}/documents/${docId}/status`, {
+    loading: false,
+  })
+}
+
+export function retryDocument(kbId: string, docId: string) {
+  return request.post<{ document_id: string; job_id: string; status: string; message: string }>(
+    `/knowledge-bases/${kbId}/documents/${docId}/retry`,
+    {},
+    { loading: false }
+  )
+}
+
+export function getDocumentArtifacts(kbId: string, docId: string) {
+  return request.get<DocumentArtifactsResponse>(`/knowledge-bases/${kbId}/documents/${docId}/artifacts`, {
+    loading: false,
+  })
 }
 
 /**

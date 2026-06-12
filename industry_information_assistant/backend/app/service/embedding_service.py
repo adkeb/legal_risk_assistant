@@ -14,9 +14,6 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 import numpy as np
 from openai import OpenAI
-from llama_index.core.data_structs import Node
-from llama_index.core.schema import NodeWithScore
-from llama_index.postprocessor.dashscope_rerank import DashScopeRerank
 
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
@@ -133,6 +130,14 @@ def rerank_similarity(
         return np.array([]), None
 
     top_n = top_n or len(texts)
+
+    try:
+        from llama_index.core.data_structs import Node
+        from llama_index.core.schema import NodeWithScore
+        from llama_index.postprocessor.dashscope_rerank import DashScopeRerank
+    except Exception as e:
+        print(f"DashScope Rerank 依赖不可用: {e}")
+        return np.array([]), None
 
     # 创建节点列表
     nodes = [NodeWithScore(node=Node(text=text), score=1.0) for text in texts]

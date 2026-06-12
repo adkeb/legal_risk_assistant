@@ -43,7 +43,7 @@ class DocumentResponse(BaseModel):
     filename: str = Field(..., description="文件名")
     file_type: Optional[str] = Field(None, description="文件类型")
     file_size: Optional[int] = Field(None, description="文件大小(字节)")
-    status: str = Field(..., description="处理状态: pending, processing, completed, failed")
+    status: str = Field(..., description="处理状态: pending, processing, completed, failed, review_required")
     chunk_count: int = Field(0, description="切片数量")
     error_message: Optional[str] = Field(None, description="错误信息")
     created_at: datetime = Field(..., description="创建时间")

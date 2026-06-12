@@ -3,7 +3,7 @@
 
 from .user import User
 from .chat import ChatSession, ChatMessage, ChatAttachment, LongTermMemory
-from .knowledge import KnowledgeBase, Document
+from .knowledge import KnowledgeBase, Document, DocumentJob, DocumentPage, DocumentChunk
 from .research import ResearchCheckpoint
 
 __all__ = [
@@ -14,5 +14,8 @@ __all__ = [
     "LongTermMemory",
     "KnowledgeBase",
     "Document",
+    "DocumentJob",
+    "DocumentPage",
+    "DocumentChunk",
     "ResearchCheckpoint",
 ]

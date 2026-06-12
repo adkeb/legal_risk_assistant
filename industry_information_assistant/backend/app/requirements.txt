@@ -6,6 +6,8 @@ python-multipart==0.0.11
 requests==2.32.3
 dotenv==0.9.9
 httpx==0.28.1
+redis>=5.0.0
+celery>=5.3.0
 xgboost
 beartype
 python-docx
@@ -37,10 +39,12 @@ jieba
 llama-index-core
 llama-index-postprocessor-dashscope-rerank-custom
 dashscope
-paddlepaddle==3.3.1
+paddlepaddle-gpu==3.3.1
 paddleocr==3.6.0
 paddlex[ocr]==3.6.1
 modelscope==1.37.1
+mineru[pipeline]==3.3.1
+accelerate>=1.14.0
 apscheduler>=3.10.0
 sqlalchemy>=2.0.0
 psycopg2-binary>=2.9.0

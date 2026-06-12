@@ -27,7 +27,8 @@ from core.database import engine, Base
 # 导入所有模型以确保它们被注册
 from models import (
     User, ChatSession, ChatMessage, ChatAttachment, LongTermMemory,
-    KnowledgeBase, Document, ResearchCheckpoint
+    KnowledgeBase, Document, DocumentJob, DocumentPage, DocumentChunk,
+    ResearchCheckpoint
 )
 
 # 创建所有数据表（如果不存在）

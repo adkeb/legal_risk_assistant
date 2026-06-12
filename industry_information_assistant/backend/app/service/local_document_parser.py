@@ -12,6 +12,8 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Iterable, List, Optional, Sequence
 
+from service.mineru_document_parser import parse_with_mineru_hybrid
+
 
 TEXT_EXTENSIONS = {
     ".txt",
@@ -75,7 +77,7 @@ def parse_document(file_path: str, file_name: Optional[str] = None) -> ParseResu
         text = _ocr_image_paths([path], warnings)
         return ParseResult(
             text=_normalize_text(text),
-            method="image:paddleocr_vl",
+            method="image:mineru_hybrid_medium",
             file_type=ext,
             page_count=1,
             ocr_pages=1,
@@ -119,7 +121,7 @@ def _extract_pdf(path: Path, ext: str) -> ParseResult:
         raise LocalDocumentParseError("PDF text extraction and OCR returned empty content.")
     return ParseResult(
         text=_normalize_text(text),
-        method="pdf:ocr:paddleocr_vl",
+        method="pdf:ocr:mineru_hybrid_medium",
         file_type=ext,
         page_count=page_count or ocr_pages,
         ocr_pages=ocr_pages,
@@ -170,6 +172,10 @@ def _extract_pdf_with_pdfplumber(path: Path, warnings: List[str]) -> str:
 
 
 def _extract_pdf_with_ocr(path: Path, warnings: List[str]) -> tuple[str, int]:
+    backend = os.getenv("LOCAL_OCR_BACKEND", "mineru_hybrid_medium").strip().lower()
+    if backend in {"", "mineru", "mineru_hybrid", "mineru_hybrid_medium", "hybrid_medium"}:
+        return _ocr_pdf_with_mineru_hybrid(path, warnings)
+
     if not shutil.which("pdftoppm"):
         raise LocalDocumentParseError(
             "Scanned PDF requires pdftoppm to render pages before OCR."
@@ -195,6 +201,20 @@ def _extract_pdf_with_ocr(path: Path, warnings: List[str]) -> tuple[str, int]:
         if max_pages > 0:
             warnings.append(f"OCR limited to first {max_pages} PDF pages.")
         return _ocr_image_paths(image_paths, warnings), len(image_paths)
+
+
+def _ocr_pdf_with_mineru_hybrid(path: Path, warnings: List[str]) -> tuple[str, int]:
+    max_pages = _env_int("LOCAL_OCR_MAX_PAGES", 0)
+    with tempfile.TemporaryDirectory(prefix="local_pdf_mineru_") as tmp_dir:
+        try:
+            result = parse_with_mineru_hybrid(path, output_dir=Path(tmp_dir) / "mineru_hybrid")
+        except Exception as exc:
+            raise LocalDocumentParseError(f"MinerU hybrid OCR failed for PDF {path.name}: {exc}") from exc
+        pages = result.pages[:max_pages] if max_pages > 0 else result.pages
+        if max_pages > 0 and len(result.pages) > max_pages:
+            warnings.append(f"OCR output limited to first {max_pages} PDF pages.")
+        text = "\n\n".join((page.markdown.strip() or page.text.strip()) for page in pages if (page.markdown.strip() or page.text.strip()))
+        return text, len(pages)
 
 
 def _count_pdf_pages(path: Path, warnings: List[str]) -> int:
@@ -339,12 +359,32 @@ def _html_to_text(value: str) -> str:
 
 
 def _ocr_image_paths(image_paths: Sequence[Path], warnings: List[str]) -> str:
-    backend = os.getenv("LOCAL_OCR_BACKEND", "paddleocr_vl").strip().lower()
-    if backend in {"", "paddleocr_vl", "paddle_vl", "vl"}:
+    backend = os.getenv("LOCAL_OCR_BACKEND", "mineru_hybrid_medium").strip().lower()
+    if backend in {"", "mineru", "mineru_hybrid", "mineru_hybrid_medium", "hybrid_medium"}:
+        return _ocr_with_mineru_hybrid(image_paths, warnings)
+    if backend in {"paddleocr_vl", "paddle_vl", "vl"}:
         return _ocr_with_paddleocr_vl(image_paths)
     if backend in {"paddleocr", "paddle"}:
         return _ocr_with_classic_paddleocr(image_paths)
     raise LocalDocumentParseError(f"Unsupported LOCAL_OCR_BACKEND: {backend}")
+
+
+def _ocr_with_mineru_hybrid(image_paths: Sequence[Path], warnings: List[str]) -> str:
+    page_texts: List[str] = []
+    with tempfile.TemporaryDirectory(prefix="local_mineru_ocr_") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        for index, image_path in enumerate(image_paths, start=1):
+            try:
+                result = parse_with_mineru_hybrid(image_path, output_dir=tmp_root / f"page_{index}")
+            except Exception as exc:
+                raise LocalDocumentParseError(f"MinerU hybrid OCR failed for {image_path.name}: {exc}") from exc
+            for page in result.pages:
+                text = page.markdown.strip() or page.text.strip()
+                if text:
+                    page_texts.append(text)
+    if not page_texts:
+        warnings.append("MinerU hybrid OCR returned empty text.")
+    return "\n\n".join(page_texts)
 
 
 def _ocr_with_paddleocr_vl(image_paths: Sequence[Path]) -> str:

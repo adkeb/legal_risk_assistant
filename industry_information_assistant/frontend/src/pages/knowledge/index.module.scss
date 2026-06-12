@@ -59,6 +59,61 @@
   }
 }
 
+.artifact-review {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.artifact-path {
+  margin-bottom: 0 !important;
+  padding: 8px 10px;
+  background: #f6f8f7;
+  border-radius: 6px;
+  word-break: break-all;
+}
+
+.artifact-page {
+  padding: 12px;
+  border: 1px solid rgba(31, 42, 38, 0.1);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.artifact-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.artifact-path-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+
+  :global(.ant-typography) {
+    margin-bottom: 0;
+    font-size: 12px;
+    word-break: break-all;
+  }
+}
+
+.artifact-text {
+  max-height: 260px;
+  overflow: auto;
+  margin: 10px 0 0;
+  padding: 10px;
+  background: #10201c;
+  color: #f4f7f5;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 .kb-list {
   .card-grid {
     display: grid;

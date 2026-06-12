@@ -30,10 +30,12 @@ import {
   ArrowLeftOutlined,
   ReloadOutlined,
   EyeOutlined,
+  FileSearchOutlined,
 } from '@ant-design/icons'
 import { useSnapshot } from 'valtio'
 import { knowledgeState, knowledgeActions, KnowledgeBase, KBDocument } from '@/store/knowledge'
 import { authState } from '@/store/auth'
+import * as knowledgeApi from '@/api/knowledge'
 import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -52,6 +54,7 @@ const STATUS_MAP: Record<string, { color: string; text: string }> = {
   processing: { color: 'processing', text: '处理中' },
   completed: { color: 'success', text: '已完成' },
   failed: { color: 'error', text: '处理失败' },
+  review_required: { color: 'warning', text: '待复核' },
 }
 
 export default function KnowledgePage() {
@@ -73,6 +76,9 @@ export default function KnowledgePage() {
   // 切片查看抽屉状态
   const [chunksDrawerOpen, setChunksDrawerOpen] = useState(false)
   const [selectedDoc, setSelectedDoc] = useState<{ id: string; filename: string } | null>(null)
+  const [artifactsModalOpen, setArtifactsModalOpen] = useState(false)
+  const [artifactsLoading, setArtifactsLoading] = useState(false)
+  const [artifactsData, setArtifactsData] = useState<knowledgeApi.DocumentArtifactsResponse | null>(null)
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -219,6 +225,32 @@ export default function KnowledgePage() {
       message.success('文档删除成功')
     } catch (error: any) {
       message.error(error?.response?.data?.detail || '删除失败')
+    }
+  }
+
+  const handleRetryDocument = async (doc: KBDocument) => {
+    if (!currentKnowledgeBase) return
+    try {
+      await knowledgeApi.retryDocument(currentKnowledgeBase.id, doc.id)
+      message.success('已重新投递入库任务')
+      await knowledgeActions.refreshDocuments(currentKnowledgeBase.id)
+    } catch (error: any) {
+      message.error(error?.response?.data?.detail || '重试失败')
+    }
+  }
+
+  const handleViewArtifacts = async (doc: KBDocument) => {
+    if (!currentKnowledgeBase) return
+    setArtifactsModalOpen(true)
+    setArtifactsLoading(true)
+    setArtifactsData(null)
+    try {
+      const res = await knowledgeApi.getDocumentArtifacts(currentKnowledgeBase.id, doc.id)
+      setArtifactsData(res.data)
+    } catch (error: any) {
+      message.error(error?.response?.data?.detail || '获取复核材料失败')
+    } finally {
+      setArtifactsLoading(false)
     }
   }
 
@@ -370,6 +402,30 @@ export default function KnowledgePage() {
                 <List.Item
                   className={styles['doc-item']}
                   actions={[
+                    ...(doc.status === 'review_required'
+                      ? [
+                          <Button
+                            key="artifacts"
+                            type="text"
+                            size="small"
+                            icon={<FileSearchOutlined />}
+                            onClick={() => handleViewArtifacts(doc)}
+                            title="查看复核材料"
+                          />,
+                        ]
+                      : []),
+                    ...(doc.status === 'failed' || doc.status === 'review_required'
+                      ? [
+                          <Button
+                            key="retry"
+                            type="text"
+                            size="small"
+                            icon={<ReloadOutlined />}
+                            onClick={() => handleRetryDocument(doc)}
+                            title="重试入库"
+                          />,
+                        ]
+                      : []),
                     <Button
                       key="view"
                       type="text"
@@ -413,6 +469,16 @@ export default function KnowledgePage() {
                         )}
                         {doc.status === 'processing' && (
                           <Progress percent={30} size="small" style={{ width: 100 }} />
+                        )}
+                        {doc.status === 'pending' && (
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            等待 worker 处理
+                          </Text>
+                        )}
+                        {doc.status === 'review_required' && (
+                          <Text type="warning" style={{ fontSize: 12 }}>
+                            需要人工复核 OCR 质量
+                          </Text>
                         )}
                         {doc.status === 'failed' && doc.error_message && (
                           <Text type="danger" style={{ fontSize: 12 }}>
@@ -514,6 +580,60 @@ export default function KnowledgePage() {
         filename={uploadingFile}
         onClose={handleCloseUploadModal}
       />
+
+      <Modal
+        title="OCR 复核材料"
+        open={artifactsModalOpen}
+        onCancel={() => {
+          setArtifactsModalOpen(false)
+          setArtifactsData(null)
+        }}
+        footer={[
+          <Button key="close" onClick={() => setArtifactsModalOpen(false)}>
+            关闭
+          </Button>,
+        ]}
+        width={860}
+      >
+        <Spin spinning={artifactsLoading}>
+          {artifactsData ? (
+            <div className={styles['artifact-review']}>
+              <Text strong>{artifactsData.filename}</Text>
+              <Paragraph copyable className={styles['artifact-path']}>
+                {artifactsData.artifact_root}
+              </Paragraph>
+              {artifactsData.pages.length === 0 ? (
+                <Empty description="暂无页级复核材料" />
+              ) : (
+                artifactsData.pages.map((page) => (
+                  <div key={page.page_no} className={styles['artifact-page']}>
+                    <div className={styles['artifact-page-header']}>
+                      <Tag color={STATUS_MAP[page.status]?.color || 'default'}>
+                        第 {page.page_no} 页 · {STATUS_MAP[page.status]?.text || page.status}
+                      </Tag>
+                      <Text type="secondary">
+                        {page.parser_method || 'unknown'} · 质量分 {page.quality_score ?? '-'}
+                      </Text>
+                    </div>
+                    <div className={styles['artifact-path-grid']}>
+                      <Paragraph copyable>原图：{page.image_path || '-'}</Paragraph>
+                      <Paragraph copyable>框图：{page.box_image_path || '-'}</Paragraph>
+                      <Paragraph copyable>OCR JSON：{page.ocr_json_path || '-'}</Paragraph>
+                      <Paragraph copyable>Spotting JSON：{page.spotting_json_path || '-'}</Paragraph>
+                      <Paragraph copyable>质量报告：{page.quality_json_path || '-'}</Paragraph>
+                    </div>
+                    {page.ocr_text && (
+                      <pre className={styles['artifact-text']}>{page.ocr_text}</pre>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          ) : (
+            !artifactsLoading && <Empty description="暂无复核材料" />
+          )}
+        </Spin>
+      </Modal>
 
       {/* 切片查看抽屉 */}
       <ChunksDrawer
